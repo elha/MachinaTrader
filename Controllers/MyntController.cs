@@ -80,12 +80,8 @@ namespace MyntUI.Controllers
     public async Task<IActionResult> Statistic()
     {
       // Create Statistic model
-      var stat = new Statistics()
-      {
-        
-      };
+      var stat = new Statistics();
 
-      
       // Get winner/loser currencies
       var coins = new Dictionary<string, decimal?>();
       foreach (var cT in await Globals.GlobalDataStore.GetClosedTradesAsync())

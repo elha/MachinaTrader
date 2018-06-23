@@ -76,12 +76,38 @@ namespace MyntUI
 
       // Creating TradeManager 
       Globals.GlobalExchangeApi = new BaseExchange(exchangeOptions);
-      ILogger paperTradeLogger = Globals.GlobalLoggerFactory.CreateLogger<PaperTradeManager>();
-      PaperTradeManager paperTradeManager = new PaperTradeManager(new BaseExchange(exchangeOptions), new FreqClassic(), new SignalrNotificationManager(), paperTradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
-      var runTimer = new MyntHostedService(paperTradeManager, Globals.GlobalMyntHostedServiceOptions);
 
-      // Start task
-      await runTimer.StartAsync(Globals.GlobalTimerCancellationToken);
+
+      // Get TradeOptions
+      var tradeOptions = Startup.Configuration.GetSection("TradeOptions").Get<TradeOptions>();
+      //var tradeOptions = Globals.GlobalConfiguration.Get<TradeOptions>();
+
+      // Get Strategy from appsettings.overrides.json
+      var type = Type.GetType($"Mynt.Core.Strategies.{tradeOptions.DefaultStrategy}, Mynt.Core", true, true);
+      var strategy = Activator.CreateInstance(type) as ITradingStrategy ?? new TheScalper();
+
+      // Trading mode
+        if (tradeOptions.PaperTrade)
+        {
+            // PaperTrader
+            ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<PaperTradeManager>();
+            PaperTradeManager paperTradeManager = new PaperTradeManager(new BaseExchange(exchangeOptions), strategy, new SignalrNotificationManager(), tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
+            var runTimer = new MyntHostedService(paperTradeManager, Globals.GlobalMyntHostedServiceOptions);
+
+            // Start task
+            await runTimer.StartAsync(Globals.GlobalTimerCancellationToken);
+        }
+        else
+        {
+            // LiveTrader
+            ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<LiveTradeManager>();
+            LiveTradeManager liveTradeManager = new LiveTradeManager(new BaseExchange(exchangeOptions), strategy, new SignalrNotificationManager(), tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
+            var runTimer = new MyntHostedService(liveTradeManager, Globals.GlobalMyntHostedServiceOptions);
+
+            // Start task
+            await runTimer.StartAsync(Globals.GlobalTimerCancellationToken);
+        }
+          
     }
 
     /// <summary>
