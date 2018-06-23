@@ -61,7 +61,7 @@ namespace MyntUI.Controllers
                         trader.ActiveTrade.TickerLast = await Globals.GlobalExchangeApi.GetTicker(actT.Market);
                         trader.ActiveTrade.OpenProfit = actT.OpenRate - trader.ActiveTrade.TickerLast.Last;
                         trader.ActiveTrade.OpenProfitPercentage =
-                          ((100 * trader.ActiveTrade.TickerLast.Last) / actT.OpenRate) - 100;
+                            ((100 * trader.ActiveTrade.TickerLast.Last) / actT.OpenRate) - 100;
                     }
                 }
 
@@ -74,17 +74,12 @@ namespace MyntUI.Controllers
             return new JsonResult(ViewBag);
         }
 
-
         [HttpGet]
         [Route("statistics")]
         public async Task<IActionResult> Statistic()
         {
             // Create Statistic model
-            var stat = new Statistics()
-            {
-
-            };
-
+            var stat = new Statistics();
 
             // Get winner/loser currencies
             var coins = new Dictionary<string, decimal?>();
@@ -98,7 +93,8 @@ namespace MyntUI.Controllers
 
                 // Profit-loss
                 if (cT.CloseProfit != null) stat.ProfitLoss = stat.ProfitLoss + cT.CloseProfit.Value;
-                if (cT.CloseProfitPercentage != null) stat.ProfitLossPercentage = stat.ProfitLossPercentage + cT.CloseProfitPercentage.Value;
+                if (cT.CloseProfitPercentage != null)
+                    stat.ProfitLossPercentage = stat.ProfitLossPercentage + cT.CloseProfitPercentage.Value;
             }
 
             // Coin performance
@@ -108,40 +104,8 @@ namespace MyntUI.Controllers
             ViewBag.tradeOptions = Startup.Configuration.GetSection("TradeOptions").Get<TradeOptions>();
             ViewBag.stat = stat;
 
-<<<<<<< HEAD
-    [HttpGet]
-    [Route("statistics")]
-    public async Task<IActionResult> Statistic()
-    {
-      // Create Statistic model
-      var stat = new Statistics();
-
-      // Get winner/loser currencies
-      var coins = new Dictionary<string, decimal?>();
-      foreach (var cT in await Globals.GlobalDataStore.GetClosedTradesAsync())
-      {
-        // Get profit per currency
-        if (coins.ContainsKey(cT.Market))
-          coins[cT.Market] = coins[cT.Market].Value + cT.CloseProfitPercentage;
-        else
-          coins.Add(cT.Market, cT.CloseProfitPercentage);
-
-        // Profit-loss
-        if (cT.CloseProfit != null) stat.ProfitLoss = stat.ProfitLoss + cT.CloseProfit.Value;
-        if (cT.CloseProfitPercentage != null) stat.ProfitLossPercentage = stat.ProfitLossPercentage + cT.CloseProfitPercentage.Value;
-      }
-
-      // Coin performance
-      stat.CoinPerformance = coins.ToList().OrderByDescending(c => c.Value);
-
-      // Create some viewbags
-      ViewBag.tradeOptions = Startup.Configuration.GetSection("TradeOptions").Get<TradeOptions>();
-      ViewBag.stat = stat;
-
-      return new JsonResult(ViewBag);
-=======
             return new JsonResult(ViewBag);
+
         }
->>>>>>> 129322884c9bd3efa50c8b069b2e79bfd7e7f2d0
     }
 }
