@@ -30,7 +30,7 @@ namespace MyntUI.Controllers
         [Route("dashboard")]
         public async Task<IActionResult> Dashboard()
         {
-            var tradeOptions = Startup.Configuration.GetSection("TradeOptions").Get<TradeOptions>();
+            var tradeOptions = Globals.GlobalTradeOptions;
 
             ViewBag.quoteCurrency = tradeOptions.QuoteCurrency;
             // Get active trades
@@ -60,8 +60,7 @@ namespace MyntUI.Controllers
                         // Get Tickers
                         trader.ActiveTrade.TickerLast = await Globals.GlobalExchangeApi.GetTicker(actT.Market);
                         trader.ActiveTrade.OpenProfit = actT.OpenRate - trader.ActiveTrade.TickerLast.Last;
-                        trader.ActiveTrade.OpenProfitPercentage =
-                            ((100 * trader.ActiveTrade.TickerLast.Last) / actT.OpenRate) - 100;
+                        trader.ActiveTrade.OpenProfitPercentage = ((100 * trader.ActiveTrade.TickerLast.Last) / actT.OpenRate) - 100;
                     }
                 }
 

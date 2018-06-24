@@ -15,5 +15,4 @@ namespace MyntUI
             Startup.RunWebHost();
         }
     }
-
 }
