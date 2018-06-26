@@ -1,0 +1,118 @@
+<script src="/vendors/moment/js/moment-with-locales.min.js"></script>
+<script src="/js/DisplayHelper.js"></script>
+
+<div class="animated fadeIn" id="myntLogs" v-if="myntLogsData">
+    <h3 class="mt-5">Logs</h3>
+    <p v-if="myntLogsData.log == null">No Logs!</p>
+
+    <p v-if="myntLogsData.log.length == 0">No Logs!</p>
+    <div class="row" v-if="myntLogsData.log.length > 0">
+        <template v-for="(value, key, index) in myntLogsData.log">
+            <div class="col-12">
+                {{myntLogsData.log[key]}}
+            </div>
+        </template>
+    </div>
+</div>
+
+
+
+<script src="/vendors/vue/js/vue.min.js"></script>
+
+
+<script>
+  var pagefunction = function () {
+  };
+
+  var myntLogs = new Vue({
+    el: '#myntLogs',
+
+    data: {
+      myntLogsData: null
+    },
+
+    created: function () {
+      this.connectSignalr();
+      this.fetchData();
+    },
+    
+    mounted: function () {
+        this.$nextTick(function() {
+            // Code that will run only after the
+            // entire view has been rendered
+            displayhelper();
+        });
+    },
+
+    methods: {
+      connectSignalr: function () {
+        var self = this;
+        let hubRoute = "/signalr/HubMyntLogs";
+        let protocol = new signalR.JsonHubProtocol();
+        var options = {};
+
+        var connection = new signalR.HubConnectionBuilder()
+          //.configureLogging(signalR.LogLevel.Trace)
+          .withUrl(hubRoute, options)
+          .withHubProtocol(protocol)
+          .build();
+
+        var connectSignalr = function () {
+          connection.start().then(function () {
+            //Make sure to register this signalr client - Needed for disconnect on page change
+            addSignalrClient(hubRoute, connection);
+          }).catch(function (err) {
+            console.log(err);
+          });
+        };
+
+        var reconnectSignalr = function () {
+          console.log(signalrConnections);
+          if (signalrConnections[hubRoute] != null) {
+            setTimeout(function () {
+              console.log("reconnnect");
+              connectSignalr();
+            }, 5000);
+          }
+        }
+
+        connection.on('Send', function (msg) {
+          console.log("Msg from signalR: " + msg);
+          self.updateData();
+        });
+
+        connection.onclose(function (e) {
+          if (e) {
+            console.log('Connection closed with error: ' + e);
+          }
+          else {
+            console.log('Disconnected');
+          }
+          //Reconnect -> This connection should never be offline
+          reconnectSignalr();
+        });
+
+        connectSignalr();
+      },
+
+      fetchData: function () {
+        var self = this;
+          $.get("/api/mynt/logs/", function (data) {
+          self.myntLogsData = data;
+          self.$nextTick(function () {
+            pagefunction();
+          });
+        });
+      },
+      updateData: function () {
+          var self = this;
+          $.get("/api/mynt/logs/", function (data) {
+          self.myntLogsData = data;
+        });
+      },
+      moment: function (data) {
+        return moment(data).format("YYYY-MM-DD HH:mm:ss");
+      },
+    }
+  });
+</script>

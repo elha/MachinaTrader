@@ -38,7 +38,9 @@ namespace MyntUI
     public static ILoggerFactory GlobalLoggerFactory { get; set; }
     public static CancellationToken GlobalTimerCancellationToken = new CancellationToken();
     public static IHubContext<HubMyntTraders> GlobalHubMyntTraders;
+    public static IHubContext<HubMyntTrades> GlobalHubMyntTrades;
     public static IHubContext<HubMyntStatistics> GlobalHubMyntStatistics;
+    public static IHubContext<HubMyntLogs> GlobalHubMyntLogs;
     public static JObject RuntimeSettings = new JObject();
     public static TelegramNotificationOptions GlobalTelegramNotificationOptions { get; set; }
 
@@ -79,12 +81,14 @@ namespace MyntUI
         LiteDBOptions databaseOptions = new LiteDBOptions();
         Globals.GlobalDataStore = new LiteDBDataStore(databaseOptions);
 
-        // Global Hubs
+            // Global Hubs
         Globals.GlobalHubMyntTraders = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntTraders>>();
+        Globals.GlobalHubMyntTrades = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntTrades>>();
         Globals.GlobalHubMyntStatistics = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntStatistics>>();
-            
-        // Get Strategy from appsettings.overrides.json
-        var type = Type.GetType($"Mynt.Core.Strategies.{Globals.GlobalTradeOptions.DefaultStrategy}, Mynt.Core", true, true);
+        Globals.GlobalHubMyntLogs = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntLogs>>();
+
+            // Get Strategy from appsettings.overrides.json
+            var type = Type.GetType($"Mynt.Core.Strategies.{Globals.GlobalTradeOptions.DefaultStrategy}, Mynt.Core", true, true);
         var strategy = Activator.CreateInstance(type) as ITradingStrategy ?? new TheScalper();
 
         // Trading mode  Configuration.GetSection("Telegram").Get<TelegramNotificationOptions>()) 

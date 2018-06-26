@@ -23,12 +23,12 @@ namespace MyntUI.Controllers
         }
     }
 
-    [Route("api/mynt/traders")]
+    [Route("api/mynt/")]
     public class MyntApiController : Controller
     {
         [HttpGet]
-        [Route("dashboard")]
-        public async Task<IActionResult> Dashboard()
+        [Route("trading/traders")]
+        public async Task<IActionResult> Traders()
         {
             var tradeOptions = Globals.GlobalTradeOptions;
 
@@ -42,7 +42,7 @@ namespace MyntUI.Controllers
 
             // Get Traders
             var traders = await Globals.GlobalDataStore.GetTradersAsync();
-            ViewBag.traders = traders;
+            
 
             // Check if Trader has active trade
             foreach (var trader in traders)
@@ -67,15 +67,36 @@ namespace MyntUI.Controllers
                 // Check Profit/Loss
                 trader.ProfitLoss = ((100 * trader.CurrentBalance) / trader.StakeAmount) - 100;
             }
+            ViewBag.traders = traders;
 
-            ViewBag.closedTrades = await Globals.GlobalDataStore.GetClosedTradesAsync();
 
             return new JsonResult(ViewBag);
         }
 
         [HttpGet]
-        [Route("statistics")]
-        public async Task<IActionResult> Statistic()
+        [Route("trading/trades")]
+        public async Task<IActionResult> Trades()
+        {
+            // Get trades
+            var activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
+            ViewBag.closedTrades = await Globals.GlobalDataStore.GetClosedTradesAsync();
+
+            // Get information for active trade
+            foreach (var actT in activeTrades)
+            {
+                // Get Tickers
+                actT.TickerLast = await Globals.GlobalExchangeApi.GetTicker(actT.Market);
+                actT.OpenProfit = actT.OpenRate - actT.TickerLast.Last;
+                actT.OpenProfitPercentage = ((100 * actT.TickerLast.Last) / actT.OpenRate) - 100;
+            }
+            ViewBag.activeTrades = activeTrades;
+
+            return new JsonResult(ViewBag);
+        }
+
+        [HttpGet]
+        [Route("trading/statistics")]
+        public async Task<IActionResult> Statistics()
         {
             // Create Statistic model
             var stat = new Statistics();
@@ -104,7 +125,19 @@ namespace MyntUI.Controllers
             ViewBag.stat = stat;
 
             return new JsonResult(ViewBag);
+        }
 
+        /// <summary>
+        /// Logs
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("logs")]
+        public IActionResult Logs()
+        {
+            var log = Log.ReadTail("Logs/Mynt-" + DateTime.Now.ToString("yyyyMMdd") + ".log", 100);
+            ViewBag.log = log;
+            return new JsonResult(ViewBag);
         }
     }
 }
