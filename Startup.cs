@@ -119,6 +119,7 @@ namespace MyntUI
                 routes.MapHub<HubMyntTrades>("/signalr/HubMyntTrades");
                 routes.MapHub<HubMyntStatistics>("/signalr/HubMyntStatistics");
                 routes.MapHub<HubMyntLogs>("/signalr/HubMyntLogs");
+                routes.MapHub<HubMyntBacktest>("/signalr/HubMyntBacktest");
             });
 
             app.UseMvc();
