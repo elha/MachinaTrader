@@ -122,8 +122,8 @@ namespace MyntUI.Controllers
             BacktestOptions backtestOptions = new BacktestOptions();
             backtestOptions.Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true);
             backtestOptions.Coins = coins;
-            backtestOptions.CandlePeriod = 5;
-
+            backtestOptions.CandlePeriod = 15;
+            
             foreach (var strategy in BacktestFunctions.GetTradingStrategies())
             {
                 var result = await BacktestFunctions.BackTestJson(strategy, backtestOptions, Globals.GlobalDataStoreBacktest);

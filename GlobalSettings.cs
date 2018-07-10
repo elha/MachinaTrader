@@ -108,7 +108,7 @@ namespace MyntUI
         {
             // PaperTrader
             ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<PaperTradeManager>();
-            var paperTradeManager = new PaperTradeManager(Globals.GlobalExchangeApi, strategy, notificationManagers[0], tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
+            var paperTradeManager = new PaperTradeManager(Globals.GlobalExchangeApi, strategy, notificationManagers, tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
             var runTimer = new MyntHostedService(paperTradeManager, Globals.GlobalMyntHostedServiceOptions);
 
             // Start task
@@ -118,7 +118,7 @@ namespace MyntUI
         {
             // LiveTrader
             ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<LiveTradeManager>();
-            var liveTradeManager = new LiveTradeManager(Globals.GlobalExchangeApi, strategy, notificationManagers[0], tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
+            var liveTradeManager = new LiveTradeManager(Globals.GlobalExchangeApi, strategy, notificationManagers, tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
             var runTimer = new MyntHostedService(liveTradeManager, Globals.GlobalMyntHostedServiceOptions);
 
             // Start task
