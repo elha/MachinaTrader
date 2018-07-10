@@ -85,7 +85,12 @@
     "stylelint-config-recommended-scss": "^3.2.0",
     "stylelint-config-standard": "^18.2.0",
     "stylelint-order": "^0.8.1",
-    "stylelint-scss": "^3.1.0"
+    "stylelint-scss": "^3.1.0",
+    "select2": "^4.0.6-rc.1",
+    "axios": "^0.18.0",
+    "datatables.net": "^1.10.16",
+    "datatables.net-bs4": "^1.10.16",
+    "datatables.net-responsive-bs4": "^2.2.1"
   },
   "engines": {
     "node": ">=6"
