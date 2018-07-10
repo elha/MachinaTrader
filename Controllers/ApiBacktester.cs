@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using ExchangeSharp;
 using Microsoft.AspNetCore.Authorization;
@@ -124,7 +125,7 @@ namespace MyntUI.Controllers
     public class ApiBacktesterDisplay : Controller
     {
         [HttpGet]
-        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string candleSize = "5")
+        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string candleSize = "5", string strategy = "all")
         {
             JObject strategies = new JObject();
 
@@ -141,9 +142,18 @@ namespace MyntUI.Controllers
             backtestOptions.Coins = coins;
             backtestOptions.CandlePeriod = Int32.Parse(candleSize);
 
-            foreach (var strategy in BacktestFunctions.GetTradingStrategies())
+
+            foreach (var tradingStrategy in BacktestFunctions.GetTradingStrategies())
             {
-                var result = await BacktestFunctions.BackTestJson(strategy, backtestOptions, Globals.GlobalDataStoreBacktest);
+                if (strategy != "all")
+                {
+                    var base64EncodedBytes = Convert.FromBase64String(strategy);
+                    if (tradingStrategy.Name != Encoding.UTF8.GetString(base64EncodedBytes))
+                    {
+                        continue;
+                    }
+                }
+                var result = await BacktestFunctions.BackTestJson(tradingStrategy, backtestOptions, Globals.GlobalDataStoreBacktest);
                 await Globals.GlobalHubMyntBacktest.Clients.All.SendAsync("Send", JsonConvert.SerializeObject(result[0]));
             }
             return new JsonResult(strategies);
