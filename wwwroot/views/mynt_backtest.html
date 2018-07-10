@@ -103,6 +103,7 @@
                         <label for="candleAge" class="col-3 col-form-label">Candles Size:</label>
                         <div class='col-9 input-group date' id='candleAge'>
                             <select name="display" id="candleSize" class="selectpicker" data-width="auto">
+                                <option value="1" data-icon="fas fa-clock">&nbsp;&nbsp;1 minute</option>
                                 <option value="5" data-icon="fas fa-clock">&nbsp;&nbsp;5 minutes</option>
                                 <option value="15" data-icon="fas fa-clock">&nbsp;&nbsp;15 minutes</option>
                                 <option value="30" data-icon="fas fa-clock">&nbsp;&nbsp;30 minutes</option>
@@ -121,7 +122,7 @@
                     <div class="form-group row">
                         <label for="exchangeCoinsId" class="col-3 col-form-label">Coin:</label>
                         <div class='col-9 input-group date' id='exchangeCoinsId'>
-                            <select name="display" id="currencyToCheck" class="selectpicker" data-live-search="true" data-size="10" data-width="auto">
+                            <select name="display" id="currencyToCheck" class="select2-multiple" data-live-search="true" data-size="10" data-width="auto">
                                 <option v-for="(value, key) in exchangeCoinsData" v-bind:value="value" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{value}}</option>
                             </select>
                         </div>
@@ -149,7 +150,11 @@
                         <div class="form-group row">
                             <label for="exchangeCoinsAvailableData" class="col-3 col-form-label">Available Data:</label>
                             <div class='col-9 col-form-label' id='exchangeCoinsAvailableData'>
-                                {{formatDate(candleAgeData[0]["FirstCandleDate"])}} to {{formatDate(candleAgeData[0]["LastCandleDate"])}}
+                                <template v-for="(value, key) in candleAgeData">
+                                    {{candleAgeData[key]["Coin"]}}: {{formatDate(candleAgeData[key]["FirstCandleDate"])}} to {{formatDate(candleAgeData[key]["LastCandleDate"])}}
+                                    <br />
+                                </template>
+                                
                             </div>
                         </div>
                     </template>
@@ -221,6 +226,14 @@
             width: "100%"
         });
 
+        $('.select2-multiple').select2({
+            multiple: true,
+            theme: "bootstrap",
+            templateResult: selectPickerImage,
+            templateSelection: selectPickerImage,
+            width: "100%"
+        })
+
         $('#exchangeSelect').change(function () {
             widgetBackendTester.updateSymbols();
         });
@@ -254,7 +267,7 @@
             dataArray = new Array();
         }
 
-        axios.get('/api/trading/backtester?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val()).then((response) => {
+        axios.get('/api/trading/backtester?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val()).then((response) => {
         }).catch((error) => {
             console.log(error);
         });
