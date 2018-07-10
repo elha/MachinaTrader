@@ -61,7 +61,7 @@
 
     "Hosting":
     {
-        "BuyTimer": "0/5 * * * *",
+        "BuyTimer": "0/1 * * * *",
         "SellTimer": "0 * * * *"
     },
 

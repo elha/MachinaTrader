@@ -111,13 +111,13 @@ namespace MyntUI
                 //var runTimer = new MyntHostedService(paperTradeManager, Globals.GlobalMyntHostedServiceOptions);
 
                 ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<BacktestTradeManager>();
-                var backtestTradeManager = new BacktestTradeManager(Globals.GlobalExchangeApi,
+                var paperTradeManager = new BacktestTradeManager(Globals.GlobalExchangeApi,
                                                                   strategy,
                                                                   notificationManagers[0],
                                                                   tradeLogger,
                                                                   Globals.GlobalTradeOptions,
                                                                   Globals.GlobalDataStore);
-                var runTimer = new MyntHostedService(backtestTradeManager, Globals.GlobalMyntHostedServiceOptions);
+                var runTimer = new MyntHostedService(paperTradeManager, Globals.GlobalMyntHostedServiceOptions);
 
                 // Start task
                 await runTimer.StartAsync(Globals.GlobalTimerCancellationToken);

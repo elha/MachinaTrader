@@ -93,31 +93,16 @@ namespace MyntUI
 
             // Trading mode  Configuration.GetSection("Telegram").Get<TelegramNotificationOptions>()) 
             var notificationManagers = new List<INotificationManager>()
-            {
-                new SignalrNotificationManager(),
-                new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
-            };
-
+        {
+            new SignalrNotificationManager(),
+            new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
+        };
             if (Globals.GlobalTradeOptions.PaperTrade)
             {
                 // PaperTrader
-                //ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<PaperTradeManager>();
-                //var paperTradeManager = new PaperTradeManager(Globals.GlobalExchangeApi,
-                //                                              strategy,
-                //                                              notificationManagers[0],
-                //                                              tradeLogger,
-                //                                              Globals.GlobalTradeOptions,
-                //                                              Globals.GlobalDataStore);
-                //var runTimer = new MyntHostedService(paperTradeManager, Globals.GlobalMyntHostedServiceOptions);
-
-                ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<BacktestTradeManager>();
-                var backtestTradeManager = new BacktestTradeManager(Globals.GlobalExchangeApi,
-                                                                  strategy,
-                                                                  notificationManagers[0],
-                                                                  tradeLogger,
-                                                                  Globals.GlobalTradeOptions,
-                                                                  Globals.GlobalDataStore);
-                var runTimer = new MyntHostedService(backtestTradeManager, Globals.GlobalMyntHostedServiceOptions);
+                ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<PaperTradeManager>();
+                var paperTradeManager = new PaperTradeManager(Globals.GlobalExchangeApi, strategy, notificationManagers[0], tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
+                var runTimer = new MyntHostedService(paperTradeManager, Globals.GlobalMyntHostedServiceOptions);
 
                 // Start task
                 await runTimer.StartAsync(Globals.GlobalTimerCancellationToken);
@@ -126,12 +111,7 @@ namespace MyntUI
             {
                 // LiveTrader
                 ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<LiveTradeManager>();
-                var liveTradeManager = new LiveTradeManager(Globals.GlobalExchangeApi,
-                                                            strategy,
-                                                            notificationManagers[0],
-                                                            tradeLogger,
-                                                            Globals.GlobalTradeOptions,
-                                                            Globals.GlobalDataStore);
+                var liveTradeManager = new LiveTradeManager(Globals.GlobalExchangeApi, strategy, notificationManagers[0], tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
                 var runTimer = new MyntHostedService(liveTradeManager, Globals.GlobalMyntHostedServiceOptions);
 
                 // Start task
