@@ -86,9 +86,9 @@
 
             <div class="row card-body-header">
                 <div class="col-3">
-                    <select name="display" class="selectpicker">
+                    <select id="tradingStrategy" name="tradingStrategy" class="selectpicker">
                         <option value="all" data-icon="fas fa-star">&nbsp;&nbsp;Test all Strategies</option>
-                        <option v-for="(value, key) in allStrategiesData" v-bind:value="allStrategiesData[key]['Name']" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{allStrategiesData[key]['Name']}}</option>
+                        <option v-for="(value, key) in allStrategiesData" v-bind:value="btoa(allStrategiesData[key]['Name'])" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{allStrategiesData[key]['Name']}}</option>
                     </select>
                 </div>
                 <div class="col-1">
@@ -103,13 +103,14 @@
                         <label for="candleAge" class="col-3 col-form-label">Candles Size:</label>
                         <div class='col-9 input-group date' id='candleAge'>
                             <select name="display" id="candleSize" class="selectpicker" data-width="auto">
+                                <option value="1" data-icon="fas fa-clock">&nbsp;&nbsp;1 minute</option>
+                                <option value="5" data-icon="fas fa-clock">&nbsp;&nbsp;5 minutes</option>
                                 <option value="15" data-icon="fas fa-clock">&nbsp;&nbsp;15 minutes</option>
                                 <option value="30" data-icon="fas fa-clock">&nbsp;&nbsp;30 minutes</option>
                                 <option value="60" data-icon="fas fa-clock">&nbsp;&nbsp;1 hour</option>
                                 <option value="120" data-icon="fas fa-clock">&nbsp;&nbsp;2 hours</option>
                                 <option value="240" data-icon="fas fa-clock">&nbsp;&nbsp;4 hours</option>
                                 <option value="1440" data-icon="fas fa-clock">&nbsp;&nbsp;1 day</option>
-                                <option value="5" data-icon="fas fa-clock">&nbsp;&nbsp;5 minutes</option>
                             </select>
                         </div>
                     </div>
@@ -121,7 +122,7 @@
                     <div class="form-group row">
                         <label for="exchangeCoinsId" class="col-3 col-form-label">Coin:</label>
                         <div class='col-9 input-group date' id='exchangeCoinsId'>
-                            <select name="display" id="currencyToCheck" class="selectpicker" data-live-search="true" data-size="10" data-width="auto">
+                            <select name="display" id="currencyToCheck" class="select2-multiple" data-live-search="true" data-size="10" data-width="auto">
                                 <option v-for="(value, key) in exchangeCoinsData" v-bind:value="value" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{value}}</option>
                             </select>
                         </div>
@@ -133,7 +134,6 @@
                         <label for="exchangeExchangeId" class="col-3 col-form-label">Exchange:</label>
                         <div class='col-9 input-group date' id='exchangeExchangeId'>
                             <select name="display" id="exchangeSelect" class="selectpicker">
-                                <option value="gdax" data-image="/img/exchange/">Gdax</option>
                                 <option value="binance" data-image="/img/exchange/binance.png">Binance</option>
                                 <option value="bittrex" data-image="/img/exchange/bittrex.png">Bittrex</option>
                                 <option value="poloniex" data-image="/img/exchange/poloniex.png">Poloniex</option>
@@ -150,7 +150,11 @@
                         <div class="form-group row">
                             <label for="exchangeCoinsAvailableData" class="col-3 col-form-label">Available Data:</label>
                             <div class='col-9 col-form-label' id='exchangeCoinsAvailableData'>
-                                {{formatDate(candleAgeData[0]["FirstCandleDate"])}} to {{formatDate(candleAgeData[0]["LastCandleDate"])}}
+                                <template v-for="(value, key) in candleAgeData">
+                                    {{candleAgeData[key]["Coin"]}}: {{formatDate(candleAgeData[key]["FirstCandleDate"])}} to {{formatDate(candleAgeData[key]["LastCandleDate"])}}
+                                    <br />
+                                </template>
+                                
                             </div>
                         </div>
                     </template>
@@ -222,6 +226,14 @@
             width: "100%"
         });
 
+        $('.select2-multiple').select2({
+            multiple: true,
+            theme: "bootstrap",
+            templateResult: selectPickerImage,
+            templateSelection: selectPickerImage,
+            width: "100%"
+        })
+
         $('#exchangeSelect').change(function () {
             widgetBackendTester.updateSymbols();
         });
@@ -255,7 +267,7 @@
             dataArray = new Array();
         }
 
-        axios.get('/api/trading/backtester?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val()).then((response) => {
+        axios.get('/api/trading/backtester?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&strategy=' + $("#tradingStrategy").val()).then((response) => {
         }).catch((error) => {
             console.log(error);
         });

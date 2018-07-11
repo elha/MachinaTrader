@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using ExchangeSharp;
 using Microsoft.AspNetCore.Authorization;
@@ -37,9 +38,18 @@ namespace MyntUI.Controllers
         [HttpGet]
         public async Task<ActionResult> Get(string exchange, string coinsToBuy, string candleSize = "5")
         {
+
+            List<string> coins = new List<string>();
+            Char delimiter = ',';
+            String[] coinsToBuyArray = coinsToBuy.Split(delimiter);
+            foreach (var coin in coinsToBuyArray)
+            {
+                coins.Add(coin.ToUpper());
+            }
+
             BacktestOptions backtestOptions = new BacktestOptions();
             backtestOptions.Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true);
-            backtestOptions.Coins = new List<string>(new[] { coinsToBuy });
+            backtestOptions.Coins = coins;
             backtestOptions.CandlePeriod = Int32.Parse(candleSize);
             JObject result = new JObject();
             result["result"] = await DataRefresher.GetCacheAge(backtestOptions, Globals.GlobalDataStoreBacktest);
@@ -54,9 +64,17 @@ namespace MyntUI.Controllers
         [HttpGet]
         public async Task<ActionResult> Get(string exchange, string coinsToBuy, string candleSize = "5")
         {
+            List<string> coins = new List<string>();
+            Char delimiter = ',';
+            String[] coinsToBuyArray = coinsToBuy.Split(delimiter);
+            foreach (var coin in coinsToBuyArray)
+            {
+                coins.Add(coin.ToUpper());
+            }
+
             BacktestOptions backtestOptions = new BacktestOptions();
             backtestOptions.Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true);
-            backtestOptions.Coins = new List<string>(new[] { coinsToBuy });
+            backtestOptions.Coins = coins;
             backtestOptions.CandlePeriod = Int32.Parse(candleSize);
 
             await DataRefresher.RefreshCandleData(x => Console.WriteLine(x), backtestOptions, Globals.GlobalDataStoreBacktest);
@@ -107,7 +125,7 @@ namespace MyntUI.Controllers
     public class ApiBacktesterDisplay : Controller
     {
         [HttpGet]
-        public async Task<ActionResult> Get(string exchange, string coinsToBuy)
+        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string candleSize = "5", string strategy = "all")
         {
             JObject strategies = new JObject();
 
@@ -122,12 +140,20 @@ namespace MyntUI.Controllers
             BacktestOptions backtestOptions = new BacktestOptions();
             backtestOptions.Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true);
             backtestOptions.Coins = coins;
-            backtestOptions.CandlePeriod = 15;
-            backtestOptions.StakeAmount = 150;
+            backtestOptions.CandlePeriod = Int32.Parse(candleSize);
 
-            foreach (var strategy in BacktestFunctions.GetTradingStrategies())
+
+            foreach (var tradingStrategy in BacktestFunctions.GetTradingStrategies())
             {
-                var result = await BacktestFunctions.BackTestJson(strategy, backtestOptions, Globals.GlobalDataStoreBacktest);
+                if (strategy != "all")
+                {
+                    var base64EncodedBytes = Convert.FromBase64String(strategy);
+                    if (tradingStrategy.Name != Encoding.UTF8.GetString(base64EncodedBytes))
+                    {
+                        continue;
+                    }
+                }
+                var result = await BacktestFunctions.BackTestJson(tradingStrategy, backtestOptions, Globals.GlobalDataStoreBacktest);
                 await Globals.GlobalHubMyntBacktest.Clients.All.SendAsync("Send", JsonConvert.SerializeObject(result[0]));
             }
             return new JsonResult(strategies);
