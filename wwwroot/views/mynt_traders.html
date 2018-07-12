@@ -1,20 +1,20 @@
 <script src="/vendors/moment/js/moment-with-locales.min.js"></script>
 <script src="/js/DisplayHelper.js"></script>
 
-<div class="animated fadeIn" id="myntTraders" v-if="myntTradersData">
+<div class="animated fadeIn" id="myntTraders" v-if="myntTradersData && myntActiveTradersData">
     <h3 class="mt-5">Traders</h3>
-    <p v-if="myntTradersData.traders.length == 0">No traders!</p>
+    <p v-if="myntTradersData.length == 0">No traders!</p>
 
     <!-- Active traders-->
     <h4 class="mt-5">Active Traders</h4>
-    <div class="row" v-if="myntTradersData.traders.length > 0">
-        <template v-for="(value, key, index) in myntTradersData.traders">
-            <div class="col-lg-3 col-md-4 col-sm-6" v-if="myntTradersData.traders[key].activeTrade != null">
+    <div class="row">
+        <template v-for="(value, key, index) in myntTradersData" v-if="myntTradersData[key].isBusy">
+            <div class="col-12 col-sm-6 col-md-6 col-lg-4">
                 <div class="card text-white bg-primary trader">
                     <div class="card-body">
                         <div class="row">
                             <div class="col-8">
-                                <h4 class="card-title">Trader {{myntTradersData.traders[key].identifier}}</h4>
+                                <h5 class="card-title">Trader {{myntTradersData[key].identifier}}</h5>
                             </div>
                             <div class="col-4">
                                 <!--<a href="#" class="btn btn-success btn-xs">! Sell now</a>-->
@@ -23,26 +23,20 @@
                         <div class="row">
                             <div class="col-4">
                                 <div>Balance</div>
-                                <b>{{parseFloat(myntTradersData.traders[key].currentBalance).toFixed(4)}} {{myntTradersData.quoteCurrency}}</b>
+                                <b>{{parseFloat(myntTradersData[key].currentBalance).toFixed(4)}}</b>
                             </div>
                             <div class="col-4">
                                 <div>Profit</div>
-                                <div class="activetrade" v-if="myntTradersData.activeTrades == null">No active trade</div>
-
-                                <div class="activetrade" v-if="myntTradersData.activeTrades.length > 0">
-                                    <template v-if="myntTradersData.activeTrades[key]">
-                                        {{parseFloat(myntTradersData.activeTrades[key].openProfitPercentage).toFixed(5)}} %
-                                    </template>
-                                    <!-- ToDo -->
-                                    <!--<div class="currencyStyle">@trade.Market</div>-->
-                                </div>
+                                <template v-if="myntActiveTradersData[myntTradersData[key].identifier].TickerLast">
+                                    {{parseFloat(((100 * myntActiveTradersData[myntTradersData[key].identifier].TickerLast.Last) / myntActiveTradersData[myntTradersData[key].identifier].OpenRate) - 100).toFixed(2)}} %
+                                </template>
                             </div>
                             <div class="col-4">
                                 <div>Trading</div>
                                 <div>
                                     <span class="currencyStyle">
-                                        <template v-if="myntTradersData.activeTrades[key]">
-                                            {{myntTradersData.activeTrades[key].market}}
+                                        <template v-if="myntActiveTradersData[myntTradersData[key].identifier]">
+                                            {{myntActiveTradersData[myntTradersData[key].identifier].Market}}
                                         </template>
                                     </span>
                                 </div>
@@ -56,14 +50,14 @@
 
     <!-- Inactive traders-->
     <h4 class="mt-5">Inactive Traders</h4>
-    <div class="row" v-if="myntTradersData.traders.length > 0">
-        <template v-for="(value, key, index) in myntTradersData.traders">
-            <div class="col-4" v-if="myntTradersData.traders[key].activeTrade == null">
+    <div class="row">
+        <template v-for="(value, key, index) in myntTradersData" v-if="!myntTradersData[key].isBusy">
+            <div class="col-4">
                 <div class="card text-white bg-primary trader">
                     <div class="card-body">
                         <div class="row">
                             <div class="col-8">
-                                <h4 class="card-title">Trader {{myntTradersData.traders[key].identifier}}</h4>
+                                <h4 class="card-title">Trader {{myntTradersData[key].identifier}}</h4>
                             </div>
                             <div class="col-4">
                                 <!--<a href="#" class="btn btn-success btn-xs">! Sell now</a>-->
@@ -72,21 +66,11 @@
                         <div class="row">
                             <div class="col-4">
                                 <div>Balance</div>
-                                <b>{{parseFloat(myntTradersData.traders[key].currentBalance).toFixed(4)}} {{myntTradersData.quoteCurrency}}</b>
+                                <b>{{parseFloat(myntTradersData[key].currentBalance).toFixed(4)}}</b>
                             </div>
                             <div class="col-4">
                                 <div>Profit</div>
                                 <div class="">No trade</div>
-                            </div>
-                            <div class="col-4">
-                                <div>Trading</div>
-                                <div>
-                                    <span class="currencyStyle">
-                                        <template v-if="myntTradersData.activeTrades[key]">
-                                            {{myntTradersData.activeTrades[key].market}}
-                                        </template>
-                                    </span>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -109,7 +93,8 @@
     el: '#myntTraders',
 
     data: {
-      myntTradersData: null
+        myntTradersData: null,
+        myntActiveTradersData: null
     },
 
     created: function () {
@@ -178,17 +163,24 @@
 
       fetchData: function () {
         var self = this;
-          $.get("/api/mynt/trading/traders/", function (data) {
+        $.get("/api/mynt/trading/Traders", function (data) {
           self.myntTradersData = data;
-          self.$nextTick(function () {
-            pagefunction();
-          });
+            $.get("/api/mynt/trading/ActiveTradesWithTrader", function (activeTraderData) {
+                self.myntActiveTradersData = activeTraderData;
+                self.$nextTick(function () {
+                    pagefunction();
+                });
+            });
         });
+
       },
       updateData: function () {
         var self = this;
-          $.get("/api/mynt/trading/traders/", function (data) {
-          self.myntTradersData = data;
+        $.get("/api/mynt/trading/Traders", function (data) {
+            self.myntTradersData = data;
+            $.get("/api/mynt/trading/ActiveTradesWithTrader", function (activeTraderData) {
+                self.myntActiveTradersData = activeTraderData;
+            });
         });
       },
       moment: function (data) {

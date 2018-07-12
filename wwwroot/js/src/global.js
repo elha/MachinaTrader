@@ -1,6 +1,30 @@
 // Wire up signalr and js intervals -> preparePage() is hooked from navigation script on page change
 /* eslint-disable */
 
+function selectPickerImage(opt) {
+    if (!opt.id) {
+        return opt.text;
+    }
+    var optimage = $(opt.element).data('image');
+    var opticon = $(opt.element).data('icon');
+    if (!optimage && !opticon) {
+        return opt.text;
+    }
+    if (optimage) {
+        var $opt = $(
+            '<span class="userName"><img style="width: 16px;" src="' + optimage + '" class="dropdownImage" />&nbsp;&nbsp;' + $(opt.element).text() + '</span>'
+        );
+        return $opt;
+    }
+    if (opticon) {
+        var $opt = $(
+            '<span class="userName"><i class="' + opticon + '"/></i>&nbsp;&nbsp;' + $(opt.element).text() + '</span>'
+        );
+        return $opt;
+    }
+};
+
+
 const jsInterval = {}
 const signalrConnections = {}
 

@@ -1,11 +1,13 @@
 <script src="/vendors/moment/js/moment-with-locales.min.js"></script>
 <script src="/js/DisplayHelper.js"></script>
 
-<div class="animated fadeIn" id="myntTrades" v-if="myntTradesData">
+
+<div class="animated fadeIn" id="myntTrades">
+
+<div v-if="activeTradesData">
   <h3 class="mt-5">Active Trades</h3>
-  <p v-if="myntTradesData.activeTrades == null">No active trades!</p>
-  <p v-if="myntTradesData.activeTrades.length == 0">No active trades!</p>
-  <template v-if="myntTradesData.activeTrades.length > 0">
+  <p v-if="activeTradesData.lenght === 0">No active trades!</p>
+  <template>
     <div class="whiteblock">
       <table class="table table-hover table-sm" id="activeTrades" style="width: 100%">
         <thead>
@@ -16,29 +18,45 @@
             <th>Quantity</th>
             <th>Open rate</th>
             <th>Last price</th>
+            <th>Strategy</th>
             <th>Profit</th>
+            <th>Profit %</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(value, key, index) in myntTradesData.activeTrades">
-            <td>{{myntTradesData.activeTrades[key].traderId}}</td>
-            <td>{{moment(myntTradesData.activeTrades[key].openDate)}}</td>
-            <td>{{myntTradesData.activeTrades[key].market}}</td>
-            <td>{{parseFloat(myntTradesData.activeTrades[key].quantity).toFixed(3)}}</td>
-            <td>{{parseFloat(myntTradesData.activeTrades[key].openRate).toFixed(6)}}</td>
-            <td>{{parseFloat(myntTradesData.activeTrades[key].tickerLast.last).toFixed(6)}}</td>
-            <td>{{parseFloat(myntTradesData.activeTrades[key].tickerLast.last - myntTradesData.activeTrades[key].openRate).toFixed(6)}}</td>
+          <tr v-for="(value, key, index) in activeTradesData">
+              <td>{{activeTradesData[key].traderId}}</td>
+              <td>{{moment(activeTradesData[key].openDate)}}</td>
+              <td>{{activeTradesData[key].market}}</td>
+              <td>{{parseFloat(activeTradesData[key].quantity).toFixed(3)}}</td>
+              <td>{{parseFloat(activeTradesData[key].openRate).toFixed(6)}}</td>
+              <td>
+                  <template v-if="activeTradesData[key].tickerLast">
+                      {{parseFloat(activeTradesData[key].tickerLast.last).toFixed(6)}}
+                  </template>
+              </td>
+              <td>{{activeTradesData[key].strategyUsed}}</td>
+              <td>
+                  <template v-if="activeTradesData[key].tickerLast">
+                      {{parseFloat(activeTradesData[key].tickerLast.last - activeTradesData[key].openRate).toFixed(6)}}
+                  </template>
+              </td>
+              <td>
+                  <template v-if="activeTradesData[key].tickerLast">
+                      {{parseFloat(((100 * activeTradesData[key].tickerLast.last) / activeTradesData[key].openRate) - 100).toFixed(2)}} %
+                  </template>
+              </td>
           </tr>
         </tbody>
       </table>
     </div>
   </template>
+</div>
 
-
+<div v-if="closedTradesData">
   <h3 class="mt-5">Trade history</h3>
-  <p v-if="myntTradesData.closedTrades == null">No active trades!</p>
-  <p v-if="myntTradesData.closedTrades.length == 0">No closed trades!</p>
-  <template v-if="myntTradesData.closedTrades.length > 0">
+  <p v-if="closedTradesData.length === 0">No closed trades!</p>
+  <template>
     <div class="whiteblock">
       <table class="table table-hover table-sm" id="closedTrades" style="width: 100%">
         <thead>
@@ -52,21 +70,23 @@
             <th>Closed</th>
             <th>Profit</th>
             <th>Profit %</th>
+            <th>Strategy</th>
             <th>Reason</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(value, key, index) in myntTradesData.closedTrades">
-            <td>{{myntTradesData.closedTrades[key].traderId}}</td>
-            <td>{{moment(myntTradesData.closedTrades[key].openDate)}}</td>
-            <td>{{myntTradesData.closedTrades[key].market}}</td>
-            <td>{{myntTradesData.closedTrades[key].openRate}}</td>
-            <td>{{myntTradesData.closedTrades[key].quantity}}</td>
-            <td>{{myntTradesData.closedTrades[key].closeRate}}</td>
-            <td>{{moment(myntTradesData.closedTrades[key].closeDate)}}</td>
-            <td>{{myntTradesData.closedTrades[key].closeProfit}}</td>
-            <td>{{parseFloat(myntTradesData.closedTrades[key].closeProfitPercentage).toFixed(2)}} %</td>
-            <td>{{myntTradesData.closedTrades[key].sellType}}</td>
+          <tr v-for="(value, key, index) in closedTradesData">
+            <td>{{closedTradesData[key].traderId}}</td>
+            <td>{{moment(closedTradesData[key].openDate)}}</td>
+            <td>{{closedTradesData[key].market}}</td>
+            <td>{{closedTradesData[key].openRate}}</td>
+            <td>{{parseFloat(closedTradesData[key].quantity).toFixed(6)}}</td>
+            <td>{{closedTradesData[key].closeRate}}</td>
+            <td>{{moment(closedTradesData[key].closeDate)}}</td>
+            <td>{{parseFloat(closedTradesData[key].closeProfit).toFixed(6)}}</td>
+            <td>{{parseFloat(closedTradesData[key].closeProfitPercentage).toFixed(2)}} %</td>
+            <td>{{closedTradesData[key].strategyUsed}}</td>
+            <td>{{closedTradesData[key].sellType}}</td>
           </tr>
         </tbody>
       </table>
@@ -74,10 +94,8 @@
   </template>
 </div>
 
-
-
+</div>
 <script src="/vendors/vue/js/vue.min.js"></script>
-
 
 <script>
   var pagefunction = function () {
@@ -87,14 +105,15 @@
     el: '#myntTrades',
 
     data: {
-      myntTradesData: null
+      activeTradesData: null,
+      closedTradesData: null
     },
 
     created: function () {
       this.connectSignalr();
       this.fetchData();
     },
-    
+
     mounted: function () {
         this.$nextTick(function() {
             // Code that will run only after the
@@ -106,7 +125,7 @@
     methods: {
       connectSignalr: function () {
         var self = this;
-        let hubRoute = "/signalr/HubMyntTrades";
+        let hubRoute = "/signalr/HubMyntTraders";
         let protocol = new signalR.JsonHubProtocol();
         var options = {};
 
@@ -156,17 +175,22 @@
 
       fetchData: function () {
         var self = this;
-          $.get("/api/mynt/trading/trades/", function (data) {
-          self.myntTradesData = data;
-          self.$nextTick(function () {
-            pagefunction();
-          });
+        $.get("/api/mynt/trading/ActiveTrades", function (activeTradeData) {
+            self.activeTradesData = activeTradeData;
+            $.get("/api/mynt/trading/ClosedTrades", function (closedTradeData) {
+                self.closedTradesData = closedTradeData;
+                self.$nextTick(function () {
+                    pagefunction();
+                });
+            });
         });
       },
       updateData: function () {
-        var self = this;
-          $.get("/api/mynt/trading/trades/", function (data) {
-          self.myntTradesData = data;
+        $.get("/api/mynt/trading/ActiveTrades", function (activeTradeData) {
+            self.activeTradesData = activeTradeData;
+            $.get("/api/mynt/trading/ClosedTrades", function (closedTradeData) {
+                self.closedTradesData = closedTradeData;
+            });
         });
       },
       moment: function (data) {

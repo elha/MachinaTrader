@@ -7,91 +7,65 @@ using Microsoft.Extensions.Configuration;
 using Mynt.Core.Interfaces;
 using Mynt.Core.TradeManagers;
 using MyntUI.Models;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace MyntUI.Controllers
 {
 
-    [Route("api/mynt/tradersTester")]
-    public class MyntControllerTradersTester : Controller
+    [Route("api/mynt/")]
+    public class MyntApiController : Controller
     {
         [HttpGet]
+        [Route("trading/TradersTester")]
         public IActionResult MyntTradersTester()
         {
             JObject testJson = JObject.Parse(System.IO.File.ReadAllText("wwwroot/views/mynt_traders.json"));
             return new JsonResult(testJson);
         }
-    }
 
-    [Route("api/mynt/")]
-    public class MyntApiController : Controller
-    {
         [HttpGet]
-        [Route("trading/traders")]
+        [Route("trading/Traders")]
         public async Task<IActionResult> Traders()
         {
-            var tradeOptions = Globals.GlobalTradeOptions;
-
-            ViewBag.quoteCurrency = tradeOptions.QuoteCurrency;
-            // Get active trades
-            var activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
-            ViewBag.activeTrades = activeTrades;
-
-            // Get current prices
-            //ExchangeSharp.
-
-            // Get Traders
             var traders = await Globals.GlobalDataStore.GetTradersAsync();
-            
-
-            // Check if Trader has active trade
-            foreach (var trader in traders)
-            {
-                if (activeTrades.Count > 0)
-                {
-                    var activeTrade = activeTrades.Where(t => t.TraderId == trader.Identifier).ToList();
-                    if (activeTrade.Count >= 1)
-                    {
-                        trader.ActiveTrade = activeTrade.First();
-
-                        //Temp for shortened
-                        var actT = trader.ActiveTrade;
-
-                        // Get Tickers
-                        trader.ActiveTrade.TickerLast = await Globals.GlobalExchangeApi.GetTicker(actT.Market);
-                        trader.ActiveTrade.OpenProfit = actT.OpenRate - trader.ActiveTrade.TickerLast.Last;
-                        trader.ActiveTrade.OpenProfitPercentage = ((100 * trader.ActiveTrade.TickerLast.Last) / actT.OpenRate) - 100;
-                    }
-                }
-
-                // Check Profit/Loss
-                trader.ProfitLoss = ((100 * trader.CurrentBalance) / trader.StakeAmount) - 100;
-            }
-            ViewBag.traders = traders;
-
-
-            return new JsonResult(ViewBag);
+            return new JsonResult(traders);
         }
 
         [HttpGet]
-        [Route("trading/trades")]
-        public async Task<IActionResult> Trades()
+        [Route("trading/ActiveTradesWithTrader")]
+        public async Task<IActionResult> GetActiveTradesWithTrader()
         {
             // Get trades
             var activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
-            ViewBag.closedTrades = await Globals.GlobalDataStore.GetClosedTradesAsync();
+
+            JObject activeTradesJson = new JObject();
 
             // Get information for active trade
-            foreach (var actT in activeTrades)
+            foreach (var activeTrade in activeTrades)
             {
-                // Get Tickers
-                actT.TickerLast = await Globals.GlobalExchangeApi.GetTicker(actT.Market);
-                actT.OpenProfit = actT.OpenRate - actT.TickerLast.Last;
-                actT.OpenProfitPercentage = ((100 * actT.TickerLast.Last) / actT.OpenRate) - 100;
+                activeTradesJson[activeTrade.TraderId] = JObject.FromObject(activeTrade);
             }
-            ViewBag.activeTrades = activeTrades;
 
-            return new JsonResult(ViewBag);
+            return new JsonResult(activeTradesJson);
+        }
+
+        [HttpGet]
+        [Route("trading/ActiveTrades")]
+        public async Task<IActionResult> GetActiveTrades()
+        {
+            // Get trades
+            var activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
+            return new JsonResult(activeTrades);
+        }
+
+        [HttpGet]
+        [Route("trading/ClosedTrades")]
+        public async Task<IActionResult> GetClosedTrades()
+        {
+            // Get trades
+            var closedTrades = await Globals.GlobalDataStore.GetClosedTradesAsync();
+            return new JsonResult(closedTrades);
         }
 
         [HttpGet]
