@@ -22,9 +22,9 @@
   <link href="/vendors/@@fortawesome/fontawesome-free-webfonts/css/fa-brands.css" rel="stylesheet">
   <link href="/vendors/@@fortawesome/fontawesome-free-webfonts/css/fa-solid.css" rel="stylesheet">
   <link href="/vendors/simple-line-icons/css/simple-line-icons.css" rel="stylesheet">
-  <link href="/css/pace.min.css" rel="stylesheet">
   <!-- Main styles for this application-->
   <link href="/css/style.css" rel="stylesheet">
+  <link href="/vendors/select2/css/select2.min.css" rel="stylesheet" />
 </head>
 
 <body class="app header-fixed sidebar-fixed aside-menu-fixed sidebar-lg-show">
@@ -204,15 +204,8 @@
     <script src="/vendors/axios/js/axios.min.js"></script>
     <script src="/vendors/popper.js/js/popper.min.js"></script>
     <script src="/vendors/bootstrap/js/bootstrap.min.js"></script>
-    <script>
-      //Fix Pace interop with signalr
-      window.paceOptions = {
-        ajax: false,
-        restartOnRequestAfter: false
-      };
-    </script>
+    <script src="/vendors/select2/js/select2.min.js"></script>
     <script src="/vendors/@@aspnet/signalr/js/signalr.min.js"></script>
-    <script src="/vendors/pace-progress/js/pace.min.js"></script>
     <script src="/vendors/perfect-scrollbar/js/perfect-scrollbar.min.js"></script>
     <script src="/vendors/@@coreui/coreui/js/coreui.min.js"></script>
     <script src="/vendors/vue/js/vue.min.js"></script>
@@ -223,10 +216,6 @@
     </script>
 
     <script>
-      $(document).ajaxComplete(function () {
-        Pace.restart();
-      });
-
       let hubRoute = "/signalr/HubMainIndex";
       let protocol = new signalR.JsonHubProtocol();
       var options = {};

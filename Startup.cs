@@ -116,7 +116,6 @@ namespace MyntUI
             {
                 routes.MapHub<HubMainIndex>("/signalr/HubMainIndex");
                 routes.MapHub<HubMyntTraders>("/signalr/HubMyntTraders");
-                routes.MapHub<HubMyntTrades>("/signalr/HubMyntTrades");
                 routes.MapHub<HubMyntStatistics>("/signalr/HubMyntStatistics");
                 routes.MapHub<HubMyntLogs>("/signalr/HubMyntLogs");
                 routes.MapHub<HubMyntBacktest>("/signalr/HubMyntBacktest");

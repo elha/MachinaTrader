@@ -39,7 +39,6 @@ namespace MyntUI
     public static ILoggerFactory GlobalLoggerFactory { get; set; }
     public static CancellationToken GlobalTimerCancellationToken = new CancellationToken();
     public static IHubContext<HubMyntTraders> GlobalHubMyntTraders;
-    public static IHubContext<HubMyntTrades> GlobalHubMyntTrades;
     public static IHubContext<HubMyntStatistics> GlobalHubMyntStatistics;
     public static IHubContext<HubMyntLogs> GlobalHubMyntLogs;
     public static IHubContext<HubMyntBacktest> GlobalHubMyntBacktest;
@@ -89,7 +88,6 @@ namespace MyntUI
 
         // Global Hubs
         Globals.GlobalHubMyntTraders = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntTraders>>();
-        Globals.GlobalHubMyntTrades = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntTrades>>();
         Globals.GlobalHubMyntStatistics = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntStatistics>>();
         Globals.GlobalHubMyntLogs = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntLogs>>();
         Globals.GlobalHubMyntBacktest = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntBacktest>>();
