@@ -141,7 +141,7 @@ namespace MyntUI.Controllers
             backtestOptions.Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true);
             backtestOptions.Coins = coins;
             backtestOptions.CandlePeriod = Int32.Parse(candleSize);
-
+            backtestOptions.StakeAmount = 150;
 
             foreach (var tradingStrategy in BacktestFunctions.GetTradingStrategies())
             {

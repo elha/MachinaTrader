@@ -134,6 +134,7 @@
                         <label for="exchangeExchangeId" class="col-3 col-form-label">Exchange:</label>
                         <div class='col-9 input-group date' id='exchangeExchangeId'>
                             <select name="display" id="exchangeSelect" class="selectpicker">
+                                <option value="gdax" data-image="/img/exchange/gdax.png">Gdax</option>
                                 <option value="binance" data-image="/img/exchange/binance.png">Binance</option>
                                 <option value="bittrex" data-image="/img/exchange/bittrex.png">Bittrex</option>
                                 <option value="poloniex" data-image="/img/exchange/poloniex.png">Poloniex</option>
@@ -154,7 +155,7 @@
                                     {{candleAgeData[key]["Coin"]}}: {{formatDate(candleAgeData[key]["FirstCandleDate"])}} to {{formatDate(candleAgeData[key]["LastCandleDate"])}}
                                     <br />
                                 </template>
-                                
+
                             </div>
                         </div>
                     </template>
@@ -175,10 +176,370 @@
                 <table class="table table-striped p-0 table-hover" id="backtesterTableId"></table>
             </div>
 
+            <div class="row">                
+
+                <div class="col-md-8" id="charts">              
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            $("#SignalId").change(function () {
+                                var t = $(this).val();
+                                if (t !== "") {
+
+                                    var margin = { top: 20, right: 20, bottom: 100, left: 80 },
+                                        margin2 = { top: 620, right: 20, bottom: 20, left: 80 },
+                                        width = 1000 - margin.left - margin.right,
+                                        height = 700 - margin.top - margin.bottom,
+                                        height2 = 700 - margin2.top - margin2.bottom;
+
+                                    var parseDate = d3.timeParse("%Y-%m-%dT%H:%M:%S");
+
+                                    var x = techan.scale.financetime().range([0, width]);
+                                    var y = d3.scaleLinear().range([height, 0]);
+
+                                    var x2 = techan.scale.financetime().range([0, width]);
+                                    var y2 = d3.scaleLinear().range([height2, 0]);
+
+                                    var yVolume = d3.scaleLinear().range([y(0), y(0.3)]);
+
+                                    var brush = d3.brushX().extent([[0, 0], [width, height2]]).on("end", brushed);
+
+                                    var candlestick = techan.plot.candlestick().xScale(x).yScale(y);
+
+                                    var volume = techan.plot.volume().xScale(x).yScale(yVolume);
+
+                                    var close = techan.plot.close().xScale(x2).yScale(y2);
+
+                                    var sma0 = techan.plot.sma().xScale(x).yScale(y);
+                                    var sma1 = techan.plot.sma().xScale(x).yScale(y);
+                                    var ema2 = techan.plot.ema().xScale(x).yScale(y);
+                                    var ema3 = techan.plot.ema().xScale(x).yScale(y);
+
+                                    var plotLine1 = d3.line()
+                                        .defined(function (d) {
+                                            return !isNaN(d.open);
+                                        })
+                                        .x(function (d) {
+                                            return x(d.date);
+                                        })
+                                        .y(function (d) {
+                                            return y(d.line1);
+                                        });
+
+                                    var xAxis = d3.axisBottom(x);
+                                    var yAxis = d3.axisLeft(y);
+
+                                    var xAxis2 = d3.axisBottom(x2);
+                                    var yAxis2 = d3.axisLeft(y2).ticks(0);
+
+                                    var tradearrow = techan.plot.tradearrow()
+                                        .xScale(x)
+                                        .yScale(y)
+                                        .orient(function (d) {
+                                            if (d.type === 'buy') return "right";
+                                            if (d.type === 'sell') return "left";
+                                        });
+
+                                    var ohlcAnnotation = techan.plot.axisannotation().axis(yAxis).orient('left').format(d3.format(',.8'));
+
+                                    var timeAnnotation = techan.plot.axisannotation()
+                                        .axis(xAxis)
+                                        .orient('bottom')
+                                        .format(d3.timeFormat('%Y-%m-%dT%H:%M:%S'))
+                                        .width(65)
+                                        .translate([0, height]);
+
+                                    var crosshair = techan.plot.crosshair().xScale(x).yScale(y).xAnnotation(timeAnnotation).yAnnotation(ohlcAnnotation);
+
+                                    var bollinger = techan.plot.bollinger().xScale(x).yScale(y);
+                                    var macd = techan.plot.macd().xScale(x).yScale(y);
+
+                                    d3.select("svg").remove();
+
+                                    var svg = d3.select("#charts").append("svg")
+                                        .attr("width", width + margin.left + margin.right)
+                                        .attr("height", height + margin.top + margin.bottom);
+
+                                    var focus = svg.append("g")
+                                        .attr("class", "focus")
+                                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                                    focus.append("clipPath")
+                                        .attr("id", "clip")
+                                        .append("rect")
+                                        .attr("x", 0)
+                                        .attr("y", y(1))
+                                        .attr("width", width)
+                                        .attr("height", y(0) - y(1));
+
+                                    focus.append("g")
+                                        .attr("class", "bollinger")
+                                        .attr("clip-path", "url(#clip)");
+
+                                    focus.append("g")
+                                        .attr("class", "volume")
+                                        .attr("clip-path", "url(#clip)");
+
+                                    focus.append("g")
+                                        .attr("class", "candlestick")
+                                        .attr("clip-path", "url(#clip)");
+
+                                    focus.append("g")
+                                        .attr("class", "tradearrow")
+                                        .attr("clip-path", "url(#clip)");
+
+                                    focus.append("g")
+                                        .attr("class", "macd")
+                                        .attr("clip-path", "url(#clip)");
+
+                                    focus.append("g")
+                                        .attr("class", "indicator sma ma-0")
+                                        .attr("clip-path", "url(#clip)");
+
+                                    focus.append("g")
+                                        .attr("class", "indicator sma ma-1")
+                                        .attr("clip-path", "url(#clip)");
+
+                                    focus.append("g")
+                                        .attr("class", "indicator ema ma-2")
+                                        .attr("clip-path", "url(#clip)");
+
+                                    focus.append("g")
+                                        .attr("class", "indicator ema ma-3")
+                                        .attr("clip-path", "url(#clip)");
+
+                                    focus.append("g")
+                                        .attr("id", "data_line1")
+                                        .append("path")
+                                        .attr("clip-path", "url(#clip)")
+                                        .attr("class", "line");
+
+                                    focus.append("g")
+                                        .attr("class", "x axis")
+                                        .attr("transform", "translate(0," + height + ")");
+
+                                    focus.append('g')
+                                        .attr("class", "crosshair")
+                                        .call(crosshair);
+
+                                    //focus.append("g")
+                                    //	.attr("class", "y axis")
+                                    //	.append("text")
+                                    //	.attr("transform", "rotate(-90)")
+                                    //	.attr("y", 6)
+                                    //	.attr("x", -56)
+                                    //	.attr("dy", ".71em")
+                                    //	.style("text-anchor", "end")
+                                    //	.text("MACD");
+
+                                    focus.append("g")
+                                        .attr("class", "y axis")
+                                        .append("text")
+                                        .attr("y", 0)
+                                        .attr("x", 50)
+                                        .attr("dy", ".71em")
+                                        .style("text-anchor", "end")
+                                        .style("fill", "#1f77b4")
+                                        .text("SMA10");
+
+                                    focus.append("g")
+                                        .attr("class", "y axis")
+                                        .append("text")
+                                        .attr("y", 0)
+                                        .attr("x", 100)
+                                        .attr("dy", ".71em")
+                                        .style("text-anchor", "end")
+                                        .style("fill", "#aec7e8")
+                                        .text("SMA20");
+
+                                    focus.append("g")
+                                        .attr("class", "y axis")
+                                        .append("text")
+                                        .attr("y", 0)
+                                        .attr("x", 150)
+                                        .attr("dy", ".71em")
+                                        .style("text-anchor", "end")
+                                        .style("fill", "#ff7f0e")
+                                        .text("EMA50");
+
+                                    var context = svg.append("g")
+                                        .attr("class", "context")
+                                        .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
+
+                                    context.append("g")
+                                        .attr("class", "close");
+
+                                    context.append("g")
+                                        .attr("class", "pane");
+
+                                    context.append("g")
+                                        .attr("class", "x axis")
+                                        .attr("transform", "translate(0," + height2 + ")");
+
+                                    context.append("g")
+                                        .attr("class", "y axis")
+                                        .call(yAxis2);
+
+                                    var url = '/api/gettickers/' + t;
+                                    $.getJSON(url, null, function (data) {
+
+                                        var accessor = candlestick.accessor(),
+                                            timestart = Date.now();
+
+                                        var caldles = data.map(function (d) {
+                                            return {
+                                                date: parseDate(d.timestamp.slice(0, -1)),
+                                                open: +d.open,
+                                                high: +d.high,
+                                                low: +d.low,
+                                                close: +d.close,
+                                                volume: +d.volume,
+
+                                                line1: (d.open + 20)
+                                            };
+                                        }).sort(function (a, b) { return d3.ascending(accessor.d(a), accessor.d(b)); });
+
+                                        var macdAccessor = macd.accessor();
+                                        var macdData = data.map(function (d) {
+                                            return {
+                                                date: parseDate(d.timestamp.slice(0, -1)),
+                                                open: +d.open,
+                                                high: +d.high,
+                                                low: +d.low,
+                                                close: +d.close,
+                                                volume: +d.volume
+                                            };
+                                        }).sort(function (a, b) { return d3.ascending(macdAccessor.d(a), macdAccessor.d(b)); });
+
+                                        var url2 = '/api/getSignals/' + t;
+                                        $.getJSON(url2, null, function (signals) {
+                                            var trades = signals.map(function (d) {
+                                                return {
+                                                    date: parseDate(d.timestamp.slice(0, -1)),
+                                                    price: +d.price,
+                                                    //high: +d.high,
+                                                    //low: +d.low,
+                                                    type: (d.tradeAdvice === "1" ? "buy" : "sell")
+                                                };
+                                            }).sort(function (a, b) { return d3.ascending(accessor.d(a), accessor.d(b)); });
+
+                                            var trades2 = signals.map(function (d) {
+                                                return {
+                                                    date: d.timestamp,
+                                                    price: +d.price,
+                                                    //high: +d.high,
+                                                    //low: +d.low,
+                                                    type: (d.tradeAdvice === "1" ? "buy" : "sell"),
+
+                                                    profit: d.profit,
+                                                    percentageProfit: d.percentageProfit
+                                                    //duration: d.duration,
+                                                    //period: d.period
+                                                };
+                                            }).sort(function (a, b) { return d3.ascending(accessor.d(a), accessor.d(b)); });
+
+                                            var prepareTradeSignal = function (value) {
+                                                var sigInfo = (value.type + " " + value.date.slice(0, -1).replace("T", " ") + " " + value.price + " ");
+                                                if (value.type == "sell") {
+                                                    return sigInfo + " $ " + value.percentageProfit + " $ ";
+                                                } else {
+                                                    return sigInfo;
+                                                }
+                                            };
+
+                                            $("#mySelect").empty();
+                                            $.each(trades2, function (index, value) {
+                                                $("#mySelect").append($("<option>", {
+                                                    value: index,
+                                                    text: prepareTradeSignal(value)
+                                                }));
+                                            });
+
+                                            x.domain(caldles.map(accessor.d));
+                                            x2.domain(x.domain());
+                                            y.domain(techan.scale.plot.ohlc(caldles, accessor).domain());
+                                            y2.domain(y.domain());
+
+                                            yVolume.domain(techan.scale.plot.volume(caldles).domain());
+
+                                            focus.select("g.candlestick").datum(caldles);
+                                            focus.select("g.volume").datum(caldles);
+                                            focus.select("g.tradearrow").datum(trades).call(tradearrow);
+                                            //focus.select("g.macd").datum(macdData).call(macd);
+
+                                            focus.select("g.sma.ma-0").datum(techan.indicator.sma().period(10)(caldles)).call(sma0);
+                                            focus.select("g.sma.ma-1").datum(techan.indicator.sma().period(20)(caldles)).call(sma1);
+                                            focus.select("g.ema.ma-2").datum(techan.indicator.ema().period(3)(caldles)).call(ema2);
+                                            focus.select("g.ema.ma-3").datum(techan.indicator.ema().period(6)(caldles)).call(ema3);
+
+                                            focus.select("g#data_line1 path").datum(caldles).attr("d", plotLine1);
+
+                                            context.select("g.close").datum(caldles).call(close);
+                                            context.select("g.x.axis").call(xAxis2);
+
+                                            // Associate the brush with the scale and render the brush only AFTER a domain has been applied
+                                            context.select("g.pane").call(brush).selectAll("rect").attr("height", height2);
+
+                                            x.zoomable().domain(x2.zoomable().domain());
+                                            draw();
+                                        });
+                                    });
+
+                                    function brushed() {
+                                        var zoomable = x.zoomable(),
+                                            zoomable2 = x2.zoomable();
+
+                                        zoomable.domain(zoomable2.domain());
+                                        if (d3.event.selection !== null)
+                                            zoomable.domain(d3.event.selection.map(zoomable.invert));
+                                        draw();
+                                    }
+
+                                    function draw() {
+                                        var candlestickSelection = focus.select("g.candlestick")
+                                        var data = candlestickSelection.datum();
+                                        candlestickSelection.call(candlestick);
+
+                                        var tradearrowSelection = focus.select("g.tradearrow")
+                                        var trades = tradearrowSelection.datum();
+                                        tradearrowSelection.call(tradearrow);
+
+                                        var macdSelection = focus.select("g.macd")
+                                        var macdDatas = macdSelection.datum();
+
+                                        var data_line1Selection = focus.select("g#data_line1 path");
+                                        data_line1Selection.attr("d", plotLine1);
+
+                                        y.domain(techan.scale.plot.ohlc(data.slice.apply(data, x.zoomable().domain()), candlestick.accessor()).domain());
+
+                                        focus.select("g.volume").call(volume);
+
+                                        var bollingerData = techan.indicator.bollinger()(data);
+                                        focus.select("g.bollinger").datum(bollingerData).call(bollinger);
+
+                                        //var macdDatas = techan.indicator.macd()(data);
+                                        //focus.select("g.macd").datum(macdDatas).call(macd);
+
+                                        focus.select("g.sma.ma-0").call(sma0.refresh);
+                                        focus.select("g.sma.ma-1").call(sma1.refresh);
+                                        focus.select("g.ema.ma-2").call(ema2.refresh);
+                                        focus.select("g.ema.ma-3").call(ema3.refresh);
+
+                                        focus.select("g.x.axis").call(xAxis);
+                                        focus.select("g.y.axis").call(yAxis);
+                                    }
+                                }
+                            });
+                        });
+                    </script>
+                </div>
+
+                <div class="col-md-1">
+                    <select id="mySelect" size="80"></select>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-
 
 <div class="modal fade" id="tradingViewModal">
     <div class="modal-dialog" style="width: 80%;">

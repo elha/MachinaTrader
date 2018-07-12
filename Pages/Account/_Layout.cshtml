@@ -19,6 +19,7 @@
     <link href="/vendors/simple-line-icons/css/simple-line-icons.css" rel="stylesheet">
     <link href="/css/pace.min.css" rel="stylesheet">
     <!-- Main styles for this application-->
+    <link href="/vendors/techan/css/techan.css" rel="stylesheet">
     <link href="/css/style.css" rel="stylesheet">
 </head>
 <body class="app flex-row align-items-center">
@@ -40,11 +41,12 @@
     <script src="/vendors/perfect-scrollbar/js/perfect-scrollbar.min.js"></script>
     <script src="/vendors/@@coreui/coreui/js/coreui.min.js"></script>
     <script src="/vendors/vue/js/vue.min.js"></script>
+    <script src="/vendors/techan/js/techan.min.js"></script>
     <script>
-    $('#ui-view').ajaxLoad();
-    $(document).ajaxComplete(function () {
-      Pace.restart()
-    });
+        $('#ui-view').ajaxLoad();
+        $(document).ajaxComplete(function () {
+            Pace.restart()
+        });
     </script>
     @RenderSection("Scripts", required: false)
 </body>
