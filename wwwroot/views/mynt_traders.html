@@ -42,6 +42,33 @@
                                 </div>
                             </div>
                         </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-12">
+                                <div>Exit Strategy</div>
+                                <template v-if="myntActiveTradersData[myntTradersData[key].identifier].SellNow">
+                                    Sell on next tick
+                                </template>
+                                <template v-else-if="myntActiveTradersData[myntTradersData[key].identifier].HoldPosition">
+                                    Hold Position
+                                </template>
+                                <template v-else-if="myntActiveTradersData[myntTradersData[key].identifier].SellOnPercentage != 0">
+                                    Sell on {{parseFloat(myntActiveTradersData[myntTradersData[key].identifier].SellOnPercentage).toFixed(2)}} % Profit
+                                </template>
+                                <template v-else>
+                                    Use Strategy default
+                                </template>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-12">
+                                <a class="btn btn-danger"  v-on:click="sellPosition(myntActiveTradersData[myntTradersData[key].identifier].TradeId)">Sell Now</a>
+                                <a class="btn btn-warning" v-on:click="holdPosition(myntActiveTradersData[myntTradersData[key].identifier].TradeId)">Hold</a>
+                                <a class="btn btn-success" v-on:click="sellPositionOnProfit(myntActiveTradersData[myntTradersData[key].identifier].TradeId)">Sell on Profit %</a>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -160,6 +187,20 @@
 
         connectSignalr();
       },
+
+        sellPosition: function (tradeId) {
+            $.get("/api/mynt/trading/SellNow/" + tradeId, function () {
+            });
+        },
+
+        holdPosition: function (tradeId) {
+            $.get("/api/mynt/trading/Hold/" + tradeId, function () {
+            });
+        },
+        sellPositionOnProfit: function (tradeId) {
+            $.get("/api/mynt/trading/SellOnProfit/" + tradeId + "/" + 0.2, function () {
+            });
+        },
 
       fetchData: function () {
         var self = this;

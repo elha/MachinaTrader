@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Mynt.Core.Interfaces;
 using Mynt.Core.TradeManagers;
@@ -16,6 +17,45 @@ namespace MyntUI.Controllers
     [Route("api/mynt/")]
     public class MyntApiController : Controller
     {
+
+        [HttpGet]
+        [Route("trading/SellNow/{tradeId}")]
+        public async Task TradingSellNow(string tradeId)
+        {
+            var _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
+            var tradeToUpdate = _activeTrades.Where(x => x.TradeId == tradeId).FirstOrDefault();
+            tradeToUpdate.SellNow = true;
+            await Globals.GlobalDataStore.SaveTradeAsync(tradeToUpdate);
+            await Globals.GlobalHubMyntTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to SellNow");
+
+        }
+
+        [HttpGet]
+        [Route("trading/Hold/{tradeId}")]
+        public async Task TradingHold(string tradeId)
+        {
+            var _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
+            var tradeToUpdate = _activeTrades.Where(x => x.TradeId == tradeId).FirstOrDefault();
+            tradeToUpdate.SellNow = false;
+            tradeToUpdate.HoldPosition = true;
+            await Globals.GlobalDataStore.SaveTradeAsync(tradeToUpdate);
+            await Globals.GlobalHubMyntTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to Hold");
+        }
+
+        [HttpGet]
+        [Route("trading/SellOnProfit/{tradeId}/{profitPercentage}")]
+        public async Task TradingSellOnProfit(string tradeId, decimal profitPercentage)
+        {
+            var _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
+            var tradeToUpdate = _activeTrades.Where(x => x.TradeId == tradeId).FirstOrDefault();
+            tradeToUpdate.SellNow = false;
+            tradeToUpdate.HoldPosition = false;
+            tradeToUpdate.SellOnPercentage = profitPercentage;
+
+            await Globals.GlobalDataStore.SaveTradeAsync(tradeToUpdate);
+            await Globals.GlobalHubMyntTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to Hold");
+        }
+
         [HttpGet]
         [Route("trading/TradersTester")]
         public IActionResult MyntTradersTester()
