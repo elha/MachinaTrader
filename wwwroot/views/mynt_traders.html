@@ -63,7 +63,7 @@
                         <br />
                         <div class="row">
                             <div class="col-12">
-                                <a class="btn btn-danger"  v-on:click="sellPosition(myntActiveTradersData[myntTradersData[key].identifier].TradeId)">Sell Now</a>
+                                <a class="btn btn-danger" v-on:click="sellPosition(myntActiveTradersData[myntTradersData[key].identifier].TradeId)">Sell Now</a>
                                 <a class="btn btn-warning" v-on:click="holdPosition(myntActiveTradersData[myntTradersData[key].identifier].TradeId)">Hold</a>
                                 <a class="btn btn-success" v-on:click="sellPositionOnProfit(myntActiveTradersData[myntTradersData[key].identifier].TradeId)">Sell on Profit %</a>
                             </div>
@@ -113,120 +113,120 @@
 
 
 <script>
-  var pagefunction = function () {
-  };
+    var pagefunction = function () {
+    };
 
-  var myntTraders = new Vue({
-    el: '#myntTraders',
+    var myntTraders = new Vue({
+        el: '#myntTraders',
 
-    data: {
-        myntTradersData: null,
-        myntActiveTradersData: null
-    },
+        data: {
+            myntTradersData: null,
+            myntActiveTradersData: null
+        },
 
-    created: function () {
-      this.connectSignalr();
-      this.fetchData();
-    },
-    
-    mounted: function () {
-        this.$nextTick(function() {
-            // Code that will run only after the
-            // entire view has been rendered
-            displayhelper();
-        });
-    },
+        created: function () {
+            this.connectSignalr();
+            this.fetchData();
+        },
 
-    methods: {
-      connectSignalr: function () {
-        var self = this;
-        let hubRoute = "/signalr/HubMyntTraders";
-        let protocol = new signalR.JsonHubProtocol();
-        var options = {};
-
-        var connection = new signalR.HubConnectionBuilder()
-          //.configureLogging(signalR.LogLevel.Trace)
-          .withUrl(hubRoute, options)
-          .withHubProtocol(protocol)
-          .build();
-
-        var connectSignalr = function () {
-          connection.start().then(function () {
-            //Make sure to register this signalr client - Needed for disconnect on page change
-            addSignalrClient(hubRoute, connection);
-          }).catch(function (err) {
-            console.log(err);
-          });
-        };
-
-        var reconnectSignalr = function () {
-          console.log(signalrConnections);
-          if (signalrConnections[hubRoute] != null) {
-            setTimeout(function () {
-              console.log("reconnnect");
-              connectSignalr();
-            }, 5000);
-          }
-        }
-
-        connection.on('Send', function (msg) {
-          console.log("Msg from signalR: " + msg);
-          self.updateData();
-        });
-
-        connection.onclose(function (e) {
-          if (e) {
-            console.log('Connection closed with error: ' + e);
-          }
-          else {
-            console.log('Disconnected');
-          }
-          //Reconnect -> This connection should never be offline
-          reconnectSignalr();
-        });
-
-        connectSignalr();
-      },
-
-        sellPosition: function (tradeId) {
-            $.get("/api/mynt/trading/SellNow/" + tradeId, function () {
+        mounted: function () {
+            this.$nextTick(function () {
+                // Code that will run only after the
+                // entire view has been rendered
+                displayhelper();
             });
         },
 
-        holdPosition: function (tradeId) {
-            $.get("/api/mynt/trading/Hold/" + tradeId, function () {
-            });
-        },
-        sellPositionOnProfit: function (tradeId) {
-            $.get("/api/mynt/trading/SellOnProfit/" + tradeId + "/" + 0.2, function () {
-            });
-        },
+        methods: {
+            connectSignalr: function () {
+                var self = this;
+                let hubRoute = "/signalr/HubMyntTraders";
+                let protocol = new signalR.JsonHubProtocol();
+                var options = {};
 
-      fetchData: function () {
-        var self = this;
-        $.get("/api/mynt/trading/Traders", function (data) {
-          self.myntTradersData = data;
-            $.get("/api/mynt/trading/ActiveTradesWithTrader", function (activeTraderData) {
-                self.myntActiveTradersData = activeTraderData;
-                self.$nextTick(function () {
-                    pagefunction();
+                var connection = new signalR.HubConnectionBuilder()
+                    //.configureLogging(signalR.LogLevel.Trace)
+                    .withUrl(hubRoute, options)
+                    .withHubProtocol(protocol)
+                    .build();
+
+                var connectSignalr = function () {
+                    connection.start().then(function () {
+                        //Make sure to register this signalr client - Needed for disconnect on page change
+                        addSignalrClient(hubRoute, connection);
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
+                };
+
+                var reconnectSignalr = function () {
+                    console.log(signalrConnections);
+                    if (signalrConnections[hubRoute] != null) {
+                        setTimeout(function () {
+                            console.log("reconnnect");
+                            connectSignalr();
+                        }, 5000);
+                    }
+                }
+
+                connection.on('Send', function (msg) {
+                    console.log("Msg from signalR: " + msg);
+                    self.updateData();
                 });
-            });
-        });
 
-      },
-      updateData: function () {
-        var self = this;
-        $.get("/api/mynt/trading/Traders", function (data) {
-            self.myntTradersData = data;
-            $.get("/api/mynt/trading/ActiveTradesWithTrader", function (activeTraderData) {
-                self.myntActiveTradersData = activeTraderData;
-            });
-        });
-      },
-      moment: function (data) {
-        return moment(data).format("YYYY-MM-DD HH:mm:ss");
-      },
-    }
-  });
+                connection.onclose(function (e) {
+                    if (e) {
+                        console.log('Connection closed with error: ' + e);
+                    }
+                    else {
+                        console.log('Disconnected');
+                    }
+                    //Reconnect -> This connection should never be offline
+                    reconnectSignalr();
+                });
+
+                connectSignalr();
+            },
+
+            sellPosition: function (tradeId) {
+                $.get("/api/mynt/trading/SellNow/" + tradeId, function () {
+                });
+            },
+
+            holdPosition: function (tradeId) {
+                $.get("/api/mynt/trading/Hold/" + tradeId, function () {
+                });
+            },
+            sellPositionOnProfit: function (tradeId) {
+                $.get("/api/mynt/trading/SellOnProfit/" + tradeId + "/" + 0.2, function () {
+                });
+            },
+
+            fetchData: function () {
+                var self = this;
+                $.get("/api/mynt/trading/Traders", function (data) {
+                    self.myntTradersData = data;
+                    $.get("/api/mynt/trading/ActiveTradesWithTrader", function (activeTraderData) {
+                        self.myntActiveTradersData = activeTraderData;
+                        self.$nextTick(function () {
+                            pagefunction();
+                        });
+                    });
+                });
+
+            },
+            updateData: function () {
+                var self = this;
+                $.get("/api/mynt/trading/Traders", function (data) {
+                    self.myntTradersData = data;
+                    $.get("/api/mynt/trading/ActiveTradesWithTrader", function (activeTraderData) {
+                        self.myntActiveTradersData = activeTraderData;
+                    });
+                });
+            },
+            moment: function (data) {
+                return moment(data).format("YYYY-MM-DD HH:mm:ss");
+            },
+        }
+    });
 </script>

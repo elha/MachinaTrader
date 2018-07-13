@@ -1,201 +1,200 @@
 <script src="/vendors/moment/js/moment-with-locales.min.js"></script>
 <script src="/js/DisplayHelper.js"></script>
 
-
 <div class="animated fadeIn" id="myntTrades">
 
-<div v-if="activeTradesData">
-  <h3 class="mt-5">Active Trades</h3>
-  <p v-if="activeTradesData.lenght === 0">No active trades!</p>
-  <template>
-    <div class="whiteblock">
-      <table class="table table-hover table-sm" id="activeTrades" style="width: 100%">
-        <thead>
-          <tr>
-            <th>Trader Id</th>
-            <th>Bought</th>
-            <th>Coin</th>
-            <th>Quantity</th>
-            <th>Open rate</th>
-            <th>Last price</th>
-            <th>Strategy</th>
-            <th>Profit</th>
-            <th>Profit %</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(value, key, index) in activeTradesData">
-              <td>{{activeTradesData[key].traderId}}</td>
-              <td>{{moment(activeTradesData[key].openDate)}}</td>
-              <td>{{activeTradesData[key].market}}</td>
-              <td>{{parseFloat(activeTradesData[key].quantity).toFixed(3)}}</td>
-              <td>{{parseFloat(activeTradesData[key].openRate).toFixed(6)}}</td>
-              <td>
-                  <template v-if="activeTradesData[key].tickerLast">
-                      {{parseFloat(activeTradesData[key].tickerLast.last).toFixed(6)}}
-                  </template>
-              </td>
-              <td>{{activeTradesData[key].strategyUsed}}</td>
-              <td>
-                  <template v-if="activeTradesData[key].tickerLast">
-                      {{parseFloat(activeTradesData[key].tickerLast.last - activeTradesData[key].openRate).toFixed(6)}}
-                  </template>
-              </td>
-              <td>
-                  <template v-if="activeTradesData[key].tickerLast">
-                      {{parseFloat(((100 * activeTradesData[key].tickerLast.last) / activeTradesData[key].openRate) - 100).toFixed(2)}} %
-                  </template>
-              </td>
-          </tr>
-        </tbody>
-      </table>
+    <div v-if="activeTradesData">
+        <h3 class="mt-5">Active Trades</h3>
+        <p v-if="activeTradesData.lenght === 0">No active trades!</p>
+        <template>
+            <div class="whiteblock">
+                <table class="table table-hover table-sm" id="activeTrades" style="width: 100%">
+                    <thead>
+                        <tr>
+                            <th>Trader Id</th>
+                            <th>Bought</th>
+                            <th>Coin</th>
+                            <th>Quantity</th>
+                            <th>Open rate</th>
+                            <th>Last price</th>
+                            <th>Strategy</th>
+                            <th>Profit</th>
+                            <th>Profit %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(value, key, index) in activeTradesData">
+                            <td>{{activeTradesData[key].traderId}}</td>
+                            <td>{{moment(activeTradesData[key].openDate)}}</td>
+                            <td>{{activeTradesData[key].market}}</td>
+                            <td>{{parseFloat(activeTradesData[key].quantity).toFixed(3)}}</td>
+                            <td>{{parseFloat(activeTradesData[key].openRate).toFixed(6)}}</td>
+                            <td>
+                                <template v-if="activeTradesData[key].tickerLast">
+                                    {{parseFloat(activeTradesData[key].tickerLast.last).toFixed(6)}}
+                                </template>
+                            </td>
+                            <td>{{activeTradesData[key].strategyUsed}}</td>
+                            <td>
+                                <template v-if="activeTradesData[key].tickerLast">
+                                    {{parseFloat(activeTradesData[key].tickerLast.last - activeTradesData[key].openRate).toFixed(6)}}
+                                </template>
+                            </td>
+                            <td>
+                                <template v-if="activeTradesData[key].tickerLast">
+                                    {{parseFloat(((100 * activeTradesData[key].tickerLast.last) / activeTradesData[key].openRate) - 100).toFixed(2)}} %
+                                </template>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </template>
     </div>
-  </template>
-</div>
 
-<div v-if="closedTradesData">
-  <h3 class="mt-5">Trade history</h3>
-  <p v-if="closedTradesData.length === 0">No closed trades!</p>
-  <template>
-    <div class="whiteblock">
-      <table class="table table-hover table-sm" id="closedTrades" style="width: 100%">
-        <thead>
-          <tr>
-            <th data-sort="int">Trader Id</th>
-            <th>Bought</th>
-            <th>Coin</th>
-            <th>Open rate</th>
-            <th>Quantity</th>
-            <th>Close rate</th>
-            <th>Closed</th>
-            <th>Profit</th>
-            <th>Profit %</th>
-            <th>Strategy</th>
-            <th>Reason</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(value, key, index) in closedTradesData">
-            <td>{{closedTradesData[key].traderId}}</td>
-            <td>{{moment(closedTradesData[key].openDate)}}</td>
-            <td>{{closedTradesData[key].market}}</td>
-            <td>{{closedTradesData[key].openRate}}</td>
-            <td>{{parseFloat(closedTradesData[key].quantity).toFixed(6)}}</td>
-            <td>{{closedTradesData[key].closeRate}}</td>
-            <td>{{moment(closedTradesData[key].closeDate)}}</td>
-            <td>{{parseFloat(closedTradesData[key].closeProfit).toFixed(6)}}</td>
-            <td>{{parseFloat(closedTradesData[key].closeProfitPercentage).toFixed(2)}} %</td>
-            <td>{{closedTradesData[key].strategyUsed}}</td>
-            <td>{{closedTradesData[key].sellType}}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div v-if="closedTradesData">
+        <h3 class="mt-5">Trade history</h3>
+        <p v-if="closedTradesData.length === 0">No closed trades!</p>
+        <template>
+            <div class="whiteblock">
+                <table class="table table-hover table-sm" id="closedTrades" style="width: 100%">
+                    <thead>
+                        <tr>
+                            <th data-sort="int">Trader Id</th>
+                            <th>Bought</th>
+                            <th>Coin</th>
+                            <th>Open rate</th>
+                            <th>Quantity</th>
+                            <th>Close rate</th>
+                            <th>Closed</th>
+                            <th>Profit</th>
+                            <th>Profit %</th>
+                            <th>Strategy</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(value, key, index) in closedTradesData">
+                            <td>{{closedTradesData[key].traderId}}</td>
+                            <td>{{moment(closedTradesData[key].openDate)}}</td>
+                            <td>{{closedTradesData[key].market}}</td>
+                            <td>{{closedTradesData[key].openRate}}</td>
+                            <td>{{parseFloat(closedTradesData[key].quantity).toFixed(6)}}</td>
+                            <td>{{closedTradesData[key].closeRate}}</td>
+                            <td>{{moment(closedTradesData[key].closeDate)}}</td>
+                            <td>{{parseFloat(closedTradesData[key].closeProfit).toFixed(6)}}</td>
+                            <td>{{parseFloat(closedTradesData[key].closeProfitPercentage).toFixed(2)}} %</td>
+                            <td>{{closedTradesData[key].strategyUsed}}</td>
+                            <td>{{closedTradesData[key].sellType}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </template>
     </div>
-  </template>
-</div>
 
 </div>
 <script src="/vendors/vue/js/vue.min.js"></script>
 
 <script>
-  var pagefunction = function () {
-  };
+    var pagefunction = function () {
+    };
 
-  var myntTrades = new Vue({
-    el: '#myntTrades',
+    var myntTrades = new Vue({
+        el: '#myntTrades',
 
-    data: {
-      activeTradesData: null,
-      closedTradesData: null
-    },
+        data: {
+            activeTradesData: null,
+            closedTradesData: null
+        },
 
-    created: function () {
-      this.connectSignalr();
-      this.fetchData();
-    },
+        created: function () {
+            this.connectSignalr();
+            this.fetchData();
+        },
 
-    mounted: function () {
-        this.$nextTick(function() {
-            // Code that will run only after the
-            // entire view has been rendered
-            displayhelper();
-        });
-    },
+        mounted: function () {
+            this.$nextTick(function () {
+                // Code that will run only after the
+                // entire view has been rendered
+                displayhelper();
+            });
+        },
 
-    methods: {
-      connectSignalr: function () {
-        var self = this;
-        let hubRoute = "/signalr/HubMyntTraders";
-        let protocol = new signalR.JsonHubProtocol();
-        var options = {};
+        methods: {
+            connectSignalr: function () {
+                var self = this;
+                let hubRoute = "/signalr/HubMyntTraders";
+                let protocol = new signalR.JsonHubProtocol();
+                var options = {};
 
-        var connection = new signalR.HubConnectionBuilder()
-          //.configureLogging(signalR.LogLevel.Trace)
-          .withUrl(hubRoute, options)
-          .withHubProtocol(protocol)
-          .build();
+                var connection = new signalR.HubConnectionBuilder()
+                    //.configureLogging(signalR.LogLevel.Trace)
+                    .withUrl(hubRoute, options)
+                    .withHubProtocol(protocol)
+                    .build();
 
-        var connectSignalr = function () {
-          connection.start().then(function () {
-            //Make sure to register this signalr client - Needed for disconnect on page change
-            addSignalrClient(hubRoute, connection);
-          }).catch(function (err) {
-            console.log(err);
-          });
-        };
+                var connectSignalr = function () {
+                    connection.start().then(function () {
+                        //Make sure to register this signalr client - Needed for disconnect on page change
+                        addSignalrClient(hubRoute, connection);
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
+                };
 
-        var reconnectSignalr = function () {
-          console.log(signalrConnections);
-          if (signalrConnections[hubRoute] != null) {
-            setTimeout(function () {
-              console.log("reconnnect");
-              connectSignalr();
-            }, 5000);
-          }
-        }
+                var reconnectSignalr = function () {
+                    console.log(signalrConnections);
+                    if (signalrConnections[hubRoute] != null) {
+                        setTimeout(function () {
+                            console.log("reconnnect");
+                            connectSignalr();
+                        }, 5000);
+                    }
+                }
 
-        connection.on('Send', function (msg) {
-          console.log("Msg from signalR: " + msg);
-          self.updateData();
-        });
-
-        connection.onclose(function (e) {
-          if (e) {
-            console.log('Connection closed with error: ' + e);
-          }
-          else {
-            console.log('Disconnected');
-          }
-          //Reconnect -> This connection should never be offline
-          reconnectSignalr();
-        });
-
-        connectSignalr();
-      },
-
-      fetchData: function () {
-        var self = this;
-        $.get("/api/mynt/trading/ActiveTrades", function (activeTradeData) {
-            self.activeTradesData = activeTradeData;
-            $.get("/api/mynt/trading/ClosedTrades", function (closedTradeData) {
-                self.closedTradesData = closedTradeData;
-                self.$nextTick(function () {
-                    pagefunction();
+                connection.on('Send', function (msg) {
+                    console.log("Msg from signalR: " + msg);
+                    self.updateData();
                 });
-            });
-        });
-      },
-      updateData: function () {
-        $.get("/api/mynt/trading/ActiveTrades", function (activeTradeData) {
-            self.activeTradesData = activeTradeData;
-            $.get("/api/mynt/trading/ClosedTrades", function (closedTradeData) {
-                self.closedTradesData = closedTradeData;
-            });
-        });
-      },
-      moment: function (data) {
-        return moment(data).format("YYYY-MM-DD HH:mm:ss");
-      },
-    }
-  });
+
+                connection.onclose(function (e) {
+                    if (e) {
+                        console.log('Connection closed with error: ' + e);
+                    }
+                    else {
+                        console.log('Disconnected');
+                    }
+                    //Reconnect -> This connection should never be offline
+                    reconnectSignalr();
+                });
+
+                connectSignalr();
+            },
+
+            fetchData: function () {
+                var self = this;
+                $.get("/api/mynt/trading/ActiveTrades", function (activeTradeData) {
+                    self.activeTradesData = activeTradeData;
+                    $.get("/api/mynt/trading/ClosedTrades", function (closedTradeData) {
+                        self.closedTradesData = closedTradeData;
+                        self.$nextTick(function () {
+                            pagefunction();
+                        });
+                    });
+                });
+            },
+            updateData: function () {
+                $.get("/api/mynt/trading/ActiveTrades", function (activeTradeData) {
+                    self.activeTradesData = activeTradeData;
+                    $.get("/api/mynt/trading/ClosedTrades", function (closedTradeData) {
+                        self.closedTradesData = closedTradeData;
+                    });
+                });
+            },
+            moment: function (data) {
+                return moment(data).format("YYYY-MM-DD HH:mm:ss");
+            },
+        }
+    });
 </script>
