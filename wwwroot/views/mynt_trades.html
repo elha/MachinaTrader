@@ -1,104 +1,436 @@
+<!-- DATA TABLES -->
+<script src="/vendors/datatables.net/js/jquery.dataTables.js"></script>
+<script src="/vendors/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+<script src="/vendors/datatables.net-bs4/js/dataTables.bootstrap4.js"></script>
+<link href="/vendors/datatables.net-bs4/css/dataTables.bootstrap4.css" rel="stylesheet" />
+<link href="/vendors/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css" rel="stylesheet" />
 <script src="/vendors/moment/js/moment-with-locales.min.js"></script>
+<script src="/vendors/axios/js/axios.min.js"></script>
+<script src="/vendors/bootbox/js/bootbox.min.js"></script>
+
 <script src="/js/DisplayHelper.js"></script>
 
+<style>
+    .bootbox > .modal-dialog {
+        max-width: 500px;
+    }
+    .modal-dialog {
+        max-width: 100%;
+    }
+
+    .greenCell {
+        background: rgba(0, 255, 0, 0.2) !important;
+    }
+
+    .redCell {
+        background: rgba(255, 0, 0, 0.20) !important;
+    }
+
+
+    .small-text {
+        font-size: 10px;
+        line-height: 24px;
+    }
+
+    .table-round > .box-body {
+        padding: 0;
+    }
+
+    .table th, .table td {
+        padding: 0.75rem;
+        vertical-align: top;
+        border-top: 0;
+    }
+
+    .table thead th {
+        vertical-align: bottom;
+        border-bottom: 0;
+    }
+
+    table.dataTable {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        border-collapse: collapse !important;
+    }
+
+    .dataTables_wrapper .row .col-sm-12 {
+        padding: 0 !important;
+    }
+
+    div.dataTables_wrapper div.dataTables_info {
+        padding: 1.8em;
+    }
+
+    div.dataTables_wrapper div.dataTables_paginate {
+        padding: 1em;
+    }
+
+    .card-body-header {
+        margin-right: 0;
+        margin-left: 0;
+        padding-top: 15px;
+        background-color: rgba(198, 198, 198, 0.5);
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+    }
+
+    .table-bordered {
+        border: 0;
+    }
+
+    .select2-selection {
+        width: 100%;
+    }
+
+    .dataTables_length {
+        margin-left: 20px;
+    }
+
+    .dataTables_filter {
+        margin-right: 20px;
+    }
+</style>
 <div class="animated fadeIn" id="myntTrades">
+    <div class="row" id="widgetBackendTester">
 
-    <div v-if="activeTradesData">
-        <h3 class="mt-5">Active Trades</h3>
-        <p v-if="activeTradesData.lenght === 0">No active trades!</p>
-        <template>
-            <div class="whiteblock">
-                <table class="table table-hover table-sm" id="activeTrades" style="width: 100%">
-                    <thead>
-                        <tr>
-                            <th>Trader Id</th>
-                            <th>Bought</th>
-                            <th>Coin</th>
-                            <th>Quantity</th>
-                            <th>Open rate</th>
-                            <th>Last price</th>
-                            <th>Strategy</th>
-                            <th>Profit</th>
-                            <th>Profit %</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(value, key, index) in activeTradesData">
-                            <td>{{activeTradesData[key].traderId}}</td>
-                            <td>{{moment(activeTradesData[key].openDate)}}</td>
-                            <td>{{activeTradesData[key].market}}</td>
-                            <td>{{parseFloat(activeTradesData[key].quantity).toFixed(3)}}</td>
-                            <td>{{parseFloat(activeTradesData[key].openRate).toFixed(6)}}</td>
-                            <td>
-                                <template v-if="activeTradesData[key].tickerLast">
-                                    {{parseFloat(activeTradesData[key].tickerLast.last).toFixed(6)}}
-                                </template>
-                            </td>
-                            <td>{{activeTradesData[key].strategyUsed}}</td>
-                            <td>
-                                <template v-if="activeTradesData[key].tickerLast">
-                                    {{parseFloat(activeTradesData[key].tickerLast.last - activeTradesData[key].openRate).toFixed(6)}}
-                                </template>
-                            </td>
-                            <td>
-                                <template v-if="activeTradesData[key].tickerLast">
-                                    {{parseFloat(((100 * activeTradesData[key].tickerLast.last) / activeTradesData[key].openRate) - 100).toFixed(2)}} %
-                                </template>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div class="col-md-12">
+            <div class="card">
+
+                <div class="card-header">
+                    <i class="fas fa-history"></i>&nbsp;Active Trades
+                </div>
+
+                <div class="card-body" id="activeTradesTable">
+                    <table class="table table-striped p-0 table-hover" id="activeTradesTableId"></table>
+                </div>
+
+
             </div>
-        </template>
+        </div>
     </div>
 
-    <div v-if="closedTradesData">
-        <h3 class="mt-5">Trade history</h3>
-        <p v-if="closedTradesData.length === 0">No closed trades!</p>
-        <template>
-            <div class="whiteblock">
-                <table class="table table-hover table-sm" id="closedTrades" style="width: 100%">
-                    <thead>
-                        <tr>
-                            <th data-sort="int">Trader Id</th>
-                            <th>Bought</th>
-                            <th>Coin</th>
-                            <th>Open rate</th>
-                            <th>Quantity</th>
-                            <th>Close rate</th>
-                            <th>Closed</th>
-                            <th>Profit</th>
-                            <th>Profit %</th>
-                            <th>Strategy</th>
-                            <th>Reason</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(value, key, index) in closedTradesData">
-                            <td>{{closedTradesData[key].traderId}}</td>
-                            <td>{{moment(closedTradesData[key].openDate)}}</td>
-                            <td>{{closedTradesData[key].market}}</td>
-                            <td>{{closedTradesData[key].openRate}}</td>
-                            <td>{{parseFloat(closedTradesData[key].quantity).toFixed(6)}}</td>
-                            <td>{{closedTradesData[key].closeRate}}</td>
-                            <td>{{moment(closedTradesData[key].closeDate)}}</td>
-                            <td>{{parseFloat(closedTradesData[key].closeProfit).toFixed(6)}}</td>
-                            <td>{{parseFloat(closedTradesData[key].closeProfitPercentage).toFixed(2)}} %</td>
-                            <td>{{closedTradesData[key].strategyUsed}}</td>
-                            <td>{{closedTradesData[key].sellType}}</td>
-                        </tr>
-                    </tbody>
-                </table>
+    <div class="row" id="widgetBackendTester">
+
+        <div class="col-md-12">
+            <div class="card">
+
+                <div class="card-header">
+                    <i class="fas fa-history"></i>&nbsp;Closed Trades
+                </div>
+
+                <div class="card-body" id="closedTradesTable">
+                    <table class="table table-striped p-0 table-hover" id="closedTradesTableId"></table>
+                </div>
+
+
             </div>
-        </template>
+        </div>
     </div>
+
 
 </div>
-<script src="/vendors/vue/js/vue.min.js"></script>
+
+<div class="modal fade" id="tradeModal">
+    <div class="modal-dialog" style="width: 80%;max-width: 600px;">
+        <div id="modal-content" class="modal-content">
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" id="tradingViewModal">
+    <div class="modal-dialog" style="width: 80%;">
+        <div id="tradingViewModalContent" class="modal-content">
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 <script>
     var pagefunction = function () {
     };
+
+    var tradeId;
+    var exchange;
+    var market;
+    var tradeActive;
+
+    function loadTradeModal(url, tradeIdVal, tradeActiveVal) {
+        tradeId = tradeIdVal;
+        tradeActive = tradeActiveVal
+        $.get(url, function (data) {
+            $('#modal-content').html(data);
+
+            $('#tradeModal').modal('show');
+        });
+    }
+
+    function loadTradingViewModal(url, exchangeVal, marketVal) {
+        exchange = exchangeVal;
+        market = marketVal;
+        $.get(url, function (data) {
+            $('#tradingViewModalContent').html(data);
+
+            $('#tradingViewModal').modal('show');
+        });
+    }
+
+
+    function sellPosition(tradeId) {
+        bootbox.confirm("Sell this position now ?", function (result) {
+            if (result == true) {
+                $.get("/api/mynt/trading/SellNow/" + tradeId, function () {
+                });
+            };
+        });
+    }
+
+    var sellNow = function () {
+        bootbox.confirm("Sollen die markierten Datensätze wirklich gelöscht werden ?", function (result) {
+            if (result == true) {
+                $("#log").empty();
+                // Iterate over all checkboxes in the table
+                table.$('input[type="checkbox"]').each(function () {
+                    // If checkbox doesn't exist in DOM
+                    if (!$.contains(document, this)) {
+                        // If checkbox is checked
+                        if (this.checked) {
+                            // Create a hidden element
+                            $('#example').append(
+                                $('<input>')
+                                    .attr('type', 'hidden')
+                                    .attr('name', this.name)
+                                    .val(this.value)
+                            );
+                        }
+                    }
+                });
+                postFormData('erpsubmit', '/api/erp/deleteorder', false);
+            };
+        });
+    };
+
+    $(document).ready(function () {
+        table = $('#activeTradesTableId').DataTable({
+            ajax: {
+                url: '/api/mynt/trading/ActiveTrades',
+                dataSrc: ''
+            },
+            responsive: true,
+            "autoWidth": false,
+            "iDisplayLength": 100,
+            'columnDefs': [{
+                'targets': 0,
+                'searchable': true,
+                'orderable': true,
+                'className': 'dt-body-center'
+            }],
+            'order': [0, 'asc'],
+            "createdRow": function (row, data, dataIndex) {
+                if (parseFloat(((100 * data.tickerLast.last) / data.openRate) - 100).toFixed(2) > 0) $(row).addClass('greenCell');
+                if (parseFloat(((100 * data.tickerLast.last) / data.openRate) - 100).toFixed(2) < 0) $(row).addClass('redCell');
+            },
+            "columns": [
+                { "title": "ID", "mDataProp": "id", "bVisible": false },
+                {
+                    "title": "Market",
+                    "mDataProp": "market",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadTradingViewModal(\'/views/TradingViewWidget.html\', \'' + full.exchange + '\', \'' + full.market + '\')"><img style="height: 18px "src="/img/exchange/' + full.exchange + '.png" />&nbsp;' + full.globalSymbol + '</a>';
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "Quantity",
+                    "mDataProp": "quantity",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = parseFloat(full.quantity).toFixed(8);
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "Cost",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = parseFloat(full.openRate * full.quantity).toFixed(8);
+                        return formatted;
+                    },
+                    /*createdCell: function (td, cellData, rowData, row, col) {
+                        if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
+                        if (rowData.TotalProfit < 0) $(td).addClass('redCell');
+                    }*/
+                },
+                {
+                    "title": "Result",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = '';
+                        if (full.tickerLast !== null) {
+                            var formatted = parseFloat(((100 * full.tickerLast.last) / full.openRate) - 100).toFixed(2) + " %";
+                        }
+                        return formatted;
+                    },
+                    /*createdCell: function (td, cellData, rowData, row, col) {
+                        if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
+                        if (rowData.TotalProfit < 0) $(td).addClass('redCell');
+                    }*/
+                },
+                {
+                    "title": "Age",
+                    "mDataProp": "openDate",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var now = moment();
+                        var formatted = moment.duration(now.diff(full.openDate)).humanize();
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "Actions",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = '<span><a href="javascript:void(0)" class="btn btn-danger btn-sm" style="width: 40%;" id="status" onclick="sellPosition(\'' + full.tradeId + '\')">Sell now</a>';
+                        formatted = formatted + '&nbsp;<a href="javascript:void(0)" class="btn btn-success btn-sm" style="width: 40%;" id="status" onclick="loadTradeModal(\'/views/TradesTradeModal.html\', \'' + full.tradeId + '\', true)">Info</a></span>';
+                        return formatted;
+                    }
+                }
+            ]
+        });
+
+        tableClosedTrades = $('#closedTradesTableId').DataTable({
+            ajax: {
+                url: '/api/mynt/trading/ClosedTrades',
+                dataSrc: ''
+            },
+            responsive: true,
+            "autoWidth": false,
+            "iDisplayLength": 100,
+            'columnDefs': [{
+                'targets': 0,
+                'searchable': true,
+                'orderable': true,
+                'className': 'dt-body-center'
+            }],
+            'order': [0, 'asc'],
+            "createdRow": function (row, data, dataIndex) {
+                if (parseFloat(((100 * data.closeRate) / data.openRate) - 100).toFixed(2) > 0) $(row).addClass('greenCell');
+                if (parseFloat(((100 * data.closeRate) / data.openRate) - 100).toFixed(2) < 0) $(row).addClass('redCell');
+            },
+            "columns": [
+                { "title": "ID", "mDataProp": "id", "bVisible": false },
+                {
+                    "title": "Market",
+                    "mDataProp": "market",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadTradingViewModal(\'/views/TradingViewWidget.html\', \'' + full.exchange + '\', \'' + full.globalSymbol + '\')"><img style="height: 18px "src="/img/exchange/' + full.exchange + '.png" />&nbsp;' + full.globalSymbol + '</a>';
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "Total",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = parseFloat(full.closeRate * full.quantity).toFixed(8);
+                        return formatted;
+                    },
+                    /*createdCell: function (td, cellData, rowData, row, col) {
+                        if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
+                        if (rowData.TotalProfit < 0) $(td).addClass('redCell');
+                    }*/
+                },
+                {
+                    "title": "Result",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = '';
+                        if (full.tickerLast !== null) {
+                            var formatted = parseFloat(((100 * full.closeRate) / full.openRate) - 100).toFixed(2) + " %";
+                        }
+                        return formatted;
+                    },
+                    /*createdCell: function (td, cellData, rowData, row, col) {
+                        if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
+                        if (rowData.TotalProfit < 0) $(td).addClass('redCell');
+                    }*/
+                },
+                {
+                    "title": "Sell Type",
+                    "mDataProp": "sellType",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = full.sellType;
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "Duration",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = moment.duration(moment(full.openDate).diff(full.closeDate)).humanize();
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "Date",
+                    "mDataProp": "openDate",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var now = moment();
+                        var formatted = moment(full.openDate).format("YYYY-MM-DD HH:mm:ss");
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "Details",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = '<span><a href="javascript:void(0)" class="btn btn-success btn-sm" style="width: 40%;" id="status" onclick="loadTradeModal(\'/views/TradesTradeModal.html\', \'' + full.tradeId + '\', false)">Info</a></span>';
+                        return formatted;
+                    }
+                }
+            ]
+        });
+
+    });
 
     var myntTrades = new Vue({
         el: '#myntTrades',
@@ -155,7 +487,10 @@
 
                 connection.on('Send', function (msg) {
                     console.log("Msg from signalR: " + msg);
-                    self.updateData();
+
+                    table.ajax.url('/api/mynt/trading/ActiveTrades').load();
+                    tableClosedTrades.ajax.url('/api/mynt/trading/ClosedTrades').load();
+                    //self.updateData();
                 });
 
                 connection.onclose(function (e) {
@@ -198,3 +533,4 @@
         }
     });
 </script>
+<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>

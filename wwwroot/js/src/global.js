@@ -1,6 +1,17 @@
 // Wire up signalr and js intervals -> preparePage() is hooked from navigation script on page change
 /* eslint-disable */
 
+function getParam(name) {
+    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+    var regexS = "[\\?&]" + name + "=([^&#]*)";
+    var regex = new RegExp(regexS);
+    var results = regex.exec(window.location.href);
+    if (results === null)
+        return null;
+    else
+        return results[1];
+}
+
 function selectPickerImage(opt) {
     if (!opt.id) {
         return opt.text;

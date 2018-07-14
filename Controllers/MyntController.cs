@@ -19,6 +19,21 @@ namespace MyntUI.Controllers
     {
 
         [HttpGet]
+        [Route("trading/Trade/{tradeId}")]
+        public async Task<IActionResult> TradingTrade(string tradeId)
+        {
+            var activeTrade = await Globals.GlobalDataStore.GetActiveTradesAsync();
+            var trade = activeTrade.Where(x => x.TradeId == tradeId).FirstOrDefault();
+            if (trade == null)
+            {
+                var closedTrades = await Globals.GlobalDataStore.GetClosedTradesAsync();
+                trade = closedTrades.Where(x => x.TradeId == tradeId).FirstOrDefault();
+            }
+
+            return new JsonResult(trade);
+        }
+
+        [HttpGet]
         [Route("trading/SellNow/{tradeId}")]
         public async Task TradingSellNow(string tradeId)
         {
