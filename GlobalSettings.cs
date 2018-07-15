@@ -53,102 +53,89 @@ namespace MyntUI
     /// </summary>
     public class GlobalSettings
     {
-    public async static void Init()
-    {
-        // Runtime platform getter
-        Globals.RuntimeSettings["platform"] = new JObject();
-        Globals.RuntimeSettings["platform"]["os"] = GetOs();
-        Globals.RuntimeSettings["platform"]["computerName"] = Environment.MachineName;
-        Globals.RuntimeSettings["platform"]["userName"] = Environment.UserName;
-        Globals.RuntimeSettings["platform"]["webInitialized"] = false;
-        Globals.RuntimeSettings["platform"]["settingsInitialized"] = false;
-        Globals.RuntimeSettings["signalrClients"] = new JObject();
-
-        // Check if Overrides exists
-        var settingsStr = "appsettings.json";
-        if (File.Exists("appsettings.overrides.json"))
-            settingsStr = "appsettings.overrides.json";
-
-        var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(settingsStr, optional: true);
-        Globals.GlobalConfiguration = builder.Build();
-        Globals.GlobalTradeOptions = Globals.GlobalConfiguration.GetSection("TradeOptions").Get<TradeOptions>();
-        Globals.GlobalExchangeOptions = Globals.GlobalConfiguration.Get<ExchangeOptions>();
-        Globals.GlobalExchangeApi = new BaseExchange(Globals.GlobalExchangeOptions);
-        Globals.GlobalMyntHostedServiceOptions = Globals.GlobalConfiguration.GetSection("Hosting").Get<MyntHostedServiceOptions>();
-
-        // Telegram Notifications
-        Globals.GlobalTelegramNotificationOptions = Globals.GlobalConfiguration.GetSection("Telegram").Get<TelegramNotificationOptions>();
-
-        // Database options
-        LiteDBOptions databaseOptions = new LiteDBOptions();
-        Globals.GlobalDataStore = new LiteDBDataStore(databaseOptions);
-
-        // Database Backtester
-        LiteDBOptions backtestDatabaseOptions = new LiteDBOptions();
-        Globals.GlobalDataStoreBacktest = new LiteDBDataStoreBacktest(backtestDatabaseOptions);
-
-        // Global Hubs
-        Globals.GlobalHubMyntTraders = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntTraders>>();
-        Globals.GlobalHubMyntTrades = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntTrades>>();
-        Globals.GlobalHubMyntStatistics = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntStatistics>>();
-        Globals.GlobalHubMyntLogs = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntLogs>>();
-        Globals.GlobalHubMyntBacktest = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntBacktest>>();
-
-        // Get Strategy from appsettings.overrides.json
-        var type = Type.GetType($"Mynt.Core.Strategies.{Globals.GlobalTradeOptions.DefaultStrategy}, Mynt.Core", true, true);
-        var strategy = Activator.CreateInstance(type) as ITradingStrategy ?? new TheScalper();
-
-        // Trading mode  Configuration.GetSection("Telegram").Get<TelegramNotificationOptions>()) 
-        var notificationManagers = new List<INotificationManager>()
+        public async static void Init()
         {
-            new SignalrNotificationManager(),
-            new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
-        };
-        if (Globals.GlobalTradeOptions.PaperTrade)
-        {
-            // PaperTrader
-            ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<PaperTradeManager>();
-            var paperTradeManager = new PaperTradeManager(Globals.GlobalExchangeApi, strategy, notificationManagers, tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
-            var runTimer = new MyntHostedService(paperTradeManager, Globals.GlobalMyntHostedServiceOptions);
+            // Runtime platform getter
+            Globals.RuntimeSettings["platform"] = new JObject();
+            Globals.RuntimeSettings["platform"]["os"] = GetOs();
+            Globals.RuntimeSettings["platform"]["computerName"] = Environment.MachineName;
+            Globals.RuntimeSettings["platform"]["userName"] = Environment.UserName;
+            Globals.RuntimeSettings["platform"]["webInitialized"] = false;
+            Globals.RuntimeSettings["platform"]["settingsInitialized"] = false;
+            Globals.RuntimeSettings["signalrClients"] = new JObject();
+
+            // Check if Overrides exists
+            var settingsStr = "appsettings.json";
+            if (File.Exists("appsettings.overrides.json"))
+                settingsStr = "appsettings.overrides.json";
+
+            var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(settingsStr, optional: true);
+            Globals.GlobalConfiguration = builder.Build();
+            Globals.GlobalTradeOptions = Globals.GlobalConfiguration.GetSection("TradeOptions").Get<TradeOptions>();
+            Globals.GlobalExchangeOptions = Globals.GlobalConfiguration.Get<ExchangeOptions>();
+            Globals.GlobalExchangeApi = new BaseExchange(Globals.GlobalExchangeOptions);
+            Globals.GlobalMyntHostedServiceOptions = Globals.GlobalConfiguration.GetSection("Hosting").Get<MyntHostedServiceOptions>();
+
+            // Telegram Notifications
+            Globals.GlobalTelegramNotificationOptions = Globals.GlobalConfiguration.GetSection("Telegram").Get<TelegramNotificationOptions>();
+
+            // Database options
+            LiteDBOptions databaseOptions = new LiteDBOptions();
+            Globals.GlobalDataStore = new LiteDBDataStore(databaseOptions);
+
+            // Database Backtester
+            LiteDBOptions backtestDatabaseOptions = new LiteDBOptions();
+            Globals.GlobalDataStoreBacktest = new LiteDBDataStoreBacktest(backtestDatabaseOptions);
+
+            // Global Hubs
+            Globals.GlobalHubMyntTraders = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntTraders>>();
+            Globals.GlobalHubMyntTrades = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntTrades>>();
+            Globals.GlobalHubMyntStatistics = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntStatistics>>();
+            Globals.GlobalHubMyntLogs = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntLogs>>();
+            Globals.GlobalHubMyntBacktest = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntBacktest>>();
+
+            // Get Strategy from appsettings.overrides.json
+            var type = Type.GetType($"Mynt.Core.Strategies.{Globals.GlobalTradeOptions.DefaultStrategy}, Mynt.Core", true, true);
+            var strategy = Activator.CreateInstance(type) as ITradingStrategy ?? new TheScalper();
+
+            // Trading mode  Configuration.GetSection("Telegram").Get<TelegramNotificationOptions>()) 
+            var notificationManagers = new List<INotificationManager>()
+            {
+                new SignalrNotificationManager(),
+                new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
+            };
+
+            // HybridTrader
+            ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<HybridTradeManager>();
+            var hybridTradeManager = new HybridTradeManager(Globals.GlobalExchangeApi, strategy, notificationManagers, tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
+            var runTimer = new MyntHostedService(hybridTradeManager, Globals.GlobalMyntHostedServiceOptions);
 
             // Start task
             await runTimer.StartAsync(Globals.GlobalTimerCancellationToken);
         }
-        else
+
+        /// <summary>
+        /// Get System envirement information
+        /// </summary>
+        /// <returns></returns>
+        public static string GetOs()
         {
-            // LiveTrader
-            ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<LiveTradeManager>();
-            var liveTradeManager = new LiveTradeManager(Globals.GlobalExchangeApi, strategy, notificationManagers, tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
-            var runTimer = new MyntHostedService(liveTradeManager, Globals.GlobalMyntHostedServiceOptions);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+            return "Windows";
+            }
 
-            // Start task
-            await runTimer.StartAsync(Globals.GlobalTimerCancellationToken);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+            return "Linux";
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+            return "OSX";
+            }
+
+            return "Unknown";
         }
-    }
-
-    /// <summary>
-    /// Get System envirement information
-    /// </summary>
-    /// <returns></returns>
-    public static string GetOs()
-    {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-        return "Windows";
-        }
-
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-        return "Linux";
-        }
-
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-        return "OSX";
-        }
-
-        return "Unknown";
-    }
-
     }
 }
