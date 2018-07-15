@@ -1,0 +1,232 @@
+<script src="/vendors/moment/js/moment-with-locales.min.js"></script>
+<script src="/js/DisplayHelper.js"></script>
+
+<div class="animated fadeIn" id="myntTraders" v-if="myntTradersData && myntActiveTradersData">
+    <h3 class="mt-5">Traders</h3>
+    <p v-if="myntTradersData.length == 0">No traders!</p>
+
+    <!-- Active traders-->
+    <h4 class="mt-5">Active Traders</h4>
+    <div class="row">
+        <template v-for="(value, key, index) in myntTradersData" v-if="myntTradersData[key].isBusy">
+            <div class="col-12 col-sm-6 col-md-6 col-lg-4">
+                <div class="card text-white bg-primary trader">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-8">
+                                <h5 class="card-title">Trader {{myntTradersData[key].identifier}}</h5>
+                            </div>
+                            <div class="col-4">
+                                <!--<a href="#" class="btn btn-success btn-xs">! Sell now</a>-->
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4">
+                                <div>Balance</div>
+                                <b>{{parseFloat(myntTradersData[key].currentBalance).toFixed(4)}}</b>
+                            </div>
+                            <div class="col-4">
+                                <div>Profit</div>
+                                <template v-if="myntActiveTradersData[myntTradersData[key].identifier].TickerLast">
+                                    {{parseFloat(((100 * myntActiveTradersData[myntTradersData[key].identifier].TickerLast.Last) / myntActiveTradersData[myntTradersData[key].identifier].OpenRate) - 100).toFixed(2)}} %
+                                </template>
+                            </div>
+                            <div class="col-4">
+                                <div>Trading</div>
+                                <div>
+                                    <span class="currencyStyle">
+                                        <template v-if="myntActiveTradersData[myntTradersData[key].identifier]">
+                                            {{myntActiveTradersData[myntTradersData[key].identifier].Market}}
+                                        </template>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-12">
+                                <div>Exit Strategy</div>
+                                <template v-if="myntActiveTradersData[myntTradersData[key].identifier].SellNow">
+                                    Sell on next tick
+                                </template>
+                                <template v-else-if="myntActiveTradersData[myntTradersData[key].identifier].HoldPosition">
+                                    Hold Position
+                                </template>
+                                <template v-else-if="myntActiveTradersData[myntTradersData[key].identifier].SellOnPercentage != 0">
+                                    Sell on {{parseFloat(myntActiveTradersData[myntTradersData[key].identifier].SellOnPercentage).toFixed(2)}} % Profit
+                                </template>
+                                <template v-else>
+                                    Use Strategy default
+                                </template>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-12">
+                                <a class="btn btn-danger" v-on:click="sellPosition(myntActiveTradersData[myntTradersData[key].identifier].TradeId)">Sell Now</a>
+                                <a class="btn btn-warning" v-on:click="holdPosition(myntActiveTradersData[myntTradersData[key].identifier].TradeId)">Hold</a>
+                                <a class="btn btn-success" v-on:click="sellPositionOnProfit(myntActiveTradersData[myntTradersData[key].identifier].TradeId)">Sell on Profit %</a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Inactive traders-->
+    <h4 class="mt-5">Inactive Traders</h4>
+    <div class="row">
+        <template v-for="(value, key, index) in myntTradersData" v-if="!myntTradersData[key].isBusy">
+            <div class="col-4">
+                <div class="card text-white bg-primary trader">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-8">
+                                <h4 class="card-title">Trader {{myntTradersData[key].identifier}}</h4>
+                            </div>
+                            <div class="col-4">
+                                <!--<a href="#" class="btn btn-success btn-xs">! Sell now</a>-->
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4">
+                                <div>Balance</div>
+                                <b>{{parseFloat(myntTradersData[key].currentBalance).toFixed(4)}}</b>
+                            </div>
+                            <div class="col-4">
+                                <div>Profit</div>
+                                <div class="">No trade</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</div>
+
+
+
+<script src="/vendors/vue/js/vue.min.js"></script>
+
+
+<script>
+    var pagefunction = function () {
+    };
+
+    var myntTraders = new Vue({
+        el: '#myntTraders',
+
+        data: {
+            myntTradersData: null,
+            myntActiveTradersData: null
+        },
+
+        created: function () {
+            this.connectSignalr();
+            this.fetchData();
+        },
+
+        mounted: function () {
+            this.$nextTick(function () {
+                // Code that will run only after the
+                // entire view has been rendered
+                displayhelper();
+            });
+        },
+
+        methods: {
+            connectSignalr: function () {
+                var self = this;
+                let hubRoute = "/signalr/HubMyntTraders";
+                let protocol = new signalR.JsonHubProtocol();
+                var options = {};
+
+                var connection = new signalR.HubConnectionBuilder()
+                    //.configureLogging(signalR.LogLevel.Trace)
+                    .withUrl(hubRoute, options)
+                    .withHubProtocol(protocol)
+                    .build();
+
+                var connectSignalr = function () {
+                    connection.start().then(function () {
+                        //Make sure to register this signalr client - Needed for disconnect on page change
+                        addSignalrClient(hubRoute, connection);
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
+                };
+
+                var reconnectSignalr = function () {
+                    console.log(signalrConnections);
+                    if (signalrConnections[hubRoute] != null) {
+                        setTimeout(function () {
+                            console.log("reconnnect");
+                            connectSignalr();
+                        }, 5000);
+                    }
+                }
+
+                connection.on('Send', function (msg) {
+                    console.log("Msg from signalR: " + msg);
+                    self.updateData();
+                });
+
+                connection.onclose(function (e) {
+                    if (e) {
+                        console.log('Connection closed with error: ' + e);
+                    }
+                    else {
+                        console.log('Disconnected');
+                    }
+                    //Reconnect -> This connection should never be offline
+                    reconnectSignalr();
+                });
+
+                connectSignalr();
+            },
+
+            sellPosition: function (tradeId) {
+                $.get("/api/mynt/trading/SellNow/" + tradeId, function () {
+                });
+            },
+
+            holdPosition: function (tradeId) {
+                $.get("/api/mynt/trading/Hold/" + tradeId, function () {
+                });
+            },
+            sellPositionOnProfit: function (tradeId) {
+                $.get("/api/mynt/trading/SellOnProfit/" + tradeId + "/" + 0.2, function () {
+                });
+            },
+
+            fetchData: function () {
+                var self = this;
+                $.get("/api/mynt/trading/Traders", function (data) {
+                    self.myntTradersData = data;
+                    $.get("/api/mynt/trading/ActiveTradesWithTrader", function (activeTraderData) {
+                        self.myntActiveTradersData = activeTraderData;
+                        self.$nextTick(function () {
+                            pagefunction();
+                        });
+                    });
+                });
+
+            },
+            updateData: function () {
+                var self = this;
+                $.get("/api/mynt/trading/Traders", function (data) {
+                    self.myntTradersData = data;
+                    $.get("/api/mynt/trading/ActiveTradesWithTrader", function (activeTraderData) {
+                        self.myntActiveTradersData = activeTraderData;
+                    });
+                });
+            },
+            moment: function (data) {
+                return moment(data).format("YYYY-MM-DD HH:mm:ss");
+            },
+        }
+    });
+</script>

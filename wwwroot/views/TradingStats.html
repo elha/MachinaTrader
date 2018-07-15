@@ -1,0 +1,202 @@
+<div class="animated fadeIn" id="myntStatistics" v-if="myntStatisticsData">
+
+    <!-- Performance -->
+    <h1 class="mt-5">Performance</h1>
+    <div class="row">
+        <!-- Quotecurrency -->
+        <div v-if="myntStatisticsData.stat.profitLoss != null" class="col-lg-3 col-md-3 col-sm-3">
+            <div class="card text-white bg-primary ">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">Quote Currency</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">{{myntStatisticsData.tradeOptions.quoteCurrency}}</h4>
+                        </div>
+                    </div>
+                    <br />
+                </div>
+            </div>
+        </div>
+        <!-- Profit in quotecurrency -->
+        <div v-if="myntStatisticsData.stat.profitLoss != null" class="col-lg-3 col-md-3 col-sm-3">
+            <div class="card text-white bg-info ">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">Profit in {{myntStatisticsData.tradeOptions.quoteCurrency}}</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">{{parseFloat(myntStatisticsData.stat.profitLoss).toFixed(7)}} {{myntStatisticsData.tradeOptions.quoteCurrency}}</h4>
+                        </div>
+                    </div>
+                    <br />
+                </div>
+            </div>
+        </div>
+        <!-- Profit in precentage -->
+        <div v-if="myntStatisticsData.stat.profitLossPercentage != null" class="col-lg-3 col-md-3 col-sm-3">
+            <div class="card text-white bg-success ">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">Profit in %</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">{{parseFloat(myntStatisticsData.stat.profitLossPercentage).toFixed(3)}}%</h4>
+                        </div>
+                    </div>
+                    <br />
+                </div>
+            </div>
+        </div>
+        <!-- Strategy -->
+        <div v-if="myntStatisticsData.stat.profitLoss != null" class="col-lg-3 col-md-3 col-sm-3">
+            <div class="card text-white bg-warning ">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">Used Stategy</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">{{myntStatisticsData.tradeOptions.defaultStrategy}}</h4> <!-- TODO there has to be the used strategy not the default one... -->
+                        </div>
+                    </div>
+                    <br />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Coins -->
+    <h3 class="mt-5">Best or worst Coins</h3>
+    <div v-if="myntStatisticsData.stat.coinPerformance != null">
+        <p v-if="myntStatisticsData.stat.coinPerformance.Count == 0">No coins traded!</p>
+        <div class="row" v-if="myntStatisticsData.stat.coinPerformance.length > 0">
+            <template v-for="(value, key, index) in myntStatisticsData.stat.coinPerformance">
+                <div class="col-lg-3 col-md-3 col-sm-3">
+                    <div class="card text-white bg-primary ">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h4 class="card-title">Coin: {{myntStatisticsData.stat.coinPerformance[key].key}}</h4>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h4 class="card-title">Result: {{parseFloat(myntStatisticsData.stat.coinPerformance[key].value).toFixed(2)}}%</h4>
+                                </div>
+                            </div>
+                            <br />
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+    <div v-if="myntStatisticsData.stat.coinPerformance == null">
+        <p>Oops... there went something wrong!</p>
+    </div>
+
+</div>
+
+
+
+
+<script src="/vendors/vue/js/vue.min.js"></script>
+
+
+<script>
+    var pagefunction = function () {
+    };
+
+    var myntStatistics = new Vue({
+        el: '#myntStatistics',
+
+        data: {
+            myntStatisticsData: null
+        },
+
+        created: function () {
+            this.connectSignalr();
+            this.fetchData();
+        },
+
+        methods: {
+            connectSignalr: function () {
+                var self = this;
+                let hubRoute = "/signalr/HubMyntStatistics";
+                let protocol = new signalR.JsonHubProtocol();
+                var options = {};
+
+                var connection = new signalR.HubConnectionBuilder()
+                    //.configureLogging(signalR.LogLevel.Trace)
+                    .withUrl(hubRoute, options)
+                    .withHubProtocol(protocol)
+                    .build();
+
+                var connectSignalr = function () {
+                    connection.start().then(function () {
+                        //Make sure to register this signalr client - Needed for disconnect on page change
+                        addSignalrClient(hubRoute, connection);
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
+                };
+
+                var reconnectSignalr = function () {
+                    console.log(signalrConnections);
+                    if (signalrConnections[hubRoute] != null) {
+                        setTimeout(function () {
+                            console.log("reconnnect");
+                            connectSignalr();
+                        }, 5000);
+                    }
+                }
+
+                connection.on('Send', function (msg) {
+                    console.log("Msg from signalR: " + msg);
+                    self.updateData();
+                });
+
+                connection.onclose(function (e) {
+                    if (e) {
+                        console.log('Connection closed with error: ' + e);
+                    }
+                    else {
+                        console.log('Disconnected');
+                    }
+                    //Reconnect -> This connection should never be offline
+                    reconnectSignalr();
+                });
+
+                connectSignalr();
+            },
+
+            fetchData: function () {
+                var self = this;
+                $.get("/api/mynt/trading/statistics/", function (data) {
+                    self.myntStatisticsData = data;
+                    self.$nextTick(function () {
+                        pagefunction();
+                    });
+                });
+            },
+            updateData: function () {
+                var self = this;
+                $.get("/api/mynt/trading/statistics/", function (data) {
+                    self.myntStatisticsData = data;
+                });
+            },
+        }
+    });
+</script>
