@@ -18,10 +18,13 @@ using Mynt.Core.Notifications;
 using Mynt.Core.Strategies;
 using Mynt.Core.TradeManagers;
 using Mynt.Data.LiteDB;
+using Mynt.Data.MongoDB;
 using MyntUI.Helpers;
 using MyntUI.Hosting;
 using MyntUI.Hubs;
 using Newtonsoft.Json.Linq;
+using Quartz;
+using Quartz.Impl;
 
 namespace MyntUI
 {
@@ -43,6 +46,7 @@ namespace MyntUI
         public static IHubContext<HubMyntLogs> GlobalHubMyntLogs;
         public static IHubContext<HubMyntBacktest> GlobalHubMyntBacktest;
         public static JObject RuntimeSettings = new JObject();
+        public static IScheduler QuartzTimer = new StdSchedulerFactory().GetScheduler().Result;
         public static TelegramNotificationOptions GlobalTelegramNotificationOptions { get; set; }
 
     }
@@ -54,6 +58,9 @@ namespace MyntUI
     {
         public async static void Init()
         {
+
+            ILogger Log = Globals.GlobalLoggerFactory.CreateLogger<GlobalSettings>();
+
             // Runtime platform getter
             Globals.RuntimeSettings["platform"] = new JObject();
             Globals.RuntimeSettings["platform"]["os"] = GetOs();
@@ -63,6 +70,67 @@ namespace MyntUI
             Globals.RuntimeSettings["platform"]["settingsInitialized"] = false;
             Globals.RuntimeSettings["signalrClients"] = new JObject();
 
+            // Database options
+            LiteDBOptions databaseOptions = new LiteDBOptions();
+            Globals.GlobalDataStore = new LiteDBDataStore(databaseOptions);
+
+            // Database Backtester
+            LiteDBOptions backtestDatabaseOptions = new LiteDBOptions();
+            Globals.GlobalDataStoreBacktest = new LiteDBDataStoreBacktest(backtestDatabaseOptions);
+            
+            /*
+            // Database options
+            MongoDBOptions databaseOptions = new MongoDBOptions();
+            Globals.GlobalDataStore = new MongoDBDataStore(databaseOptions);
+
+            // Database Backtester
+            MongoDBOptions backtestDatabaseOptions = new MongoDBOptions();
+            Globals.GlobalDataStoreBacktest = new MongoDBDataStoreBacktest(backtestDatabaseOptions);
+            */
+
+            LoadSettings();
+
+
+            // Global Hubs
+            Globals.GlobalHubMyntTraders = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntTraders>>();
+            Globals.GlobalHubMyntStatistics = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntStatistics>>();
+            Globals.GlobalHubMyntLogs = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntLogs>>();
+            Globals.GlobalHubMyntBacktest = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntBacktest>>();
+
+            //Run Cron
+            IScheduler scheduler = Globals.QuartzTimer;
+
+            IJobDetail buyTimerJob = JobBuilder.Create<Timers.BuyTimer>()
+                .WithIdentity("buyTimerJobTrigger", "buyTimerJob")
+                .Build();
+            
+            ITrigger buyTimerJobTrigger = TriggerBuilder.Create()
+                .WithIdentity("buyTimerJobTrigger", "buyTimerJob")
+                .WithCronSchedule(Globals.GlobalMyntHostedServiceOptions.BuyTimer)
+                .UsingJobData("force", false)
+                .Build();
+
+            await scheduler.ScheduleJob(buyTimerJob, buyTimerJobTrigger);
+
+            IJobDetail sellTimerJob = JobBuilder.Create<Timers.SellTimer>()
+                .WithIdentity("sellTimerJobTrigger", "sellTimerJob")
+                .Build();
+
+            ITrigger sellTimerJobTrigger = TriggerBuilder.Create()
+                .WithIdentity("sellTimerJobTrigger", "sellTimerJob")
+                .WithCronSchedule(Globals.GlobalMyntHostedServiceOptions.SellTimer)
+                .UsingJobData("force", false)
+                .Build();
+
+            await scheduler.ScheduleJob(sellTimerJob, sellTimerJobTrigger);
+
+            await scheduler.Start();
+            Log.LogInformation($"Buy Cron will run at: {buyTimerJobTrigger.GetNextFireTimeUtc() ?? DateTime.MinValue:r}");
+            Log.LogInformation($"Sell Cron will run at: {sellTimerJobTrigger.GetNextFireTimeUtc() ?? DateTime.MinValue:r}");
+        }
+
+        public static void LoadSettings()
+        {
             // Check if Overrides exists
             var settingsStr = "appsettings.json";
             if (File.Exists("appsettings.overrides.json"))
@@ -78,49 +146,37 @@ namespace MyntUI
             // Telegram Notifications
             Globals.GlobalTelegramNotificationOptions = Globals.GlobalConfiguration.GetSection("Telegram").Get<TelegramNotificationOptions>();
 
-            // Database options
-            LiteDBOptions databaseOptions = new LiteDBOptions();
-            Globals.GlobalDataStore = new LiteDBDataStore(databaseOptions);
+        }
 
-            // Database Backtester
-            LiteDBOptions backtestDatabaseOptions = new LiteDBOptions();
-            Globals.GlobalDataStoreBacktest = new LiteDBDataStoreBacktest(backtestDatabaseOptions);
 
-            // Global Hubs
-            Globals.GlobalHubMyntTraders = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntTraders>>();
-            Globals.GlobalHubMyntStatistics = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntStatistics>>();
-            Globals.GlobalHubMyntLogs = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntLogs>>();
-            Globals.GlobalHubMyntBacktest = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntBacktest>>();
-
-            // Get Strategy from appsettings.overrides.json
-            var type = Type.GetType($"Mynt.Core.Strategies.{Globals.GlobalTradeOptions.DefaultStrategy}, Mynt.Core", true, true);
-            var strategy = Activator.CreateInstance(type) as ITradingStrategy ?? new TheScalper();
-
-            // Trading mode  Configuration.GetSection("Telegram").Get<TelegramNotificationOptions>()) 
-            var notificationManagers = new List<INotificationManager>()
+        public sealed class QuartzScheduler
         {
-            new SignalrNotificationManager(),
-            new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
-        };
-            if (Globals.GlobalTradeOptions.PaperTrade)
-            {
-                // PaperTrader
-                ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<PaperTradeManager>();
-                var paperTradeManager = new PaperTradeManager(Globals.GlobalExchangeApi, strategy, notificationManagers, tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
-                var runTimer = new MyntHostedService(paperTradeManager, Globals.GlobalMyntHostedServiceOptions);
+            private static QuartzScheduler _instance;
 
-                // Start task
-                await runTimer.StartAsync(Globals.GlobalTimerCancellationToken);
+            private static readonly object Padlock = new object();
+
+            private readonly ISchedulerFactory _schedulerFactory;
+            private readonly IScheduler _scheduler;
+
+            QuartzScheduler()
+            {
+                _schedulerFactory = new StdSchedulerFactory();
+                _scheduler = _schedulerFactory.GetScheduler().Result;
             }
-            else
-            {
-                // LiveTrader
-                ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<LiveTradeManager>();
-                var liveTradeManager = new LiveTradeManager(Globals.GlobalExchangeApi, strategy, notificationManagers, tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
-                var runTimer = new MyntHostedService(liveTradeManager, Globals.GlobalMyntHostedServiceOptions);
 
-                // Start task
-                await runTimer.StartAsync(Globals.GlobalTimerCancellationToken);
+            public static IScheduler Instance
+            {
+                get
+                {
+                    lock (Padlock)
+                    {
+                        if (_instance == null)
+                        {
+                            _instance = new QuartzScheduler();
+                        }
+                        return _instance._scheduler;
+                    }
+                }
             }
         }
 
