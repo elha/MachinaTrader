@@ -343,7 +343,7 @@
                     "sClass": "center",
                     responsivePriority: 2,
                     mRender: function (data, type, full, meta) {
-                        var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadTradingViewModal(\'/views/TradingViewWidget.html\', \'' + full.exchange + '\', \'' + full.globalSymbol + '\')"><img style="height: 18px "src="/img/exchange/' + full.exchange + '.png" />&nbsp;' + full.globalSymbol + '</a>';
+                        var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadTradingViewModal(\'/views/TradingViewWidget.html\', \'' + full.exchange + '\', \'' + full.market + '\')"><img style="height: 18px "src="/img/exchange/' + full.exchange + '.png" />&nbsp;' + full.globalSymbol + '</a>';
                         return formatted;
                     }
                 },
