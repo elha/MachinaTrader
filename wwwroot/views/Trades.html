@@ -404,15 +404,15 @@
                     }
                 },
                 {
-                    "title": "Date",
-                    "mDataProp": "openDate",
+                    "title": "Close Date",
+                    "mDataProp": "closeDate",
                     "sWidth": "120px",
                     "sType": "alt-string",
                     "sClass": "center",
                     responsivePriority: 2,
                     mRender: function (data, type, full, meta) {
                         var now = moment();
-                        var formatted = moment(full.openDate).format("YYYY-MM-DD HH:mm:ss");
+                        var formatted = moment(full.closeDate).format("YYYY-MM-DD HH:mm:ss");
                         return formatted;
                     }
                 },
