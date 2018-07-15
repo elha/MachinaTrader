@@ -7,6 +7,7 @@ using Mynt.Core.Notifications;
 using Mynt.Core.Strategies;
 using Mynt.Core.TradeManagers;
 using MyntUI.Helpers;
+using MyntUI.TradeManagers;
 using Quartz;
 
 namespace MyntUI.Timers
@@ -32,11 +33,11 @@ namespace MyntUI.Timers
                 new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
             };
 
-            ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<HybridTradeManager>();
-            var hybridTradeManager = new HybridTradeManager(Globals.GlobalExchangeApi, strategy, notificationManagers, tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
+            ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<TradeManager>();
+            var tradeTradeManager = new TradeManager(Globals.GlobalExchangeApi, strategy, notificationManagers, tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
 
             Log.LogInformation("Mynt service is updating trades.");
-            hybridTradeManager.UpdateExistingTrades();
+            tradeTradeManager.UpdateExistingTrades();
 
             return Task.FromResult(true);
         }
