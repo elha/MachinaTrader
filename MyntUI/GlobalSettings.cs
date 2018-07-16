@@ -21,7 +21,6 @@ using Mynt.Core.Strategies;
 using Mynt.Data.LiteDB;
 using Mynt.Data.MongoDB;
 using MyntUI.Helpers;
-using MyntUI.Hosting;
 using MyntUI.Hubs;
 using MyntUI.TradeManagers;
 using Newtonsoft.Json.Linq;
@@ -38,7 +37,6 @@ namespace MyntUI
         public static IDataStore GlobalDataStore { get; set; }
         public static IDataStoreBacktest GlobalDataStoreBacktest { get; set; }
         public static TradeOptions GlobalTradeOptions { get; set; }
-        public static MyntHostedServiceOptions GlobalMyntHostedServiceOptions { get; set; }
         public static ExchangeOptions GlobalExchangeOptions { get; set; }
         public static IExchangeApi GlobalExchangeApi { get; set; }
         public static ILoggerFactory GlobalLoggerFactory { get; set; }
@@ -124,7 +122,7 @@ namespace MyntUI
 
             ITrigger buyTimerJobTrigger = TriggerBuilder.Create()
                 .WithIdentity("buyTimerJobTrigger", "buyTimerJob")
-                .WithCronSchedule(Globals.GlobalMyntHostedServiceOptions.BuyTimer)
+                .WithCronSchedule(Globals.GlobalTradeOptions.BuyTimer)
                 .UsingJobData("force", false)
                 .Build();
 
@@ -136,7 +134,7 @@ namespace MyntUI
 
             ITrigger sellTimerJobTrigger = TriggerBuilder.Create()
                 .WithIdentity("sellTimerJobTrigger", "sellTimerJob")
-                .WithCronSchedule(Globals.GlobalMyntHostedServiceOptions.SellTimer)
+                .WithCronSchedule(Globals.GlobalTradeOptions.SellTimer)
                 .UsingJobData("force", false)
                 .Build();
 
@@ -175,8 +173,6 @@ namespace MyntUI
             }
 
             fullApi.GetTickersWebSocket(OnWebsocketTickersUpdated);
-
-            Globals.GlobalMyntHostedServiceOptions = Globals.GlobalConfiguration.GetSection("Hosting").Get<MyntHostedServiceOptions>();
 
             // Telegram Notifications
             Globals.GlobalTelegramNotificationOptions = Globals.GlobalConfiguration.GetSection("Telegram").Get<TelegramNotificationOptions>();

@@ -14,6 +14,9 @@ namespace MyntUI.TradeManagers
     {
         decimal stopLossPercentage = -0.07m;
 
+        public string BuyTimer { get; set; } = "0 0/5 * * * ?";
+        public string SellTimer { get; set; } = "0 0/5 * * * ?";
+
         // Trading mode default is PaperTradeManager
         public bool PaperTrade { get; set; } = true;
 
