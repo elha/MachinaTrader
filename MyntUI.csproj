@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <ApplicationIcon />
     <OutputType>Exe</OutputType>
-    <StartupObject />
+    <StartupObject></StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +12,14 @@
     <Content Remove="Mynt\**" />
     <EmbeddedResource Remove="Mynt\**" />
     <None Remove="Mynt\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Properties\Resources.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Properties\Resources.resx" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,7 +42,6 @@
   <ItemGroup>
     <ProjectReference Include="Mynt\src\Mynt.Core\Mynt.Core.csproj" />
     <ProjectReference Include="Mynt\src\Mynt.Data.LiteDB\Mynt.Data.LiteDB.csproj" />
-    <ProjectReference Include="Mynt\src\Mynt.Data.MongoDB\Mynt.Data.MongoDB.csproj" />
   </ItemGroup>
   
 </Project>
