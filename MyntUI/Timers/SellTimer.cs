@@ -34,7 +34,7 @@ namespace MyntUI.Timers
             };
 
             ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<TradeManager>();
-            var tradeTradeManager = new TradeManager(Globals.GlobalExchangeApi, strategy, notificationManagers, tradeLogger, Globals.GlobalTradeOptions, Globals.GlobalDataStore);
+            var tradeTradeManager = new TradeManager();
 
             Log.LogInformation("Mynt service is updating trades.");
             tradeTradeManager.UpdateExistingTrades();

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
@@ -14,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Mynt.Core.Enums;
 using Mynt.Core.Exchanges;
 using Mynt.Core.Interfaces;
+using Mynt.Core.Models;
 using Mynt.Core.Notifications;
 using Mynt.Core.Strategies;
 using Mynt.Data.LiteDB;
@@ -48,7 +50,13 @@ namespace MyntUI
         public static JObject RuntimeSettings = new JObject();
         public static IScheduler QuartzTimer = new StdSchedulerFactory().GetScheduler().Result;
         public static TelegramNotificationOptions GlobalTelegramNotificationOptions { get; set; }
+        public static ILogger TradeLogger;
+        public static List<INotificationManager> NotificationManagers;
+        public static OrderBehavior GlobalOrderBehavior;
+        public static ConcurrentDictionary<string, Ticker> WebSocketTickers = new ConcurrentDictionary<string, Ticker>();
 
+        public static List<string> GlobalCurrencys = new List<string>();
+        public static List<string> ExchangeCurrencys = new List<string>();
     }
 
     /// <summary>
@@ -60,6 +68,16 @@ namespace MyntUI
         {
 
             ILogger Log = Globals.GlobalLoggerFactory.CreateLogger<GlobalSettings>();
+
+            Globals.TradeLogger = Globals.GlobalLoggerFactory.CreateLogger<TradeManager>();
+
+            Globals.GlobalOrderBehavior = OrderBehavior.AlwaysFill;
+
+            Globals.NotificationManagers = new List<INotificationManager>()
+            {
+                new SignalrNotificationManager(),
+                //new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
+            };
 
             // Runtime platform getter
             Globals.RuntimeSettings["platform"] = new JObject();
@@ -77,7 +95,7 @@ namespace MyntUI
             // Database Backtester
             LiteDBOptions backtestDatabaseOptions = new LiteDBOptions();
             Globals.GlobalDataStoreBacktest = new LiteDBDataStoreBacktest(backtestDatabaseOptions);
-            
+
             /*
             // Database options
             MongoDBOptions databaseOptions = new MongoDBOptions();
@@ -103,7 +121,7 @@ namespace MyntUI
             IJobDetail buyTimerJob = JobBuilder.Create<Timers.BuyTimer>()
                 .WithIdentity("buyTimerJobTrigger", "buyTimerJob")
                 .Build();
-            
+
             ITrigger buyTimerJobTrigger = TriggerBuilder.Create()
                 .WithIdentity("buyTimerJobTrigger", "buyTimerJob")
                 .WithCronSchedule(Globals.GlobalMyntHostedServiceOptions.BuyTimer)
@@ -141,6 +159,23 @@ namespace MyntUI
             Globals.GlobalTradeOptions = Globals.GlobalConfiguration.GetSection("TradeOptions").Get<TradeOptions>();
             Globals.GlobalExchangeOptions = Globals.GlobalConfiguration.Get<ExchangeOptions>();
             Globals.GlobalExchangeApi = new BaseExchange(Globals.GlobalExchangeOptions);
+
+            //Websocket Test
+            var fullApi = Globals.GlobalExchangeApi.GetFullApi().Result;
+
+            //Create Exchange Currencies as List
+            foreach (var currency in Globals.GlobalTradeOptions.AlwaysTradeList)
+            {
+                Globals.GlobalCurrencys.Add(Globals.GlobalTradeOptions.QuoteCurrency + "-" + currency);
+            }
+
+            foreach (var currency in Globals.GlobalCurrencys)
+            {
+                Globals.ExchangeCurrencys.Add(fullApi.GlobalSymbolToExchangeSymbol(currency));
+            }
+
+            fullApi.GetTickersWebSocket(OnWebsocketTickersUpdated);
+
             Globals.GlobalMyntHostedServiceOptions = Globals.GlobalConfiguration.GetSection("Hosting").Get<MyntHostedServiceOptions>();
 
             // Telegram Notifications
@@ -148,6 +183,32 @@ namespace MyntUI
 
         }
 
+
+
+        public static void OnWebsocketTickersUpdated(IReadOnlyCollection<KeyValuePair<string, ExchangeSharp.ExchangeTicker>> updatedTickers)
+        {
+            foreach (var update in updatedTickers)
+            {
+                if (Globals.ExchangeCurrencys.Contains(update.Key))
+                {
+                    if (Globals.WebSocketTickers.TryGetValue(update.Key, out Ticker ticker))
+                    {
+                        ticker.Ask = update.Value.Ask;
+                        ticker.Bid = update.Value.Bid;
+                        ticker.Last = update.Value.Last;
+                    }
+                    else
+                    {
+                        Globals.WebSocketTickers.TryAdd(update.Key, new Ticker
+                        {
+                            Ask = update.Value.Ask,
+                            Bid = update.Value.Bid,
+                            Last = update.Value.Last
+                        });
+                    }
+                }
+            }
+        }
 
         public sealed class QuartzScheduler
         {
