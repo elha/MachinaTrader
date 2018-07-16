@@ -4,8 +4,15 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <ApplicationIcon />
     <OutputType>Exe</OutputType>
-    <StartupObject />
+    <StartupObject></StartupObject>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Mynt\**" />
+    <Content Remove="Mynt\**" />
+    <EmbeddedResource Remove="Mynt\**" />
+    <None Remove="Mynt\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.1.2" />
@@ -25,9 +32,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Mynt\src\Mynt.Core\Mynt.Core.csproj" />
-    <ProjectReference Include="..\Mynt\src\Mynt.Data.LiteDB\Mynt.Data.LiteDB.csproj" />
-    <ProjectReference Include="..\Mynt\src\Mynt.Data.MongoDB\Mynt.Data.MongoDB.csproj" />
+    <ProjectReference Include="Mynt\src\Mynt.Core\Mynt.Core.csproj" />
+    <ProjectReference Include="Mynt\src\Mynt.Data.LiteDB\Mynt.Data.LiteDB.csproj" />
+    <ProjectReference Include="Mynt\src\Mynt.Data.MongoDB\Mynt.Data.MongoDB.csproj" />
   </ItemGroup>
   
 </Project>
