@@ -296,7 +296,8 @@ __pycache__/
 
 #Default Database
 Mynt.db
+MyntUI.db
+MyntUIAuth.db
 
 package-lock.json
 appsettings.overrides.json
-/MyntUIAuth.db

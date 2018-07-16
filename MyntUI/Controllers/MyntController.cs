@@ -5,9 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Mynt.Core.Interfaces;
-using Mynt.Core.TradeManagers;
 using MyntUI.Models;
+using MyntUI.TradeManagers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -19,6 +20,29 @@ namespace MyntUI.Controllers
     {
 
         [HttpGet]
+        [Route("trading/Trade/{tradeId}")]
+        public async Task<IActionResult> TradingTrade(string tradeId)
+        {
+            var activeTrade = await Globals.GlobalDataStore.GetActiveTradesAsync();
+            var trade = activeTrade.Where(x => x.TradeId == tradeId).FirstOrDefault();
+            if (trade == null)
+            {
+                var closedTrades = await Globals.GlobalDataStore.GetClosedTradesAsync();
+                trade = closedTrades.Where(x => x.TradeId == tradeId).FirstOrDefault();
+            }
+
+            return new JsonResult(trade);
+        }
+
+        [HttpGet]
+        [Route("trading/GetWebSocketValues")]
+        public async Task<IActionResult> GetWebSocketValues()
+        {
+            return new JsonResult(Globals.WebSocketTickers);
+
+        }
+
+        [HttpGet]
         [Route("trading/SellNow/{tradeId}")]
         public async Task TradingSellNow(string tradeId)
         {
@@ -27,6 +51,10 @@ namespace MyntUI.Controllers
             tradeToUpdate.SellNow = true;
             await Globals.GlobalDataStore.SaveTradeAsync(tradeToUpdate);
             await Globals.GlobalHubMyntTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to SellNow");
+
+            //Instantly run check
+            var tradeTradeManager = new TradeManager();
+            await tradeTradeManager.UpdateExistingTrades();
 
         }
 
