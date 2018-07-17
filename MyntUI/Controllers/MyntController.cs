@@ -19,6 +19,16 @@ namespace MyntUI.Controllers
     public class MyntApiController : Controller
     {
 
+
+        [HttpGet]
+        [Route("trading/GetBalance")]
+        public async Task<IActionResult> GetBalance()
+        {
+            var fullApi = Globals.GlobalExchangeApi.GetFullApi().Result;
+            var balance = await fullApi.GetAmountsAvailableToTradeAsync();
+            return new JsonResult(balance);
+        }
+
         [HttpGet]
         [Route("trading/Trade/{tradeId}")]
         public async Task<IActionResult> TradingTrade(string tradeId)
@@ -163,7 +173,7 @@ namespace MyntUI.Controllers
             stat.CoinPerformance = coins.ToList().OrderByDescending(c => c.Value);
 
             // Create some viewbags
-            ViewBag.tradeOptions = Startup.Configuration.GetSection("TradeOptions").Get<TradeOptions>();
+            ViewBag.tradeOptions = Globals.GlobalTradeOptions;
             ViewBag.stat = stat;
 
             return new JsonResult(ViewBag);

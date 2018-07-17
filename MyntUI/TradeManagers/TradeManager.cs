@@ -134,7 +134,7 @@ namespace MyntUI.TradeManagers
                 {
                     await SendNotification($"Sell now is set: Selling with {(trade.SellOnPercentage / 100)} for {trade.TradeId}");
 
-                    var orderId = Guid.NewGuid().ToString().Replace("-", "");
+                    var orderId = Globals.GlobalTradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
                     trade.CloseRate = trade.TickerLast.Bid;
                     trade.OpenOrderId = orderId;
                     trade.SellOrderId = orderId;
@@ -157,7 +157,7 @@ namespace MyntUI.TradeManagers
                 if ((currentProfit) >= (trade.SellOnPercentage / 100))
                 {
                     await SendNotification($"We've reached defined percentage ({(trade.SellOnPercentage)})for {trade.TradeId} - Selling now");
-                    var orderId = Guid.NewGuid().ToString().Replace("-", "");
+                    var orderId = Globals.GlobalTradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
 
                     trade.CloseRate = trade.TickerLast.Bid;
                     trade.OpenOrderId = orderId;
@@ -183,9 +183,7 @@ namespace MyntUI.TradeManagers
                     var ticker = await Globals.GlobalExchangeApi.GetTicker(trade.Market);
 
                     // Check Trading Mode
-                    var orderId = Globals.GlobalTradeOptions.PaperTrade
-                        ? Guid.NewGuid().ToString().Replace("-", "")
-                        : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, ticker.Bid);
+                    var orderId = Globals.GlobalTradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, ticker.Bid);
 
                     trade.CloseRate = ticker.Bid;
                     trade.OpenOrderId = orderId;
