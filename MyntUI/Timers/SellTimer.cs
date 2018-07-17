@@ -24,16 +24,6 @@ namespace MyntUI.Timers
         /// </summary>
         public virtual Task Execute(IJobExecutionContext context)
         {
-            var type = Type.GetType($"Mynt.Core.Strategies.{Globals.GlobalTradeOptions.DefaultStrategy}, Mynt.Core", true, true);
-            var strategy = Activator.CreateInstance(type) as ITradingStrategy ?? new TheScalper();
-
-            var notificationManagers = new List<INotificationManager>()
-            {
-                new SignalrNotificationManager(),
-                new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
-            };
-
-            ILogger tradeLogger = Globals.GlobalLoggerFactory.CreateLogger<TradeManager>();
             var tradeTradeManager = new TradeManager();
 
             Log.LogInformation("Mynt service is updating trades.");
