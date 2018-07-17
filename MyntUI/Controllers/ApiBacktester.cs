@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using ExchangeSharp;
@@ -39,7 +40,6 @@ namespace MyntUI.Controllers
         [HttpGet]
         public async Task<ActionResult> Get(string exchange, string coinsToBuy, string candleSize = "5")
         {
-
             List<string> coins = new List<string>();
             Char delimiter = ',';
             String[] coinsToBuyArray = coinsToBuy.Split(delimiter);
@@ -166,38 +166,28 @@ namespace MyntUI.Controllers
     public class ApiTradingBacktestGettickers : Controller
     {
         [HttpGet]
-        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string strategy, string candleSize = "5")
+        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string strategy, string candleSize)
         {
-            var items = new List<Candle>()
+            //var base64EncodedBytes = Convert.FromBase64String(strategy);
+            //var strategyName = Encoding.UTF8.GetString(base64EncodedBytes);
+            var strategyName = WebUtility.HtmlDecode(strategy);
+
+            List<string> coins = new List<string>();
+            Char delimiter = ',';
+            String[] coinsToBuyArray = coinsToBuy.Split(delimiter);
+            foreach (var coin in coinsToBuyArray)
             {
-                new Candle()
-                {
-                    Close=10,
-                    High= 20,
-                    Low=30,
-                    Open=40,
-                    Timestamp = DateTime.Parse("2018-01-24T22:45:00Z").ToUniversalTime(),
-                    Volume = 300
-                },
-                new Candle()
-                {
-                    Close=15,
-                    High= 25,
-                    Low=35,
-                    Open=45,
-                    Timestamp = DateTime.Parse("2018-01-24T23:45:00Z").ToUniversalTime(),
-                    Volume = 300
-                },
-                new Candle()
-                {
-                    Close=15,
-                    High= 25,
-                    Low=35,
-                    Open=45,
-                    Timestamp =DateTime.Parse("2018-01-25T23:45:00Z").ToUniversalTime(),
-                    Volume = 300
-                }
-            };
+                coins.Add(coin.ToUpper());
+            }
+
+            var backtestOptions = new BacktestOptions();
+            backtestOptions.Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true);
+            backtestOptions.Coins = coins;
+            backtestOptions.Coin = coinsToBuy;
+            backtestOptions.CandlePeriod = Int32.Parse(candleSize);
+
+            var candleProvider = new DatabaseCandleProvider();
+            var items = await candleProvider.GetCandles(backtestOptions, Globals.GlobalDataStoreBacktest);
 
             return new JsonResult(items);
         }
@@ -209,26 +199,46 @@ namespace MyntUI.Controllers
         [HttpGet]
         public async Task<ActionResult> Get(string exchange, string coinsToBuy, string strategy, string candleSize = "5")
         {
+            //var base64EncodedBytes = Convert.FromBase64String(strategy);
+            //var strategyName = Encoding.UTF8.GetString(base64EncodedBytes);
+            var strategyName = WebUtility.HtmlDecode(strategy);
 
-            var items = new List<TradeSignal>()
+            List<string> coins = new List<string>();
+            Char delimiter = ',';
+            String[] coinsToBuyArray = coinsToBuy.Split(delimiter);
+            foreach (var coin in coinsToBuyArray)
             {
-                new TradeSignal()
-                {
-                    Timestamp  = DateTime.Parse("2018-01-24T22:45:00Z").ToUniversalTime(),
-                    Price = 25,
-                    TradeAdvice = TradeAdvice.Buy,
-                    Profit = 0,
-                    PercentageProfit = 0m
-                },
-                new TradeSignal()
-                {
-                    Timestamp  = DateTime.Parse("2018-01-24T23:45:00Z").ToUniversalTime(),
-                    Price = 30,
-                    TradeAdvice = TradeAdvice.Sell,
-                    Profit = 1,
-                    PercentageProfit = 0.02m
-                }
-            };
+                coins.Add(coin.ToUpper());
+            }
+
+            var backtestOptions = new BacktestOptions();
+            backtestOptions.Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true);
+            backtestOptions.Coins = coins;
+            backtestOptions.Coin = coinsToBuy;
+            backtestOptions.CandlePeriod = Int32.Parse(candleSize);
+
+            var candleProvider = new DatabaseCandleProvider();
+            var items = await candleProvider.GetSignals(backtestOptions, Globals.GlobalDataStoreBacktest, strategyName);
+
+            //var items = new List<TradeSignal>()
+            //{
+            //    new TradeSignal()
+            //    {
+            //        Timestamp  = DateTime.Parse("2018-01-24T22:45:00Z").ToUniversalTime(),
+            //        Price = 25,
+            //        TradeAdvice = TradeAdvice.Buy,
+            //        Profit = 0,
+            //        PercentageProfit = 0m
+            //    },
+            //    new TradeSignal()
+            //    {
+            //        Timestamp  = DateTime.Parse("2018-01-24T23:45:00Z").ToUniversalTime(),
+            //        Price = 30,
+            //        TradeAdvice = TradeAdvice.Sell,
+            //        Profit = 1,
+            //        PercentageProfit = 0.02m
+            //    }
+            //};
 
             return new JsonResult(items);
         }

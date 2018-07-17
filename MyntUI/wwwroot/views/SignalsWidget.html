@@ -39,23 +39,19 @@
     .data_line1 { fill: none; stroke: purple; }
 </style>
 
-<div id="widgetTradingViewModal">
+<div id="widgetSignalsModalModal">
     <div class="modal-header">
         <h4 class="modal-title" id="modal-title"><i class="fas fa-chart-line"></i> Exchange: {{exchange}} Market: {{market}} candleSize: {{candleSize}} tradingStrategy: {{tradingStrategy}}</h4>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
     </div>
 
     <div class="modal-body">
-        <div id="mainConfigForm">
-            <div class="row" style="display: block;">
+       
+            <div class="row">
 
                 <div class="col-md-8" id="charts">
                     <script type="text/javascript">
-                        $(document).ready(function () {
-
-                            //$("#SignalId").change(function () {
-                            //    var t = $(this).val();
-                            //    if (t !== "") {
+                        $(document).ready(function () {                      
 
                             var margin = { top: 20, right: 20, bottom: 100, left: 80 },
                                 margin2 = { top: 620, right: 20, bottom: 20, left: 80 },
@@ -251,7 +247,7 @@
                                 .attr("class", "y axis")
                                 .call(yAxis2);
 
-                            var url = '/api/trading/backtest/gettickers?exchange=' + widgetTradingViewModal.exchange + '&coinsToBuy=' + widgetTradingViewModal.market + '&candleSize=' + widgetTradingViewModal.candleSize + '&strategy=' + widgetTradingViewModal.tradingStrategy + '';
+                            var url = '/api/trading/backtest/gettickers?exchange=' + widgetSignalsModalModal.exchange + '&coinsToBuy=' + widgetSignalsModalModal.market + '&candleSize=' + widgetSignalsModalModal.candleSize + '&strategy=' + widgetSignalsModalModal.tradingStrategy + '';
 
                             $.getJSON(url, null, function (data) {
 
@@ -283,7 +279,7 @@
                                     };
                                 }).sort(function (a, b) { return d3.ascending(macdAccessor.d(a), macdAccessor.d(b)); });
 
-                                var url2 = '/api/trading/backtest/getsignals?exchange=' + widgetTradingViewModal.exchange + '&coinsToBuy=' + widgetTradingViewModal.market + '&candleSize=' + widgetTradingViewModal.candleSize + '&strategy=' + widgetTradingViewModal.tradingStrategy + '';
+                                var url2 = '/api/trading/backtest/getsignals?exchange=' + widgetSignalsModalModal.exchange + '&coinsToBuy=' + widgetSignalsModalModal.market + '&candleSize=' + widgetSignalsModalModal.candleSize + '&strategy=' + widgetSignalsModalModal.tradingStrategy + '';
 
                                 $.getJSON(url2, null, function (signals) {
                                     var trades = signals.map(function (d) {
@@ -292,7 +288,7 @@
                                             price: +d.price,
                                             //high: +d.high,
                                             //low: +d.low,
-                                            type: (d.tradeAdvice === "1" ? "buy" : "sell")
+                                            type: (d.tradeAdvice === 1 ? "buy" : "sell")
                                         };
                                     }).sort(function (a, b) { return d3.ascending(accessor.d(a), accessor.d(b)); });
 
@@ -302,7 +298,7 @@
                                             price: +d.price,
                                             //high: +d.high,
                                             //low: +d.low,
-                                            type: (d.tradeAdvice === "1" ? "buy" : "sell"),
+                                            type: (d.tradeAdvice === 1 ? "buy" : "sell"),
 
                                             profit: d.profit,
                                             percentageProfit: d.percentageProfit
@@ -401,18 +397,17 @@
                                 focus.select("g.x.axis").call(xAxis);
                                 focus.select("g.y.axis").call(yAxis);
                             }
-                            //    }
-                            //});
+                           
                         });
                     </script>
                 </div>
 
                 <div class="col-md-1">
-                    <select id="mySelect" size="80"></select>
+                    <select id="mySelect" size="40"></select>
                 </div>
 
             </div>
-        </div>
+        
     </div>
 
     <div class="modal-footer">
@@ -463,8 +458,8 @@
         tradingStrategy = "";
     }
 
-    var widgetTradingViewModal = new Vue({
-        el: '#widgetTradingViewModal',
+    var widgetSignalsModalModal = new Vue({
+        el: '#widgetSignalsModalModal',
 
         data: {
             exchange: exchange,
