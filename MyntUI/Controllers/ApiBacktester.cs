@@ -10,6 +10,7 @@ using Mynt.Core.Backtester;
 using Mynt.Core.Enums;
 using Mynt.Core.Exchanges;
 using Mynt.Core.Interfaces;
+using Mynt.Core.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -157,6 +158,79 @@ namespace MyntUI.Controllers
                 await Globals.GlobalHubMyntBacktest.Clients.All.SendAsync("Send", JsonConvert.SerializeObject(result[0]));
             }
             return new JsonResult(strategies);
+        }
+    }
+
+
+    [Route("api/trading/backtest/gettickers")]
+    public class ApiTradingBacktestGettickers : Controller
+    {
+        [HttpGet]
+        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string strategy, string candleSize = "5")
+        {
+            var items = new List<Candle>()
+            {
+                new Candle()
+                {
+                    Close=10,
+                    High= 20,
+                    Low=30,
+                    Open=40,
+                    Timestamp = DateTime.Parse("2018-01-24T22:45:00Z").ToUniversalTime(),
+                    Volume = 300
+                },
+                new Candle()
+                {
+                    Close=15,
+                    High= 25,
+                    Low=35,
+                    Open=45,
+                    Timestamp = DateTime.Parse("2018-01-24T23:45:00Z").ToUniversalTime(),
+                    Volume = 300
+                },
+                new Candle()
+                {
+                    Close=15,
+                    High= 25,
+                    Low=35,
+                    Open=45,
+                    Timestamp =DateTime.Parse("2018-01-25T23:45:00Z").ToUniversalTime(),
+                    Volume = 300
+                }
+            };
+
+            return new JsonResult(items);
+        }
+    }
+
+    [Route("api/trading/backtest/getsignals")]
+    public class ApiTradingBacktestGetsignals : Controller
+    {
+        [HttpGet]
+        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string strategy, string candleSize = "5")
+        {
+
+            var items = new List<TradeSignal>()
+            {
+                new TradeSignal()
+                {
+                    Timestamp  = DateTime.Parse("2018-01-24T22:45:00Z").ToUniversalTime(),
+                    Price = 25,
+                    TradeAdvice = TradeAdvice.Buy,
+                    Profit = 0,
+                    PercentageProfit = 0m
+                },
+                new TradeSignal()
+                {
+                    Timestamp  = DateTime.Parse("2018-01-24T23:45:00Z").ToUniversalTime(),
+                    Price = 30,
+                    TradeAdvice = TradeAdvice.Sell,
+                    Profit = 1,
+                    PercentageProfit = 0.02m
+                }
+            };
+
+            return new JsonResult(items);
         }
     }
 

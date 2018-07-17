@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Mynt.Core.Enums;
+using Mynt.Core.Extensions;
 using Mynt.Core.Interfaces;
 using Mynt.Core.Models;
 using Mynt.Core.Strategies;
@@ -209,6 +210,8 @@ namespace MyntUI.TradeManagers
             var markets = await Globals.GlobalExchangeApi.GetMarketSummaries(Globals.GlobalTradeOptions.QuoteCurrency);
             var pairs = new List<TradeSignal>();
 
+            Globals.TradeLogger.LogInformation($"Markets found: {markets.Count}");
+
             // Check if there are markets matching our volume.
             markets = markets.Where(x =>
                 (x.Volume > Globals.GlobalTradeOptions.MinimumAmountOfVolume ||
@@ -307,7 +310,28 @@ namespace MyntUI.TradeManagers
 
                 var minimumDate = strategy.GetMinimumDateTime();
                 var candleDate = strategy.GetCurrentCandleDateTime();
+
                 var candles = await Globals.GlobalExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate);
+
+               
+
+
+                var desiredLastCandleTime = candleDate.AddMinutes(-(strategy.IdealPeriod.ToMinutesEquivalent()));
+
+                Globals.TradeLogger.LogInformation("{Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
+
+                while (candles.Last().Timestamp < desiredLastCandleTime)
+                {
+                    Thread.Sleep(5000);
+
+                    candles = await Globals.GlobalExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate);
+                    Globals.TradeLogger.LogInformation("R {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
+                }
+
+                Globals.TradeLogger.LogInformation("Checking market {Market}... lastCandleTime: {last} , close: {close}", market, candles.Last().Timestamp, candles.Last().Close);
+
+
+
 
                 // We eliminate all candles that aren't needed for the dataset incl. the last one (if it's the current running candle).
                 candles = candles.Where(x => x.Timestamp >= minimumDate && x.Timestamp < candleDate).ToList();
