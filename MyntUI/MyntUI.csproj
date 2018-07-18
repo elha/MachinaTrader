@@ -36,5 +36,9 @@
     <ProjectReference Include="..\Mynt\src\Mynt.Data.LiteDB\Mynt.Data.LiteDB.csproj" />
     <ProjectReference Include="..\Mynt\src\Mynt.Data.MongoDB\Mynt.Data.MongoDB.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Logs\" />
+  </ItemGroup>
   
 </Project>

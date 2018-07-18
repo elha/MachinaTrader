@@ -234,22 +234,44 @@ namespace MyntUI.TradeManagers
 
 
             // Buy from external - Currently for Debug -> This will buy on each tick !
-            /*var externalTicker = await Globals.GlobalExchangeApi.GetTicker("LINKBTC");
-            Candle externalCandle = new Candle();
-            externalCandle.Timestamp = DateTime.UtcNow;
-            externalCandle.Open = externalTicker.Last;
-            externalCandle.High = externalTicker.Last;
-            externalCandle.Volume = externalTicker.Volume;
-            externalCandle.Close = externalTicker.Last;
-            pairs.Add(new TradeSignal
-            {
-                MarketName = "LINKBTC",
-                QuoteCurrency = "LINK",
-                BaseCurrency = "BTC",
-                TradeAdvice = TradeAdvice.StrongBuy,
-                SignalCandle = externalCandle
-            });
-            */
+            /******************************/
+            //var externalTicker = await Globals.GlobalExchangeApi.GetTicker("LINKBTC");
+            //Candle externalCandle = new Candle();
+            //externalCandle.Timestamp = DateTime.UtcNow;
+            //externalCandle.Open = externalTicker.Last;
+            //externalCandle.High = externalTicker.Last;
+            //externalCandle.Volume = externalTicker.Volume;
+            //externalCandle.Close = externalTicker.Last;
+            //pairs.Add(new TradeSignal
+            //{
+            //    MarketName = "LINKBTC",
+            //    QuoteCurrency = "LINK",
+            //    BaseCurrency = "BTC",
+            //    TradeAdvice = TradeAdvice.StrongBuy,
+            //    SignalCandle = externalCandle
+            //});
+
+            //_activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
+            //if (_activeTrades.Where(x => x.IsOpen).Count() < Globals.GlobalTradeOptions.MaxNumberOfConcurrentTrades)
+            //{
+            //    await CreateNewTrade(new TradeSignal
+            //    {
+            //        MarketName = "LINKBTC",
+            //        QuoteCurrency = "LINK",
+            //        BaseCurrency = "BTC",
+            //        TradeAdvice = TradeAdvice.StrongBuy,
+            //        SignalCandle = externalCandle
+            //    }, strategy);
+            //    Globals.TradeLogger.LogInformation("Match signal -> Buying " + "LINKBTC");
+            //}
+            //else
+            //{
+            //    Globals.TradeLogger.LogInformation("Too Many Trades: Ignore Match signal " + "LINKBTC");
+            //}
+            /******************************/
+
+
+
 
             int pairsCount = 0;
 
@@ -362,7 +384,7 @@ namespace MyntUI.TradeManagers
                 }
 
                 // This calculates an advice for the next timestamp.
-                var advice = strategy.Forecast(candles);
+                var advice = strategy.Forecast(candles, Globals.TradeLogger);
 
                 return new TradeSignal
                 {
