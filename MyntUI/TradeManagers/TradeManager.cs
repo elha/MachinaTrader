@@ -204,6 +204,9 @@ namespace MyntUI.TradeManagers
         /// <returns></returns>
         private async Task<List<TradeSignal>> FindBuyOpportunities(ITradingStrategy strategy)
         {
+            Globals.TradeLogger.LogWarning("FindBuyOpportunities START: "+ DateTime.Now);
+            var watch = System.Diagnostics.Stopwatch.StartNew();          
+
             // Retrieve our current markets
             var markets = await Globals.GlobalExchangeApi.GetMarketSummaries(Globals.GlobalTradeOptions.QuoteCurrency);
             var pairs = new List<TradeSignal>();
@@ -292,6 +295,9 @@ namespace MyntUI.TradeManagers
                 Globals.TradeLogger.LogInformation("No trade opportunities found...");
             }
 
+            watch.Stop();
+            Globals.TradeLogger.LogWarning("FindBuyOpportunities END: " + DateTime.Now + " / " + watch.Elapsed.TotalSeconds);
+
             return pairs;
         }
 
@@ -316,14 +322,14 @@ namespace MyntUI.TradeManagers
 
                 var desiredLastCandleTime = candleDate.AddMinutes(-(strategy.IdealPeriod.ToMinutesEquivalent()));
 
-                Globals.TradeLogger.LogInformation("{Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
+                Globals.TradeLogger.LogInformation("Checking market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
 
                 while (candles.Last().Timestamp < desiredLastCandleTime)
                 {
                     Thread.Sleep(5000);
 
                     candles = await Globals.GlobalExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate);
-                    Globals.TradeLogger.LogInformation("R {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
+                    Globals.TradeLogger.LogInformation("R Checking market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
                 }
 
                 Globals.TradeLogger.LogInformation("Checking market {Market}... lastCandleTime: {last} , close: {close}", market, candles.Last().Timestamp, candles.Last().Close);

@@ -334,14 +334,15 @@
                                     focus.select("g.candlestick").datum(candles);
                                     focus.select("g.volume").datum(candles);
                                     focus.select("g.tradearrow").datum(trades).call(tradearrow);
+
                                     //focus.select("g.macd").datum(macdData).call(macd);
 
-                                    focus.select("g.sma.ma-0").datum(techan.indicator.sma().period(10)(candles)).call(sma0);
-                                    focus.select("g.sma.ma-1").datum(techan.indicator.sma().period(20)(candles)).call(sma1);
-                                    focus.select("g.ema.ma-2").datum(techan.indicator.ema().period(3)(candles)).call(ema2);
-                                    focus.select("g.ema.ma-3").datum(techan.indicator.ema().period(6)(candles)).call(ema3);
+                                    //focus.select("g.sma.ma-0").datum(techan.indicator.sma().period(10)(candles)).call(sma0);
+                                    //focus.select("g.sma.ma-1").datum(techan.indicator.sma().period(20)(candles)).call(sma1);
+                                    //focus.select("g.ema.ma-2").datum(techan.indicator.ema().period(3)(candles)).call(ema2);
+                                    //focus.select("g.ema.ma-3").datum(techan.indicator.ema().period(6)(candles)).call(ema3);
 
-                                    focus.select("g#data_line1 path").datum(candles).attr("d", plotLine1);
+                                    //focus.select("g#data_line1 path").datum(candles).attr("d", plotLine1);
 
                                     context.select("g.close").datum(candles).call(close);
                                     context.select("g.x.axis").call(xAxis2);
@@ -373,26 +374,27 @@
                                 var trades = tradearrowSelection.datum();
                                 tradearrowSelection.call(tradearrow);
 
-                                var macdSelection = focus.select("g.macd")
-                                var macdDatas = macdSelection.datum();
+                                //var macdSelection = focus.select("g.macd")
+                                //var macdDatas = macdSelection.datum();
 
-                                var data_line1Selection = focus.select("g#data_line1 path");
-                                data_line1Selection.attr("d", plotLine1);
+                                //custom line
+                                //var data_line1Selection = focus.select("g#data_line1 path");
+                                //data_line1Selection.attr("d", plotLine1);
 
                                 y.domain(techan.scale.plot.ohlc(data.slice.apply(data, x.zoomable().domain()), candlestick.accessor()).domain());
 
                                 focus.select("g.volume").call(volume);
 
-                                var bollingerData = techan.indicator.bollinger()(data);
-                                focus.select("g.bollinger").datum(bollingerData).call(bollinger);
+                                //var bollingerData = techan.indicator.bollinger()(data);
+                                //focus.select("g.bollinger").datum(bollingerData).call(bollinger);
 
                                 //var macdDatas = techan.indicator.macd()(data);
                                 //focus.select("g.macd").datum(macdDatas).call(macd);
 
-                                focus.select("g.sma.ma-0").call(sma0.refresh);
-                                focus.select("g.sma.ma-1").call(sma1.refresh);
-                                focus.select("g.ema.ma-2").call(ema2.refresh);
-                                focus.select("g.ema.ma-3").call(ema3.refresh);
+                                //focus.select("g.sma.ma-0").call(sma0.refresh);
+                                //focus.select("g.sma.ma-1").call(sma1.refresh);
+                                //focus.select("g.ema.ma-2").call(ema2.refresh);
+                                //focus.select("g.ema.ma-3").call(ema3.refresh);
 
                                 focus.select("g.x.axis").call(xAxis);
                                 focus.select("g.y.axis").call(yAxis);

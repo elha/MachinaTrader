@@ -22,7 +22,7 @@ namespace MyntUI.TradeManagers
 
         // Trader settings
         public int MaxNumberOfConcurrentTrades { get; set; } = 10;
-        public decimal AmountToInvestPerTrader { get; set; } = 0.01m;
+        public decimal AmountToInvestPerTrader { get; set; } = 0.005m;
         public ProfitType ProfitStrategy { get; set; } = ProfitType.Reinvest;
 
         // If we go below this profit percentage, we sell immediately.
