@@ -5465,7 +5465,7 @@ button.close {
 
 @media (min-width: 576px) {
   .modal-dialog {
-    max-width: 500px;
+    max-width: 50%;
     margin: 1.75rem auto;
   }
   .modal-dialog-centered {
@@ -5474,6 +5474,7 @@ button.close {
   .modal-sm {
     max-width: 300px;
   }
+  .modal-dialog-xl { max-width: 98%; margin: 1.75rem auto; }
 }
 
 @media (min-width: 992px) {

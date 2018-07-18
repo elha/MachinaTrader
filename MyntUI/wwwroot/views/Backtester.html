@@ -8,70 +8,33 @@
 <script src="/vendors/axios/js/axios.min.js"></script>
 
 <style>
-    .greenCell {
-        background: rgba(0, 255, 0, 0.2) !important;
-    }
+    .greenCell { background: rgba(0, 255, 0, 0.2) !important; }
 
-    .redCell {
-        background: rgba(255, 0, 0, 0.20) !important;
-    }
+    .redCell { background: rgba(255, 0, 0, 0.20) !important; }
 </style>
 <style>
-    .small-text {
-        font-size: 10px;
-        line-height: 24px;
-    }
+    .small-text { font-size: 10px; line-height: 24px; }
 
-    .table-round > .box-body {
-        padding: 0;
-    }
+    .table-round > .box-body { padding: 0; }
 
-    .table th, .table td {
-        padding: 0.75rem;
-        vertical-align: top;
-        border-top: 0;
-    }
+    .table th, .table td { padding: 0.75rem; vertical-align: top; border-top: 0; }
 
-    .table thead th {
-        vertical-align: bottom;
-        border-bottom: 0;
-    }
+    .table thead th { vertical-align: bottom; border-bottom: 0; }
 
-    table.dataTable {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        border-collapse: collapse !important;
-    }
+    table.dataTable { margin-top: 0 !important; margin-bottom: 0 !important; border-collapse: collapse !important; }
 
-    .dataTables_wrapper .row .col-sm-12 {
-        padding: 0 !important;
-    }
+    .dataTables_wrapper .row .col-sm-12 { padding: 0 !important; }
 
-    div.dataTables_wrapper div.dataTables_info {
-        padding: 1.8em;
-    }
+    div.dataTables_wrapper div.dataTables_info { padding: 1.8em; }
 
-    div.dataTables_wrapper div.dataTables_paginate {
-        padding: 1em;
-    }
+    div.dataTables_wrapper div.dataTables_paginate { padding: 1em; }
 
-    .card-body-header {
-        margin-right: 0;
-        margin-left: 0;
-        padding-top: 15px;
-        background-color: rgba(198, 198, 198, 0.5);
-        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    }
+    .card-body-header { margin-right: 0; margin-left: 0; padding-top: 15px; background-color: rgba(198, 198, 198, 0.5); box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12); }
 
-    .table-bordered {
-        border: 0;
-    }
+    .table-bordered { border: 0; }
 
-    .select2-selection {
-        width: 100%;
-    }
+    .select2-selection { width: 100%; }
 </style>
-
 
 <div class="row animated fadeIn" id="widgetBackendTester">
 
@@ -132,6 +95,7 @@
                         <label for="exchangeExchangeId" class="col-3 col-form-label">Exchange:</label>
                         <div class='col-9 input-group date' id='exchangeExchangeId'>
                             <select name="display" id="exchangeSelect" class="selectpicker">
+                                <option value="gdax" data-image="/img/exchange/gdax.png">Gdax</option>
                                 <option value="binance" data-image="/img/exchange/binance.png">Binance</option>
                                 <option value="bittrex" data-image="/img/exchange/bittrex.png">Bittrex</option>
                                 <option value="poloniex" data-image="/img/exchange/poloniex.png">Poloniex</option>
@@ -177,10 +141,16 @@
     </div>
 </div>
 
-
 <div class="modal fade" id="tradingViewModal">
-    <div class="modal-dialog" style="width: 80%;">
+    <div class="modal-dialog" style="width:80%">
         <div id="tradingViewModalContent" class="modal-content">
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" id="signalsModal">
+    <div class="modal-dialog" style="max-width: 95% !important">
+        <div id="signalsModalContent" class="modal-content">
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
@@ -245,6 +215,17 @@
         });
     };
 
+    function loadSignalsViewModal(url, exchangeVal, marketVal, candleSizeVal, tradingStrategyVal) {
+        exchange = exchangeVal;
+        market = marketVal;
+        candleSize = candleSizeVal;
+        tradingStrategy = tradingStrategyVal;
+        $.get(url, function (data) {
+            $('#signalsModalContent').html(data);
+            $('#signalsModal').modal('show');
+        });
+    }
+
     var refeshCandles = function () {
         $("#refreshButton").prop("disabled", true);
         $("#startButton").prop("disabled", true);
@@ -289,7 +270,26 @@
                     }*/
                 },
                 "columns": [
-                    { "title": "Strategy", "mDataProp": "Strategy", "bVisible": true },
+                    {
+                        "title": "Strategy",
+                        "mDataProp": "Strategy",
+                        "bVisible": true
+                    },
+                    {
+                        "title": "Signals",
+                        "mDataProp": "Signals",
+                        "sWidth": "60px",
+                        "sType": "alt-string",
+                        "sClass": "center",
+                        responsivePriority: 2,
+                        mRender: function (data, type, full, meta) {
+                            var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadSignalsViewModal(\'/views/SignalsWidget.html\', \'' + $("#exchangeSelect").val() + '\', \'' + $("#currencyToCheck").val() + '\', \'' + $("#candleSize").val() + '\', \'' + full.Strategy + '\' )">signals</a>';
+                            console.log($("#tradingStrategy").val());
+                            console.log(full.Strategy);
+
+                            return formatted;
+                        }
+                    },
                     {
                         "title": "AmountOfTrades",
                         "mDataProp": "AmountOfTrades",
