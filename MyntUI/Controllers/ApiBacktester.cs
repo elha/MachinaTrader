@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using ExchangeSharp;
 using Microsoft.AspNetCore.Authorization;
@@ -180,16 +181,23 @@ namespace MyntUI.Controllers
             backtestOptions.Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true);
             backtestOptions.Coins = coins;
             backtestOptions.CandlePeriod = Int32.Parse(candleSize);
-            backtestOptions.StakeAmount = 150;
+            //backtestOptions.StakeAmount = 150;
 
-            foreach (var tradingStrategy in BacktestFunctions.GetTradingStrategies())
+            var cts = new CancellationTokenSource();
+            var parallelOptions = new ParallelOptions();
+            parallelOptions.CancellationToken = cts.Token;
+            parallelOptions.MaxDegreeOfParallelism = Environment.ProcessorCount;
+            Parallel.ForEach(BacktestFunctions.GetTradingStrategies(), parallelOptions, async tradingStrategy =>
             {
+                //    foreach (var tradingStrategy in BacktestFunctions.GetTradingStrategies())
+                //{
                 if (strategy != "all")
                 {
                     var base64EncodedBytes = Convert.FromBase64String(strategy);
                     if (tradingStrategy.Name != Encoding.UTF8.GetString(base64EncodedBytes))
                     {
-                        continue;
+                        //continue;
+                        return;
                     }
                 }
                 var result = await BacktestFunctions.BackTestJson(tradingStrategy, backtestOptions, Globals.GlobalDataStoreBacktest);
@@ -197,7 +205,8 @@ namespace MyntUI.Controllers
                 {
                     await Globals.GlobalHubMyntBacktest.Clients.All.SendAsync("Send", JsonConvert.SerializeObject(item));
                 }
-            }
+            });
+
             return new JsonResult(strategies);
         }
     }
