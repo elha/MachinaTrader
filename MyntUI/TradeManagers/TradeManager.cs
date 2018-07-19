@@ -204,6 +204,9 @@ namespace MyntUI.TradeManagers
         /// <returns></returns>
         private async Task<List<TradeSignal>> FindBuyOpportunities(ITradingStrategy strategy)
         {
+            Globals.TradeLogger.LogWarning("FindBuyOpportunities START: "+ DateTime.Now);
+            var watch = System.Diagnostics.Stopwatch.StartNew();          
+
             // Retrieve our current markets
             var markets = await Globals.GlobalExchangeApi.GetMarketSummaries(Globals.GlobalTradeOptions.QuoteCurrency);
             var pairs = new List<TradeSignal>();
@@ -231,22 +234,44 @@ namespace MyntUI.TradeManagers
 
 
             // Buy from external - Currently for Debug -> This will buy on each tick !
-            /*var externalTicker = await Globals.GlobalExchangeApi.GetTicker("LINKBTC");
-            Candle externalCandle = new Candle();
-            externalCandle.Timestamp = DateTime.UtcNow;
-            externalCandle.Open = externalTicker.Last;
-            externalCandle.High = externalTicker.Last;
-            externalCandle.Volume = externalTicker.Volume;
-            externalCandle.Close = externalTicker.Last;
-            pairs.Add(new TradeSignal
-            {
-                MarketName = "LINKBTC",
-                QuoteCurrency = "LINK",
-                BaseCurrency = "BTC",
-                TradeAdvice = TradeAdvice.StrongBuy,
-                SignalCandle = externalCandle
-            });
-            */
+            /******************************/
+            //var externalTicker = await Globals.GlobalExchangeApi.GetTicker("LINKBTC");
+            //Candle externalCandle = new Candle();
+            //externalCandle.Timestamp = DateTime.UtcNow;
+            //externalCandle.Open = externalTicker.Last;
+            //externalCandle.High = externalTicker.Last;
+            //externalCandle.Volume = externalTicker.Volume;
+            //externalCandle.Close = externalTicker.Last;
+            //pairs.Add(new TradeSignal
+            //{
+            //    MarketName = "LINKBTC",
+            //    QuoteCurrency = "LINK",
+            //    BaseCurrency = "BTC",
+            //    TradeAdvice = TradeAdvice.StrongBuy,
+            //    SignalCandle = externalCandle
+            //});
+
+            //_activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
+            //if (_activeTrades.Where(x => x.IsOpen).Count() < Globals.GlobalTradeOptions.MaxNumberOfConcurrentTrades)
+            //{
+            //    await CreateNewTrade(new TradeSignal
+            //    {
+            //        MarketName = "LINKBTC",
+            //        QuoteCurrency = "LINK",
+            //        BaseCurrency = "BTC",
+            //        TradeAdvice = TradeAdvice.StrongBuy,
+            //        SignalCandle = externalCandle
+            //    }, strategy);
+            //    Globals.TradeLogger.LogInformation("Match signal -> Buying " + "LINKBTC");
+            //}
+            //else
+            //{
+            //    Globals.TradeLogger.LogInformation("Too Many Trades: Ignore Match signal " + "LINKBTC");
+            //}
+            /******************************/
+
+
+
 
             int pairsCount = 0;
 
@@ -292,6 +317,9 @@ namespace MyntUI.TradeManagers
                 Globals.TradeLogger.LogInformation("No trade opportunities found...");
             }
 
+            watch.Stop();
+            Globals.TradeLogger.LogWarning("FindBuyOpportunities END: " + DateTime.Now + " / " + watch.Elapsed.TotalSeconds);
+
             return pairs;
         }
 
@@ -316,14 +344,14 @@ namespace MyntUI.TradeManagers
 
                 var desiredLastCandleTime = candleDate.AddMinutes(-(strategy.IdealPeriod.ToMinutesEquivalent()));
 
-                Globals.TradeLogger.LogInformation("{Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
+                Globals.TradeLogger.LogInformation("Checking market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
 
                 while (candles.Last().Timestamp < desiredLastCandleTime)
                 {
                     Thread.Sleep(5000);
 
                     candles = await Globals.GlobalExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate);
-                    Globals.TradeLogger.LogInformation("R {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
+                    Globals.TradeLogger.LogInformation("R Checking market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
                 }
 
                 Globals.TradeLogger.LogInformation("Checking market {Market}... lastCandleTime: {last} , close: {close}", market, candles.Last().Timestamp, candles.Last().Close);
@@ -356,7 +384,7 @@ namespace MyntUI.TradeManagers
                 }
 
                 // This calculates an advice for the next timestamp.
-                var advice = strategy.Forecast(candles);
+                var advice = strategy.Forecast(candles, Globals.TradeLogger);
 
                 return new TradeSignal
                 {

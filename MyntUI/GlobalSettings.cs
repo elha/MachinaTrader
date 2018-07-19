@@ -71,10 +71,13 @@ namespace MyntUI
 
             Globals.GlobalOrderBehavior = OrderBehavior.AlwaysFill;
 
+            LoadSettings();
+
             Globals.NotificationManagers = new List<INotificationManager>()
             {
                 new SignalrNotificationManager(),
-                //new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
+                //new SlackNotificationManager(Globals.Glo)
+                new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
             };
 
             // Runtime platform getter
@@ -104,7 +107,6 @@ namespace MyntUI
             Globals.GlobalDataStoreBacktest = new MongoDBDataStoreBacktest(backtestDatabaseOptions);
             */
 
-            LoadSettings();
 
 
             // Global Hubs
