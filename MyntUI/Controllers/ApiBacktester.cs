@@ -66,11 +66,24 @@ namespace MyntUI.Controllers
         public async Task<ActionResult> Get(string exchange, string coinsToBuy, string candleSize = "5")
         {
             List<string> coins = new List<string>();
-            Char delimiter = ',';
-            String[] coinsToBuyArray = coinsToBuy.Split(delimiter);
-            foreach (var coin in coinsToBuyArray)
+
+            if (String.IsNullOrEmpty(coinsToBuy))
             {
-                coins.Add(coin.ToUpper());
+                IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
+                var exchangeCoins = await api.GetSymbolsAsync();
+                foreach (var coin in exchangeCoins)
+                {
+                    coins.Add(api.ExchangeSymbolToGlobalSymbol(coin));
+                }
+            }
+            else
+            {
+                Char delimiter = ',';
+                String[] coinsToBuyArray = coinsToBuy.Split(delimiter);
+                foreach (var coin in coinsToBuyArray)
+                {
+                    coins.Add(coin.ToUpper());
+                }
             }
 
             BacktestOptions backtestOptions = new BacktestOptions();
@@ -131,11 +144,23 @@ namespace MyntUI.Controllers
             JObject strategies = new JObject();
 
             List<string> coins = new List<string>();
-            Char delimiter = ',';
-            String[] coinsToBuyArray = coinsToBuy.Split(delimiter);
-            foreach (var coin in coinsToBuyArray)
+            if (String.IsNullOrEmpty(coinsToBuy))
             {
-                coins.Add(coin.ToUpper());
+                IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
+                var exchangeCoins = await api.GetSymbolsAsync();
+                foreach (var coin in exchangeCoins)
+                {
+                    coins.Add(api.ExchangeSymbolToGlobalSymbol(coin));
+                }
+            }
+            else
+            {
+                Char delimiter = ',';
+                String[] coinsToBuyArray = coinsToBuy.Split(delimiter);
+                foreach (var coin in coinsToBuyArray)
+                {
+                    coins.Add(coin.ToUpper());
+                }
             }
 
             BacktestOptions backtestOptions = new BacktestOptions();
@@ -155,7 +180,10 @@ namespace MyntUI.Controllers
                     }
                 }
                 var result = await BacktestFunctions.BackTestJson(tradingStrategy, backtestOptions, Globals.GlobalDataStoreBacktest);
-                await Globals.GlobalHubMyntBacktest.Clients.All.SendAsync("Send", JsonConvert.SerializeObject(result[0]));
+                foreach (var item in result)
+                {
+                    await Globals.GlobalHubMyntBacktest.Clients.All.SendAsync("Send", JsonConvert.SerializeObject(item));
+                }
             }
             return new JsonResult(strategies);
         }
