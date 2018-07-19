@@ -8,8 +8,6 @@
 <script src="/vendors/axios/js/axios.min.js"></script>
 <script src="/vendors/bootbox/js/bootbox.min.js"></script>
 
-<script src="/js/DisplayHelper.js"></script>
-
 <style>
     .bootbox > .modal-dialog {
         max-width: 500px;
@@ -446,11 +444,6 @@
         },
 
         mounted: function () {
-            this.$nextTick(function () {
-                // Code that will run only after the
-                // entire view has been rendered
-                displayhelper();
-            });
         },
 
         methods: {
