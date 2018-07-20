@@ -35,6 +35,10 @@ namespace MyntUI.Controllers
         }
     }
 
+    /// <summary>
+    /// Get the candle ages of selected coins
+    /// Return value JObject
+    /// </summary>
     [Authorize, Route("api/trading/candlesAge")]
     public class ApiTradingBacktesterCandlesAge : Controller
     {
