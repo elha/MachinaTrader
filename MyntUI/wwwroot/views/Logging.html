@@ -1,20 +1,104 @@
+<!-- DATA TABLES -->
+<script src="/vendors/datatables.net/js/jquery.dataTables.js"></script>
+<script src="/vendors/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+<script src="/vendors/datatables.net-bs4/js/dataTables.bootstrap4.js"></script>
+<link href="/vendors/datatables.net-bs4/css/dataTables.bootstrap4.css" rel="stylesheet" />
+<link href="/vendors/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css" rel="stylesheet" />
 <script src="/vendors/moment/js/moment-with-locales.min.js"></script>
-<script src="/js/DisplayHelper.js"></script>
+<script src="/vendors/axios/js/axios.min.js"></script>
+<script src="/vendors/bootbox/js/bootbox.min.js"></script>
 
-<div class="animated fadeIn" id="myntLogs" v-if="myntLogsData">
-    <h3 class="mt-5">Logs</h3>
-    <p v-if="myntLogsData.log == null">No Logs!</p>
 
-    <p v-if="myntLogsData.log.length == 0">No Logs!</p>
-    <div class="row" v-if="myntLogsData.log.length > 0">
-        <template v-for="(value, key, index) in myntLogsData.log">
-            <div class="col-12">
-                {{myntLogsData.log[key]}}
+<style>
+    .greenCell {
+        background: rgba(0, 255, 0, 0.2) !important;
+    }
+
+    .orangeCell {
+        background: rgba(0, 255, 152, 0.1) !important;
+    }
+
+    .redCell {
+        background: rgba(255, 0, 0, 0.20) !important;
+    }
+
+    .small-text {
+        font-size: 10px;
+        line-height: 24px;
+    }
+
+    .table-round > .box-body {
+        padding: 0;
+    }
+
+    .table th, .table td {
+        padding: 0.75rem;
+        vertical-align: top;
+        border-top: 0;
+    }
+
+    .table thead th {
+        vertical-align: bottom;
+        border-bottom: 0;
+    }
+
+    table.dataTable {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        border-collapse: collapse !important;
+    }
+
+    .dataTables_wrapper .row .col-sm-12 {
+        padding: 0 !important;
+    }
+
+    div.dataTables_wrapper div.dataTables_info {
+        padding: 1.8em;
+    }
+
+    div.dataTables_wrapper div.dataTables_paginate {
+        padding: 1em;
+    }
+
+    .card-body-header {
+        margin-right: 0;
+        margin-left: 0;
+        padding-top: 15px;
+        background-color: rgba(198, 198, 198, 0.5);
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+    }
+
+    .table-bordered {
+        border: 0;
+    }
+
+    .select2-selection {
+        width: 100%;
+    }
+
+    .dataTables_length {
+        margin-left: 20px;
+    }
+
+    .dataTables_filter {
+        margin-right: 20px;
+    }
+</style>
+
+<div class="animated fadeIn" id="myntLogs">
+    <div class="row" id="widgetLogs">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-history"></i>&nbsp;Logs
+                </div>
+                <div class="card-body" id="logsTable">
+                    <table class="table table-striped p-0 table-hover" id="logsTableId"></table>
+                </div>
             </div>
-        </template>
+        </div>
     </div>
 </div>
-
 
 
 <script src="/vendors/vue/js/vue.min.js"></script>
@@ -23,6 +107,70 @@
 <script>
     var pagefunction = function () {
     };
+
+
+    $(document).ready(function () {
+        table = $('#logsTableId').DataTable({
+            ajax: {
+                url: '/api/mynt/logs/',
+                dataSrc: ''
+            },
+            responsive: true,
+            "autoWidth": false,
+            "iDisplayLength": 100,
+            'columnDefs': [{
+                'targets': 0,
+                'searchable': true,
+                'orderable': true,
+                'className': 'dt-body-center'
+            }],
+            'order': [0, 'desc'],
+            "createdRow": function (row, data, dataIndex) {
+                if (data.LogState === "Warning") $(row).addClass('orangeCell');
+                if (data.LogState === "Danger") $(row).addClass('redCell');
+            },
+            "columns": [
+                {
+                    "title": "Date",
+                    "mDataProp": "date",
+                    "sWidth": "200px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 1,
+                    mRender: function (data, type, full, meta) {
+                        var now = moment();
+                        var formatted = moment(full.date).format("YYYY-MM-DD HH:mm:ss");
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "State",
+                    "mDataProp": "state",
+                    "sWidth": "150px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = full.logState;
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "Message",
+                    "mDataProp": "message",
+                    "sWidth": "1000px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = full.msg;
+                        return formatted;
+                    }
+                },
+            ]
+        });
+    });
+    
 
     var myntLogs = new Vue({
         el: '#myntLogs',
@@ -37,11 +185,6 @@
         },
 
         mounted: function () {
-            this.$nextTick(function () {
-                // Code that will run only after the
-                // entire view has been rendered
-                displayhelper();
-            });
         },
 
         methods: {
@@ -78,7 +221,9 @@
 
                 connection.on('Send', function (msg) {
                     console.log("Msg from signalR: " + msg);
-                    self.updateData();
+                    
+                    table.ajax.url('/api/mynt/logs').load();
+                    //self.updateData();
                 });
 
                 connection.onclose(function (e) {
@@ -97,7 +242,7 @@
 
             fetchData: function () {
                 var self = this;
-                $.get("/api/mynt/logs/", function (data) {
+                $.get("/api/mynt/logs", function (data) {
                     self.myntLogsData = data;
                     self.$nextTick(function () {
                         pagefunction();
@@ -105,8 +250,7 @@
                 });
             },
             updateData: function () {
-                var self = this;
-                $.get("/api/mynt/logs/", function (data) {
+                $.get("/api/mynt/logs", function (data) {
                     self.myntLogsData = data;
                 });
             },

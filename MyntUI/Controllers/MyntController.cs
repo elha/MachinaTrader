@@ -187,9 +187,8 @@ namespace MyntUI.Controllers
         [Route("logs")]
         public IActionResult Logs()
         {
-            var log = Log.ReadTail("Logs/Mynt-" + DateTime.Now.ToString("yyyyMMdd") + ".log", 100);
-            ViewBag.log = log;
-            return new JsonResult(ViewBag);
+            var log = Log.ReadTail("Logs/Mynt-" + DateTime.Now.ToString("yyyyMMdd") + ".log", 500);
+            return new JsonResult(log);
         }
     }
 }
