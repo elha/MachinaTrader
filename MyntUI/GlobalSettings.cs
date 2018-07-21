@@ -147,8 +147,8 @@ namespace MyntUI
                 //Init Global Config with default currency array
                 Globals.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), "MainConfig.json").ToObject<MainConfig>();
                 Globals.Configuration.TradeOptions.MarketBlackList = new List<string> { };
-                Globals.Configuration.TradeOptions.OnlyTradeList = new List<string> { "BTC-ETH", "BTC-LTC" };
-                Globals.Configuration.TradeOptions.AlwaysTradeList = new List<string> { "BTC-ETH", "BTC-LTC" };
+                Globals.Configuration.TradeOptions.OnlyTradeList = new List<string> { "ETHBTC", "LTCBTC" };
+                Globals.Configuration.TradeOptions.AlwaysTradeList = new List<string> { "ETHBTC", "LTCBTC" };
                 var defaultExchangeOptions = new ExchangeOptions();
                 defaultExchangeOptions.Exchange = Exchange.Binance;
                 defaultExchangeOptions.ApiKey = "";
