@@ -10308,6 +10308,64 @@ button {
   background: #fff;
 }
 
+.card-header .card-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.card-header .card-actions a,
+.card-header .card-actions button {
+  display: block;
+  float: left;
+  width: 50px;
+  padding: 0.75rem 0;
+  margin: 0;
+  color: #23282c;
+  text-align: center;
+  background: transparent;
+  border: 0;
+  border-left: 1px solid #c8ced3;
+  box-shadow: none;
+}
+
+.card-header .card-actions a:hover,
+.card-header .card-actions button:hover {
+  text-decoration: none;
+}
+
+.card-header .card-actions a [class^="icon-"],
+.card-header .card-actions a [class*=" icon-"],
+.card-header .card-actions button [class^="icon-"],
+.card-header .card-actions button [class*=" icon-"] {
+  display: inline-body;
+  vertical-align: middle;
+}
+
+.card-header .card-actions a i,
+.card-header .card-actions button i {
+  display: inline-body;
+  transition: .4s;
+}
+
+.card-header .card-actions a .r180,
+.card-header .card-actions button .r180 {
+  transform: rotate(180deg);
+}
+
+.card-header .card-actions .input-group {
+  width: 230px;
+  margin: 6px;
+}
+
+.card-header .card-actions .input-group .input-group-addon {
+  background: #fff;
+}
+
+.card-header .card-actions .input-group input {
+  border-left: 0;
+}
+
 .card-header-icon-bg {
   display: inline-block;
   width: 2.8125rem;

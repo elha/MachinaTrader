@@ -24,11 +24,11 @@ namespace MyntUI.Controllers
         [HttpGet]
         public FileContentResult Get()
         {
-            if ((string)Globals.RuntimeSettings["platform"]["os"] == "Windows")
+            if (Globals.RuntimeSettings.OS == "Windows")
             {
                 using (var ms = new MemoryStream())
                 {
-                    Image userAvatarImage = GetUserAvatar.GetUserTile((string)Globals.RuntimeSettings["platform"]["userName"]);
+                    Image userAvatarImage = GetUserAvatar.GetUserTile(Globals.RuntimeSettings.UserName);
                     userAvatarImage.Save(ms, ImageFormat.Jpeg);
                     ArraySegment<byte> buffer;
                     if (!ms.TryGetBuffer(out buffer)) throw new ArgumentException();

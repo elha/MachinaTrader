@@ -1,0 +1,505 @@
+<div class="row animated fadeIn" id="apiMainConfig" v-if="apiMainConfigData['tradeOptions']">
+
+
+
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fab fa-btc"></i>System Configuration
+                <div class="card-actions">
+                    <a href="#" class="btn-minimize" data-widget="collapse"><i class="fas fa-angle-up"></i></a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped">
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">WebPort <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control integer" name="SystemOptions.WebPort" v-bind:value="apiMainConfigData['systemOptions']['webPort']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">Database <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control string" name="SystemOptions.Database" v-bind:value="apiMainConfigData['systemOptions']['database']" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12" v-for="(exchangeValue, exchangeKey) in apiMainConfigData['exchangeOptions']">
+        <div class="card">
+            <div class="card-header">
+                <i class="fab fa-btc"></i>{{exchangeValue['exchange']}} Options
+                <div class="card-actions">
+                    <a href="#" class="btn-minimize" data-widget="collapse"><i class="fas fa-angle-up"></i></a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped">
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">Exchange <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control integer" name="ExchangeOptions[].Exchange" v-bind:value="exchangeValue['exchange']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">ApiKey <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control string" name="ExchangeOptions[].ApiKey" v-bind:value="exchangeValue['apiKey']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">ApiSecret <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control string" name="ExchangeOptions[].ApiSecret" v-bind:value="exchangeValue['apiSecret']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">PassPhrase <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control string" name="ExchangeOptions[].PassPhrase" v-bind:value="exchangeValue['passPhrase']" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fab fa-btc"></i>Trading Configuration
+                <div class="card-actions">
+                    <a href="#" class="btn-minimize" data-widget="collapse"><i class="fas fa-angle-up"></i></a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped">
+
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">OnlySellOnStrategySignals <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <label class="switch switch-label switch-primary">
+                                <input type="checkbox" class="switch-input bool" checked="" name="TradeOptions.OnlySellOnStrategySignals" class="switch-input bool" :checked="apiMainConfigData['tradeOptions']['onlySellOnStrategySignals']" />
+                                <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
+                            </label>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">BuyTimer <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control string" name="TradeOptions.BuyTimer" v-bind:value="apiMainConfigData['tradeOptions']['buyTimer']" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">SellTimer <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control string" name="TradeOptions.SellTimer" v-bind:value="apiMainConfigData['tradeOptions']['sellTimer']" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">PaperTrade <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <label class="switch switch-label switch-primary">
+                                <input type="checkbox" class="switch-input bool" checked="" name="TradeOptions.PaperTrade" class="switch-input bool" :checked="apiMainConfigData['tradeOptions']['paperTrade']" />
+                                <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">MaxNumberOfConcurrentTrades <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control integer" name="TradeOptions.MaxNumberOfConcurrentTrades" v-bind:value="apiMainConfigData['tradeOptions']['maxNumberOfConcurrentTrades']" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">AmountToInvestPerTrader <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control float" name="TradeOptions.AmountToInvestPerTrader" v-bind:value="apiMainConfigData['tradeOptions']['amountToInvestPerTrader']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">ProfitStrategy <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control integer" name="TradeOptions.ProfitStrategy" v-bind:value="apiMainConfigData['tradeOptions']['profitStrategy']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">StopLossPercentage <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control float" name="TradeOptions.StopLossPercentage" v-bind:value="apiMainConfigData['tradeOptions']['stopLossPercentage']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">ImmediatelyPlaceSellOrder <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <label class="switch switch-label switch-primary">
+                                <input type="checkbox" class="switch-input bool" checked="" name="TradeOptions.ImmediatelyPlaceSellOrder" class="switch-input bool" :checked="apiMainConfigData['tradeOptions']['immediatelyPlaceSellOrder']" />
+                                <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">ImmediatelyPlaceSellOrderAtProfit <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control float" name="TradeOptions.ImmediatelyPlaceSellOrderAtProfit" v-bind:value="apiMainConfigData['tradeOptions']['immediatelyPlaceSellOrderAtProfit']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">EnableTrailingStop <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <label class="switch switch-label switch-primary">
+                                <input type="checkbox" class="switch-input bool" checked="" name="TradeOptions.EnableTrailingStop" class="switch-input bool" :checked="apiMainConfigData['tradeOptions']['enableTrailingStop']" />
+                                <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">TrailingStopStartingPercentage <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control float" name="TradeOptions.TrailingStopStartingPercentage" v-bind:value="apiMainConfigData['tradeOptions']['trailingStopStartingPercentage']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">TrailingStopPercentage <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control float" name="TradeOptions.TrailingStopPercentage" v-bind:value="apiMainConfigData['tradeOptions']['trailingStopPercentage']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">CancelUnboughtOrdersEachCycle <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <label class="switch switch-label switch-primary">
+                                <input type="checkbox" class="switch-input bool" checked="" name="TradeOptions.CancelUnboughtOrdersEachCycle" class="switch-input bool" :checked="apiMainConfigData['tradeOptions']['cancelUnboughtOrdersEachCycle']" />
+                                <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">PlaceFirstStopAtSignalCandleLow <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <label class="switch switch-label switch-primary">
+                                <input type="checkbox" class="switch-input bool" checked="" name="TradeOptions.PlaceFirstStopAtSignalCandleLow" class="switch-input bool" :checked="apiMainConfigData['tradeOptions']['placeFirstStopAtSignalCandleLow']" />
+                                <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">MinimumAmountOfVolume <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control integer" name="TradeOptions.MinimumAmountOfVolume" v-bind:value="apiMainConfigData['tradeOptions']['minimumAmountOfVolume']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">DefaultStrategy <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control string" name="TradeOptions.DefaultStrategy" v-bind:value="apiMainConfigData['tradeOptions']['defaultStrategy']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">BuyInPriceStrategy <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control integer" name="TradeOptions.BuyInPriceStrategy" v-bind:value="apiMainConfigData['tradeOptions']['buyInPriceStrategy']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">AskLastBalance <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control float" name="TradeOptions.AskLastBalance" v-bind:value="apiMainConfigData['tradeOptions']['askLastBalance']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">BuyInPricePercentage <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control float" name="TradeOptions.BuyInPricePercentage" v-bind:value="apiMainConfigData['tradeOptions']['buyInPricePercentage']" />
+                        </td>
+                    </tr>
+                    <!--<tr>
+                        <td>
+                            <span class="qTip" title="">ReturnOnInvestment <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control string" name="TradeOptions.ReturnOnInvestment" v-bind:value="apiMainConfigData['tradeOptions']['returnOnInvestment']" />
+                        </td>
+                    </tr>-->
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">QuoteCurrency <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control string" name="TradeOptions.QuoteCurrency" v-bind:value="apiMainConfigData['tradeOptions']['quoteCurrency']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">MarketBlackList <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <select name="TradeOptions.MarketBlackList[]" id="MarketBlackList" class="select2-multiple " data-live-search="true" data-size="10" data-width="auto" multiple="multiple">
+                                <option v-for="(marketBlackListValue, marketBlackListKey) in apiMainConfigData['tradeOptions']['marketBlackList']" selected="selected" v-bind:value="marketBlackListValue" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{marketBlackListValue}}</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">OnlyTradeList <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <select name="TradeOptions.OnlyTradeList[]" id="OnlyTradeList" class="select2-multiple" data-live-search="true" data-size="10" data-width="auto" multiple="multiple">
+                                <option v-for="(onlyTradeListValue, onlyTradeListKey) in apiMainConfigData['tradeOptions']['onlyTradeList']" selected="selected" v-bind:value="onlyTradeListValue" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{onlyTradeListValue}}</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">AlwaysTradeList <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <select name="TradeOptions.AlwaysTradeList[]" id="AlwaysTradeList" class="select2-multiple" data-live-search="true" data-size="10" data-width="auto" multiple="multiple">
+                                <option v-for="(alwaysTradeListValue, alwaysTradeListKey) in apiMainConfigData['tradeOptions']['alwaysTradeList']" selected="selected" v-bind:value="alwaysTradeListValue" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{alwaysTradeListValue}}</option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-success btn-block margin-left" v-on:click="serializeForm();">Save</button>
+    </div>
+
+</div>
+
+<script>
+    var apiMainConfigUrl = '/api/core/config/mainconfig';
+
+    var pagefunction = function () {
+
+        /*$('#apiMainConfig').find(':input').each(function () {
+            $(this).on("propertychange, change, keyup, paste, input", function () {
+                event.preventDefault();
+                postFormData("apiMainConfig", "/api/core/config/mainconfig", false);
+            });
+            $(this).on('ifChanged', function (event) {
+                event.preventDefault();
+                postFormData("apiMainConfig", "/api/core/config/mainconfig", false);
+            });
+        });
+
+        $('#apiMainConfig').find(':input[type=checkbox]').each(function () {
+            $(this).change(function () {
+                event.preventDefault();
+                postFormData("apiMainConfig", "/api/core/config/mainconfig", false);
+            });
+        });*/
+
+
+        $('.select2-multiple').select2({
+            placeholder: 'Select Currencies',
+            //allowClear: true,
+            multiple: true,
+            tags: true,
+            theme: "bootstrap",
+            //templateResult: selectPickerImage,
+            //templateSelection: selectPickerImage,
+            width: "100%",
+            createTag: function(item) {
+                return {
+                    id: item.term,
+                    text: item.term,
+                };
+            },
+        });
+
+
+    };
+
+    var apiMainConfig = new Vue({
+        el: '#apiMainConfig',
+
+        data: {
+            apiMainConfigData: null,
+        },
+
+        created: function () {
+            this.fetchData();
+        },
+
+        methods: {
+            serializeForm: function () {
+                postFormData("apiMainConfig", "/api/core/config/mainconfig", false);
+            },
+            isBool: function (data) {
+                if ((typeof (data) === "boolean")) {
+                    return true;
+                }
+                return false;
+            },
+            fetchData: function () {
+                var self = this;
+                $.get(apiMainConfigUrl, function (data) {
+                    self.apiMainConfigData = data;
+                    self.$nextTick(function () {
+                        pagefunction();
+                    });
+                });
+            },
+        },
+    });
+
+
+</script>

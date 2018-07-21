@@ -173,7 +173,7 @@ namespace MyntUI.Controllers
             stat.CoinPerformance = coins.ToList().OrderByDescending(c => c.Value);
 
             // Create some viewbags
-            ViewBag.tradeOptions = Globals.GlobalTradeOptions;
+            ViewBag.tradeOptions = Globals.Configuration.TradeOptions;
             ViewBag.stat = stat;
 
             return new JsonResult(ViewBag);

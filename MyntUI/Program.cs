@@ -4,6 +4,7 @@ namespace MyntUI
     {
         static void Main(string[] args)
         {
+            GlobalSettings.LoadSettings();
             WebApplication.ProcessInit();
         }
     }

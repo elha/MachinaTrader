@@ -33,14 +33,14 @@ namespace MyntUI.TradeManagers
             }
             else
             {
-                var type = Type.GetType($"Mynt.Core.Strategies.{Globals.GlobalTradeOptions.DefaultStrategy}, Mynt.Core", true, true);
+                var type = Type.GetType($"Mynt.Core.Strategies.{Globals.Configuration.TradeOptions.DefaultStrategy}, Mynt.Core", true, true);
                 strategy = Activator.CreateInstance(type) as ITradingStrategy ?? new TheScalper();
             }
 
             Globals.TradeLogger.LogInformation($"Looking for trades using {strategy.Name}");
 
             // This means an order to buy has been open for an entire buy cycle.
-            if (Globals.GlobalTradeOptions.CancelUnboughtOrdersEachCycle && Globals.GlobalOrderBehavior == OrderBehavior.CheckMarket)
+            if (Globals.Configuration.TradeOptions.CancelUnboughtOrdersEachCycle && Globals.GlobalOrderBehavior == OrderBehavior.CheckMarket)
                 await CancelUnboughtOrders();
 
             // Check active trades against our strategy.
@@ -53,7 +53,7 @@ namespace MyntUI.TradeManagers
             await FindBuyOpportunities(strategy);
 
             // We have available traders to work for us!
-            /*if (currentActiveTrades < Globals.GlobalTradeOptions.MaxNumberOfConcurrentTrades)
+            /*if (currentActiveTrades < Globals.Configuration.TradeOptions.MaxNumberOfConcurrentTrades)
             {
                 // There's room for more.
                 var trades = await FindBuyOpportunities();
@@ -90,7 +90,7 @@ namespace MyntUI.TradeManagers
                 foreach (var trade in _activeTrades.Where(x => x.IsBuying))
                 {
                     // Only in livetrading
-                    if (!Globals.GlobalTradeOptions.PaperTrade)
+                    if (!Globals.Configuration.TradeOptions.PaperTrade)
                     {
                         // Cancel our open buy order on the exchange.
                         var exchangeOrder = await Globals.GlobalExchangeApi.GetOrder(trade.BuyOrderId, trade.Market);
@@ -135,7 +135,7 @@ namespace MyntUI.TradeManagers
                 {
                     await SendNotification($"Sell now is set: Selling with {(trade.SellOnPercentage / 100)} for {trade.TradeId}");
 
-                    var orderId = Globals.GlobalTradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
+                    var orderId = Globals.Configuration.TradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
                     trade.CloseRate = trade.TickerLast.Bid;
                     trade.OpenOrderId = orderId;
                     trade.SellOrderId = orderId;
@@ -158,7 +158,7 @@ namespace MyntUI.TradeManagers
                 if ((currentProfit) >= (trade.SellOnPercentage / 100))
                 {
                     await SendNotification($"We've reached defined percentage ({(trade.SellOnPercentage)})for {trade.TradeId} - Selling now");
-                    var orderId = Globals.GlobalTradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
+                    var orderId = Globals.Configuration.TradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
 
                     trade.CloseRate = trade.TickerLast.Bid;
                     trade.OpenOrderId = orderId;
@@ -184,7 +184,7 @@ namespace MyntUI.TradeManagers
                     var ticker = await Globals.GlobalExchangeApi.GetTicker(trade.Market);
 
                     // Check Trading Mode
-                    var orderId = Globals.GlobalTradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, ticker.Bid);
+                    var orderId = Globals.Configuration.TradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, ticker.Bid);
 
                     trade.CloseRate = ticker.Bid;
                     trade.OpenOrderId = orderId;
@@ -208,20 +208,20 @@ namespace MyntUI.TradeManagers
             var watch = System.Diagnostics.Stopwatch.StartNew();          
 
             // Retrieve our current markets
-            var markets = await Globals.GlobalExchangeApi.GetMarketSummaries(Globals.GlobalTradeOptions.QuoteCurrency);
+            var markets = await Globals.GlobalExchangeApi.GetMarketSummaries(Globals.Configuration.TradeOptions.QuoteCurrency);
             var pairs = new List<TradeSignal>();
 
             Globals.TradeLogger.LogInformation($"Markets found: {markets.Count}");
 
             // Check if there are markets matching our volume.
             markets = markets.Where(x =>
-                (x.Volume > Globals.GlobalTradeOptions.MinimumAmountOfVolume ||
-                 Globals.GlobalTradeOptions.AlwaysTradeList.Contains(x.CurrencyPair.BaseCurrency)) &&
-                 Globals.GlobalTradeOptions.QuoteCurrency.ToUpper() == x.CurrencyPair.QuoteCurrency.ToUpper()).ToList();
+                (x.Volume > Globals.Configuration.TradeOptions.MinimumAmountOfVolume ||
+                 Globals.Configuration.TradeOptions.AlwaysTradeList.Contains(x.CurrencyPair.BaseCurrency)) &&
+                 Globals.Configuration.TradeOptions.QuoteCurrency.ToUpper() == x.CurrencyPair.QuoteCurrency.ToUpper()).ToList();
 
             // If there are items on the only trade list remove the rest
-            if (Globals.GlobalTradeOptions.OnlyTradeList.Count > 0)
-                markets = markets.Where(m => Globals.GlobalTradeOptions.OnlyTradeList.Any(c => c == m.CurrencyPair.BaseCurrency)).ToList();
+            if (Globals.Configuration.TradeOptions.OnlyTradeList.Count > 0)
+                markets = markets.Where(m => Globals.Configuration.TradeOptions.OnlyTradeList.Any(c => c == m.CurrencyPair.BaseCurrency)).ToList();
 
             // Remove existing trades from the list to check.
             var _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
@@ -229,7 +229,7 @@ namespace MyntUI.TradeManagers
                 markets.RemoveAll(x => x.MarketName == trade.Market);
 
             // Remove items that are on our blacklist.
-            foreach (var market in Globals.GlobalTradeOptions.MarketBlackList)
+            foreach (var market in Globals.Configuration.TradeOptions.MarketBlackList)
                 markets.RemoveAll(x => x.CurrencyPair.BaseCurrency == market);
 
 
@@ -252,7 +252,7 @@ namespace MyntUI.TradeManagers
             //});
 
             //_activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
-            //if (_activeTrades.Where(x => x.IsOpen).Count() < Globals.GlobalTradeOptions.MaxNumberOfConcurrentTrades)
+            //if (_activeTrades.Where(x => x.IsOpen).Count() < Globals.Configuration.TradeOptions.MaxNumberOfConcurrentTrades)
             //{
             //    await CreateNewTrade(new TradeSignal
             //    {
@@ -293,7 +293,7 @@ namespace MyntUI.TradeManagers
                     _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
                     int currentActiveTrades = _activeTrades.Where(x => x.IsOpen).Count();
 
-                    if (currentActiveTrades < Globals.GlobalTradeOptions.MaxNumberOfConcurrentTrades)
+                    if (currentActiveTrades < Globals.Configuration.TradeOptions.MaxNumberOfConcurrentTrades)
                     {
                         await CreateNewTrade(new TradeSignal
                         {
@@ -409,24 +409,24 @@ namespace MyntUI.TradeManagers
         /// <returns></returns>
         private decimal GetTargetBid(Ticker tick, Candle signalCandle)
         {
-            if (Globals.GlobalTradeOptions.BuyInPriceStrategy == BuyInPriceStrategy.AskLastBalance)
+            if (Globals.Configuration.TradeOptions.BuyInPriceStrategy == BuyInPriceStrategy.AskLastBalance)
             {
                 // If the ask is below the last, we can get it on the cheap.
                 if (tick.Ask < tick.Last) return tick.Ask;
 
-                return tick.Ask + Globals.GlobalTradeOptions.AskLastBalance * (tick.Last - tick.Ask);
+                return tick.Ask + Globals.Configuration.TradeOptions.AskLastBalance * (tick.Last - tick.Ask);
             }
-            else if (Globals.GlobalTradeOptions.BuyInPriceStrategy == BuyInPriceStrategy.SignalCandleClose)
+            else if (Globals.Configuration.TradeOptions.BuyInPriceStrategy == BuyInPriceStrategy.SignalCandleClose)
             {
                 return signalCandle.Close;
             }
-            else if (Globals.GlobalTradeOptions.BuyInPriceStrategy == BuyInPriceStrategy.MatchCurrentBid)
+            else if (Globals.Configuration.TradeOptions.BuyInPriceStrategy == BuyInPriceStrategy.MatchCurrentBid)
             {
                 return tick.Bid;
             }
             else
             {
-                return Math.Round(tick.Bid * (1 - Globals.GlobalTradeOptions.BuyInPricePercentage), 8);
+                return Math.Round(tick.Bid * (1 - Globals.Configuration.TradeOptions.BuyInPricePercentage), 8);
             }
         }
 
@@ -439,18 +439,18 @@ namespace MyntUI.TradeManagers
             AccountBalance exchangeQuoteBalance = new AccountBalance(signal.QuoteCurrency, 9999, 0);
             decimal currentQuoteBalance = 9999;
 
-            if (!Globals.GlobalTradeOptions.PaperTrade)
+            if (!Globals.Configuration.TradeOptions.PaperTrade)
             {
                 // Get our Bitcoin balance from the exchange
                 exchangeQuoteBalance = await Globals.GlobalExchangeApi.GetBalance(signal.QuoteCurrency);
 
                 // Check trading mode
-                currentQuoteBalance = Globals.GlobalTradeOptions.PaperTrade ? 9999 : exchangeQuoteBalance.Available;
+                currentQuoteBalance = Globals.Configuration.TradeOptions.PaperTrade ? 9999 : exchangeQuoteBalance.Available;
             }
 
 
             // Do we even have enough funds to invest?
-            if (currentQuoteBalance < Globals.GlobalTradeOptions.AmountToInvestPerTrader)
+            if (currentQuoteBalance < Globals.Configuration.TradeOptions.AmountToInvestPerTrader)
             {
                 Globals.TradeLogger.LogWarning("Insufficient funds ({Available}) to perform a {MarketName} trade. Skipping this trade.", currentQuoteBalance, signal.MarketName);
                 return;
@@ -480,10 +480,10 @@ namespace MyntUI.TradeManagers
             // Take the amount to invest per trader OR the current balance for this trader.
             var btcToSpend = 0.0m;
 
-            //if (freeTrader.CurrentBalance < Globals.GlobalTradeOptions.AmountToInvestPerTrader || Globals.GlobalTradeOptions.ProfitStrategy == ProfitType.Reinvest)
+            //if (freeTrader.CurrentBalance < Globals.Configuration.TradeOptions.AmountToInvestPerTrader || Globals.Configuration.TradeOptions.ProfitStrategy == ProfitType.Reinvest)
             //    btcToSpend = freeTrader.CurrentBalance;
             //else
-            btcToSpend = Globals.GlobalTradeOptions.AmountToInvestPerTrader;
+            btcToSpend = Globals.Configuration.TradeOptions.AmountToInvestPerTrader;
 
             // The amount here is an indication and will probably not be precisely what you get.
             var ticker = await Globals.GlobalExchangeApi.GetTicker(pair);
@@ -492,7 +492,7 @@ namespace MyntUI.TradeManagers
 
             // Get the order ID, this is the most important because we need this to check
             // up on our trade. We update the data below later when the final data is present.
-            var orderId = Globals.GlobalTradeOptions.PaperTrade ? GetOrderId() : await Globals.GlobalExchangeApi.Buy(pair, amount, openRate);
+            var orderId = Globals.Configuration.TradeOptions.PaperTrade ? GetOrderId() : await Globals.GlobalExchangeApi.Buy(pair, amount, openRate);
 
             await SendNotification($"Buying #{pair} with limit {openRate:0.00000000} BTC ({amount:0.0000} units).");
 
@@ -513,10 +513,10 @@ namespace MyntUI.TradeManagers
                 TickerLast = await Globals.GlobalExchangeApi.GetTicker(pair),
                 GlobalSymbol = await Globals.GlobalExchangeApi.ExchangeCurrencyToGlobalCurrency(pair),
                 Exchange = fullApi.Name,
-                PaperTrade = Globals.GlobalTradeOptions.PaperTrade
+                PaperTrade = Globals.Configuration.TradeOptions.PaperTrade
             };
 
-            if (Globals.GlobalTradeOptions.PlaceFirstStopAtSignalCandleLow)
+            if (Globals.Configuration.TradeOptions.PlaceFirstStopAtSignalCandleLow)
             {
                 trade.StopLossRate = signalCandle.Low;
                 Globals.TradeLogger.LogInformation("Automatic stop set at signal candle low {Low}", signalCandle.Low.ToString("0.00000000"));
@@ -538,7 +538,7 @@ namespace MyntUI.TradeManagers
             await UpdateOpenSellOrders();
 
             // Third, our current trades need to be checked if one of these has hit its sell targets...
-            if (!Globals.GlobalTradeOptions.OnlySellOnStrategySignals)
+            if (!Globals.Configuration.TradeOptions.OnlySellOnStrategySignals)
             {
                 await CheckForSellConditions();
             }
@@ -557,7 +557,7 @@ namespace MyntUI.TradeManagers
                 // Check trading mode
                 Globals.TradeLogger.LogInformation("Checking {Market} BUY order @ {OpenRate}...", trade.Market, trade.OpenRate.ToString("0.00000000"));
 
-                if (Globals.GlobalTradeOptions.PaperTrade)
+                if (Globals.Configuration.TradeOptions.PaperTrade)
                 {
                     // Papertrading
                     var candles = await Globals.GlobalExchangeApi.GetTickerHistory(trade.Market, Period.Minute, 1);
@@ -590,10 +590,10 @@ namespace MyntUI.TradeManagers
                 Globals.TradeLogger.LogInformation("{Market} BUY order filled @ {OpenRate}...", trade.Market, trade.OpenRate.ToString("0.00000000"));
 
                 // If this is enabled we place a sell order as soon as our buy order got filled.
-                if (Globals.GlobalTradeOptions.ImmediatelyPlaceSellOrder)
+                if (Globals.Configuration.TradeOptions.ImmediatelyPlaceSellOrder)
                 {
-                    var sellPrice = Math.Round(trade.OpenRate * (1 + Globals.GlobalTradeOptions.ImmediatelyPlaceSellOrderAtProfit), 8);
-                    var orderId = Globals.GlobalTradeOptions.PaperTrade ? GetOrderId() : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, sellPrice);
+                    var sellPrice = Math.Round(trade.OpenRate * (1 + Globals.Configuration.TradeOptions.ImmediatelyPlaceSellOrderAtProfit), 8);
+                    var orderId = Globals.Configuration.TradeOptions.PaperTrade ? GetOrderId() : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, sellPrice);
 
                     trade.CloseRate = sellPrice;
                     trade.OpenOrderId = orderId;
@@ -623,7 +623,7 @@ namespace MyntUI.TradeManagers
                 // Check trading mode
                 Globals.TradeLogger.LogInformation("Checking {Market} SELL order @ {CloseRate}...", order.Market, order.CloseRate?.ToString("0.00000000"));
 
-                if (Globals.GlobalTradeOptions.PaperTrade)
+                if (Globals.Configuration.TradeOptions.PaperTrade)
                 {
                     // Papertrading
                     var candles = await Globals.GlobalExchangeApi.GetTickerHistory(order.Market, Period.Minute, 1);
@@ -691,7 +691,7 @@ namespace MyntUI.TradeManagers
                 }
                 else if (sellType != SellType.None)
                 {
-                    var orderId = Globals.GlobalTradeOptions.PaperTrade ? GetOrderId() : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, ticker.Bid);
+                    var orderId = Globals.Configuration.TradeOptions.PaperTrade ? GetOrderId() : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, ticker.Bid);
 
                     trade.CloseRate = trade.TickerLast.Bid;
                     trade.OpenOrderId = orderId;
@@ -726,9 +726,9 @@ namespace MyntUI.TradeManagers
             await SendNotification($"Update LastPrice for Trade {trade.TradeId}");
 
             // Let's not do a stoploss for now...
-            if (currentProfit < Globals.GlobalTradeOptions.StopLossPercentage)
+            if (currentProfit < Globals.Configuration.TradeOptions.StopLossPercentage)
             {
-                Globals.TradeLogger.LogInformation("Stop loss hit: {StopLoss}%", Globals.GlobalTradeOptions.StopLossPercentage);
+                Globals.TradeLogger.LogInformation("Stop loss hit: {StopLoss}%", Globals.Configuration.TradeOptions.StopLossPercentage);
                 return SellType.StopLoss;
             }
 
@@ -738,7 +738,7 @@ namespace MyntUI.TradeManagers
             if (!trade.StopLossRate.HasValue)
             {
                 // Check if time matches and current rate is above threshold
-                foreach (var item in Globals.GlobalTradeOptions.ReturnOnInvestment)
+                foreach (var item in Globals.Configuration.TradeOptions.ReturnOnInvestment)
                 {
                     var timeDiff = (utcNow - trade.OpenDate).TotalSeconds / 60;
 
@@ -751,17 +751,17 @@ namespace MyntUI.TradeManagers
             }
 
             // Only run this when we're past our starting percentage for trailing stop.
-            if (Globals.GlobalTradeOptions.EnableTrailingStop)
+            if (Globals.Configuration.TradeOptions.EnableTrailingStop)
             {
                 // If the current rate is below our current stoploss percentage, close the trade.
                 if (trade.StopLossRate.HasValue && ticker.Bid < trade.StopLossRate.Value)
                     return SellType.TrailingStopLoss;
 
                 // The new stop would be at a specific percentage above our starting point.
-                var newStopRate = trade.OpenRate * (1 + (currentProfit - Globals.GlobalTradeOptions.TrailingStopPercentage));
+                var newStopRate = trade.OpenRate * (1 + (currentProfit - Globals.Configuration.TradeOptions.TrailingStopPercentage));
 
                 // Only update the trailing stop when its above our starting percentage and higher than the previous one.
-                if (currentProfit > Globals.GlobalTradeOptions.TrailingStopStartingPercentage && (trade.StopLossRate < newStopRate || !trade.StopLossRate.HasValue))
+                if (currentProfit > Globals.Configuration.TradeOptions.TrailingStopStartingPercentage && (trade.StopLossRate < newStopRate || !trade.StopLossRate.HasValue))
                 {
                     Globals.TradeLogger.LogInformation("Trailing stop loss updated for {Market} from {StopLossRate} to {NewStopRate}", trade.Market, trade.StopLossRate?.ToString("0.00000000"), newStopRate.ToString("0.00000000"));
 

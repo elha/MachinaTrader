@@ -22,7 +22,9 @@ using Mynt.Data.LiteDB;
 using Mynt.Data.MongoDB;
 using MyntUI.Helpers;
 using MyntUI.Hubs;
+using MyntUI.Models;
 using MyntUI.TradeManagers;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Quartz;
 using Quartz.Impl;
@@ -36,8 +38,6 @@ namespace MyntUI
         public static IConfiguration GlobalConfiguration { get; set; }
         public static IDataStore GlobalDataStore { get; set; }
         public static IDataStoreBacktest GlobalDataStoreBacktest { get; set; }
-        public static TradeOptions GlobalTradeOptions { get; set; }
-        public static ExchangeOptions GlobalExchangeOptions { get; set; }
         public static IExchangeApi GlobalExchangeApi { get; set; }
         public static ILoggerFactory GlobalLoggerFactory { get; set; }
         public static CancellationToken GlobalTimerCancellationToken = new CancellationToken();
@@ -45,13 +45,15 @@ namespace MyntUI
         public static IHubContext<HubMyntStatistics> GlobalHubMyntStatistics;
         public static IHubContext<HubMyntLogs> GlobalHubMyntLogs;
         public static IHubContext<HubMyntBacktest> GlobalHubMyntBacktest;
-        public static JObject RuntimeSettings = new JObject();
+        public static RuntimeConfig RuntimeSettings = new RuntimeConfig();
         public static IScheduler QuartzTimer = new StdSchedulerFactory().GetScheduler().Result;
         public static TelegramNotificationOptions GlobalTelegramNotificationOptions { get; set; }
         public static ILogger TradeLogger;
         public static List<INotificationManager> NotificationManagers;
         public static OrderBehavior GlobalOrderBehavior;
         public static ConcurrentDictionary<string, Ticker> WebSocketTickers = new ConcurrentDictionary<string, Ticker>();
+        public static MainConfig Configuration { get; set; }
+        public static string ConfigFilePath = "MainConfig.json";
 
         public static List<string> GlobalCurrencys = new List<string>();
         public static List<string> ExchangeCurrencys = new List<string>();
@@ -71,43 +73,26 @@ namespace MyntUI
 
             Globals.GlobalOrderBehavior = OrderBehavior.AlwaysFill;
 
-            LoadSettings();
-
             Globals.NotificationManagers = new List<INotificationManager>()
             {
                 new SignalrNotificationManager(),
-                //new SlackNotificationManager(Globals.Glo)
-                new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
+                //new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
             };
 
-            // Runtime platform getter
-            Globals.RuntimeSettings["platform"] = new JObject();
-            Globals.RuntimeSettings["platform"]["os"] = GetOs();
-            Globals.RuntimeSettings["platform"]["computerName"] = Environment.MachineName;
-            Globals.RuntimeSettings["platform"]["userName"] = Environment.UserName;
-            Globals.RuntimeSettings["platform"]["webInitialized"] = false;
-            Globals.RuntimeSettings["platform"]["settingsInitialized"] = false;
-            Globals.RuntimeSettings["signalrClients"] = new JObject();
-
-            // Database options
-            LiteDBOptions databaseOptions = new LiteDBOptions();
-            Globals.GlobalDataStore = new LiteDBDataStore(databaseOptions);
-
-            // Database Backtester
-            LiteDBOptions backtestDatabaseOptions = new LiteDBOptions();
-            Globals.GlobalDataStoreBacktest = new LiteDBDataStoreBacktest(backtestDatabaseOptions);
-
-            /*
-            // Database options
-            MongoDBOptions databaseOptions = new MongoDBOptions();
-            Globals.GlobalDataStore = new MongoDBDataStore(databaseOptions);
-
-            // Database Backtester
-            MongoDBOptions backtestDatabaseOptions = new MongoDBOptions();
-            Globals.GlobalDataStoreBacktest = new MongoDBDataStoreBacktest(backtestDatabaseOptions);
-            */
-
-
+            if (Globals.Configuration.SystemOptions.Database == "MongoDB")
+            {
+                Log.LogInformation("Database set to MongoDB");
+                MongoDBOptions databaseOptions = new MongoDBOptions();
+                Globals.GlobalDataStore = new MongoDBDataStore(databaseOptions);
+                MongoDBOptions backtestDatabaseOptions = new MongoDBOptions();
+                Globals.GlobalDataStoreBacktest = new MongoDBDataStoreBacktest(backtestDatabaseOptions);
+            } else {
+                Log.LogInformation("Database set to LiteDB");
+                LiteDBOptions databaseOptions = new LiteDBOptions();
+                Globals.GlobalDataStore = new LiteDBDataStore(databaseOptions);
+                LiteDBOptions backtestDatabaseOptions = new LiteDBOptions();
+                Globals.GlobalDataStoreBacktest = new LiteDBDataStoreBacktest(backtestDatabaseOptions);
+            }
 
             // Global Hubs
             Globals.GlobalHubMyntTraders = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntTraders>>();
@@ -124,7 +109,7 @@ namespace MyntUI
 
             ITrigger buyTimerJobTrigger = TriggerBuilder.Create()
                 .WithIdentity("buyTimerJobTrigger", "buyTimerJob")
-                .WithCronSchedule(Globals.GlobalTradeOptions.BuyTimer)
+                .WithCronSchedule(Globals.Configuration.TradeOptions.BuyTimer)
                 .UsingJobData("force", false)
                 .Build();
 
@@ -136,7 +121,7 @@ namespace MyntUI
 
             ITrigger sellTimerJobTrigger = TriggerBuilder.Create()
                 .WithIdentity("sellTimerJobTrigger", "sellTimerJob")
-                .WithCronSchedule(Globals.GlobalTradeOptions.SellTimer)
+                .WithCronSchedule(Globals.Configuration.TradeOptions.SellTimer)
                 .UsingJobData("force", false)
                 .Build();
 
@@ -156,17 +141,36 @@ namespace MyntUI
 
             var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(settingsStr, optional: true);
             Globals.GlobalConfiguration = builder.Build();
-            Globals.GlobalTradeOptions = Globals.GlobalConfiguration.GetSection("TradeOptions").Get<TradeOptions>();
-            Globals.GlobalExchangeOptions = Globals.GlobalConfiguration.Get<ExchangeOptions>();
-            Globals.GlobalExchangeApi = new BaseExchange(Globals.GlobalExchangeOptions);
+
+            if (!File.Exists(Globals.ConfigFilePath))
+            {
+                //Init Global Config with default currency array
+                Globals.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), "MainConfig.json").ToObject<MainConfig>();
+                Globals.Configuration.TradeOptions.MarketBlackList = new List<string> { };
+                Globals.Configuration.TradeOptions.OnlyTradeList = new List<string> { "BTC-ETH", "BTC-LTC" };
+                Globals.Configuration.TradeOptions.AlwaysTradeList = new List<string> { "BTC-ETH", "BTC-LTC" };
+                var defaultExchangeOptions = new ExchangeOptions();
+                defaultExchangeOptions.Exchange = Exchange.Binance;
+                defaultExchangeOptions.ApiKey = "";
+                defaultExchangeOptions.ApiSecret = "";
+                Globals.Configuration.ExchangeOptions.Add(defaultExchangeOptions);
+                Globals.Configuration = MergeObjects.MergeCsDictionaryAndSave(Globals.Configuration, "MainConfig.json", JObject.FromObject(Globals.Configuration)).ToObject<MainConfig>();
+
+            } else
+            {
+
+                Globals.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), "MainConfig.json").ToObject<MainConfig>();
+            }
+
+            Globals.GlobalExchangeApi = new Mynt.Core.Exchanges.BaseExchange(Globals.Configuration.ExchangeOptions.FirstOrDefault());
 
             //Websocket Test
             var fullApi = Globals.GlobalExchangeApi.GetFullApi().Result;
 
             //Create Exchange Currencies as List
-            foreach (var currency in Globals.GlobalTradeOptions.AlwaysTradeList)
+            foreach (var currency in Globals.Configuration.TradeOptions.AlwaysTradeList)
             {
-                Globals.GlobalCurrencys.Add(Globals.GlobalTradeOptions.QuoteCurrency + "-" + currency);
+                Globals.GlobalCurrencys.Add(Globals.Configuration.TradeOptions.QuoteCurrency + "-" + currency);
             }
 
             foreach (var currency in Globals.GlobalCurrencys)

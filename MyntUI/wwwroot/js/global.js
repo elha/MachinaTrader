@@ -94,4 +94,43 @@ function afterHook() {
     width: "100%"
   });
 }
+
+function processDate(node) {
+  return false;
+}
+
+function postFormData(formId, submitUrl, reload) {
+  if (typeof reload === 'undefined') reload = true;
+  var formDataField = form2js(formId, '.', true, processDate);
+  $.ajax({
+    type: "POST",
+    url: submitUrl,
+    cache: false,
+    contentType: "application/json",
+    dataType: 'json',
+    data: JSON.stringify(formDataField, null, null)
+  });
+
+  if (reload === true) {
+    setTimeout('location.reload();', 100);
+  }
+}
+
+function postFormDataSkipHidden(formId, submitUrl, reload) {
+  if (typeof reload === 'undefined') reload = true;
+  var formDataField = form2js(formId, '.', true, processDate, true);
+  console.log(formDataField);
+  $.ajax({
+    type: "POST",
+    url: submitUrl,
+    cache: false,
+    contentType: "application/json",
+    dataType: 'json',
+    data: JSON.stringify(formDataField, null, null)
+  });
+
+  if (reload === true) {
+    setTimeout('location.reload();', 100);
+  }
+}
 //# sourceMappingURL=global.js.map
