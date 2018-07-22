@@ -428,7 +428,7 @@
 
 </div>
 
-<script>
+<script type="text/javascript">
 
     var pagefunction = function () {
 
@@ -462,7 +462,7 @@
             tags: true,
             theme: "bootstrap",
             width: "100%",
-            createTag: function(item) {
+            createTag: function (item) {
                 return {
                     id: item.term,
                     text: item.term,
@@ -475,6 +475,7 @@
 
     var apiMainConfig = new Vue({
         el: '#apiMainConfig',
+        parent: vueMain,
 
         data: {
             apiMainConfigData: null,

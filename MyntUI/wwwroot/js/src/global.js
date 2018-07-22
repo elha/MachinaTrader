@@ -80,7 +80,11 @@ function beforeHook() {
 	/*for(i=0; i<100; i++)
 	{
 		window.clearInterval(i);
-	}*/		
+	}*/
+    // Destroy all loaded vuejs components
+    for (var key in vueMain.$children) {
+        vueMain.$children[key].$destroy();
+    }
 	//Cleanup all keydown listeners -> Needed for some JS components
 	$(document).off("keydown");	
 	clearJsInterval();

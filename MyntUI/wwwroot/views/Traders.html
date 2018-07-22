@@ -112,12 +112,14 @@
 <script src="/vendors/vue/js/vue.min.js"></script>
 
 
-<script>
+<script type="text/javascript">
+
     var pagefunction = function () {
     };
 
     var myntTraders = new Vue({
         el: '#myntTraders',
+        parent: vueMain,
 
         data: {
             myntTradersData: null,
