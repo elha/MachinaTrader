@@ -88,12 +88,7 @@ function beforeHook() {
 }
 
 function afterHook() {
-	$(".select2").select2({
-		theme: "bootstrap",
-		templateResult: selectPickerImage,
-		templateSelection: selectPickerImage,
-		width: "100%"
-	});
+
 }
 
 

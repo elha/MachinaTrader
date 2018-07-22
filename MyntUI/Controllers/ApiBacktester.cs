@@ -128,6 +128,7 @@ namespace MyntUI.Controllers
             {
                 strategies[strategy.Name] = new JObject();
                 strategies[strategy.Name]["Name"] = strategy.Name;
+                strategies[strategy.Name]["ClassName"] = strategy.ToString().Replace("Mynt.Core.Strategies.", "");
                 strategies[strategy.Name]["IdealPeriod"] = strategy.IdealPeriod.ToString();
                 strategies[strategy.Name]["MinimumAmountOfCandles"] = strategy.MinimumAmountOfCandles.ToString();
             }

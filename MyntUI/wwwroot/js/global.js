@@ -86,14 +86,7 @@ function beforeHook() {
   cleanSignalr();
 }
 
-function afterHook() {
-  $(".select2").select2({
-    theme: "bootstrap",
-    templateResult: selectPickerImage,
-    templateSelection: selectPickerImage,
-    width: "100%"
-  });
-}
+function afterHook() {}
 
 function processDate(node) {
   return false;
