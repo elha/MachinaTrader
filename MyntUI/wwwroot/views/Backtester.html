@@ -90,10 +90,21 @@
                     </div>
                 </div>
 
-                <div class="col-6">
+                <div class="col-3">
                     <div class="form-group row">
-                        <label for="exchangeExchangeId" class="col-3 col-form-label">Exchange:</label>
-                        <div class='col-9 input-group date' id='exchangeExchangeId'>
+                        <label for="exchangeBaseCurrencyId" class="col-4 col-form-label">Currency:</label>
+                        <div class='col-8 input-group date' id='exchangeBaseCurrencyId'>
+                            <select name="display" id="baseCurrencyToCheck" class="selectpicker">
+                                <option v-for="(value, key) in exchangeBaseCurrenciesData" v-bind:value="value" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{value}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-3">
+                    <div class="form-group row">
+                        <label for="exchangeExchangeId" class="col-4 col-form-label">Exchange:</label>
+                        <div class='col-8 input-group date' id='exchangeExchangeId'>
                             <select name="display" id="exchangeSelect" class="selectpicker">
                                 <option value="binance" data-image="/img/exchange/binance.png">Binance</option>
                                 <option value="gdax" data-image="/img/exchange/gdax.png">Gdax</option>
@@ -155,7 +166,10 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
 <script>
+    Vue.config.devtools = true;
 
     var table = null;
     var initDatatable;
@@ -206,6 +220,11 @@
             widgetBackendTester.updateSymbols();
         });
 
+        $('#baseCurrencyToCheck').change(function () {
+            widgetBackendTester.updateSymbolsByCurrency();
+            widgetBackendTester.updateCandleAge();
+        });              
+
         $('#currencyToCheck').change(function () {
             widgetBackendTester.updateCandleAge();
         });
@@ -230,14 +249,14 @@
         $("#refreshButton").prop("disabled", true);
         $("#startButton").prop("disabled", true);
 
-        axios.get('/api/trading/refreshCandles?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val()).then((response) => {
+        axios.get('/api/trading/refreshCandles?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val()).then((response) => {
             $("#refreshButton").prop("disabled", false);
             $("#startButton").prop("disabled", false);
             widgetBackendTester.updateCandleAge();
         })
-            .catch((error) => {
-                console.log(error);
-            });
+        .catch((error) => {
+            console.log(error);
+        });
     };
 
     var runStrategy = function () {
@@ -246,7 +265,7 @@
             dataArray = new Array();
         }
 
-        axios.get('/api/trading/backtester?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&strategy=' + $("#tradingStrategy").val()).then((response) => {
+        axios.get('/api/trading/backtester?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&strategy=' + $("#tradingStrategy").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val()).then((response) => {
         }).catch((error) => {
             console.log(error);
         });
@@ -383,6 +402,7 @@
         data: {
             allStrategiesData: null,
             exchangeCoinsData: null,
+            exchangeBaseCurrenciesData: null,
             candleAgeData: []
         },
 
@@ -430,6 +450,7 @@
                             table.clear().rows.add(dataArray).draw();
                         }
                     });
+
                 connectionBacktester.onclose(function () {
                     console.log("disconnected");
                     reconnectSignalr();
@@ -443,8 +464,7 @@
                     self.allStrategiesData = data;
                     self.$nextTick(function () {
                         pagefunction();
-                        self.updateSymbols();
-
+                        //self.updateSymbols();
                     });
                 });
             },
@@ -454,24 +474,31 @@
             updateSymbols: function () {
                 var self = this;
                 $.get('/api/trading/getExchangePairs?exchange=' + $("#exchangeSelect").val(), function (data) {
-                    self.exchangeCoinsData = data;
+                    self.exchangeCoinsData = data[0];
+                    self.exchangeBaseCurrenciesData = data[1];
                     self.$nextTick(function () {
-                        pagefunction();
+                        //pagefunction();
                         //self.updateCandleAge();
-
                     });
                 });
             },
+            updateSymbolsByCurrency: function () {
+                var self = this;
+
+                $.get('/api/trading/getExchangePairs?exchange=' + $("#exchangeSelect").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val(), function (data) {
+                    self.exchangeCoinsData = data[0];               
+                });                                
+            },
+
             updateCandleAge: function () {
                 var self = this;
-                $.get('/api/trading/candlesAge?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val(), function (data) {
+                $.get('/api/trading/candlesAge?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val(), function (data) {
                     self.candleAgeData = data["result"];
                     if (data["result"].length === 0) {
                         $("#startButton").prop("disabled", true);
                     } else {
                         $("#startButton").prop("disabled", false);
                     }
-
                 });
             }
         }

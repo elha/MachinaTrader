@@ -723,7 +723,9 @@ namespace MyntUI.TradeManagers
             var tradeToUpdate = _activeTrades.Where(x => x.TradeId == trade.TradeId).FirstOrDefault();
             tradeToUpdate.TickerLast = ticker;
             await Globals.GlobalDataStore.SaveTradeAsync(tradeToUpdate);
-            await SendNotification($"Update LastPrice for Trade {trade.TradeId}");
+
+            // too much notification to slack/telegram! :-)
+            //await SendNotification($"Update LastPrice for Trade {trade.TradeId}");
 
             // Let's not do a stoploss for now...
             if (currentProfit < Globals.GlobalTradeOptions.StopLossPercentage)
