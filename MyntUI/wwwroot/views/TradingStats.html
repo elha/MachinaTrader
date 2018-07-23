@@ -115,12 +115,13 @@
 <script src="/vendors/vue/js/vue.min.js"></script>
 
 
-<script>
+<script type="text/javascript">
     var pagefunction = function () {
     };
 
     var myntStatistics = new Vue({
         el: '#myntStatistics',
+        parent: vueMain,
 
         data: {
             myntStatisticsData: null

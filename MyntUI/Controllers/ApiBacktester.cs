@@ -33,6 +33,10 @@ namespace MyntUI.Controllers
         }
     }
 
+    /// <summary>
+    /// Get the candle ages of selected coins
+    /// Return value JObject
+    /// </summary>
     [Authorize, Route("api/trading/candlesAge")]
     public class ApiTradingBacktesterCandlesAge : Controller
     {
@@ -122,6 +126,7 @@ namespace MyntUI.Controllers
             {
                 strategies[strategy.Name] = new JObject();
                 strategies[strategy.Name]["Name"] = strategy.Name;
+                strategies[strategy.Name]["ClassName"] = strategy.ToString().Replace("Mynt.Core.Strategies.", "");
                 strategies[strategy.Name]["IdealPeriod"] = strategy.IdealPeriod.ToString();
                 strategies[strategy.Name]["MinimumAmountOfCandles"] = strategy.MinimumAmountOfCandles.ToString();
             }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ExchangeSharp;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +19,20 @@ namespace MyntUI.Controllers
     [Route("api/mynt/")]
     public class MyntApiController : Controller
     {
+        [HttpGet]
+        [Route("trading/GetExchangePairsExchangeSymbols")]
+        public async Task<ActionResult> Get(string exchange)
+        {
+            JArray symbolArray = new JArray();
+            IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
+            var exchangeCoins = await api.GetSymbolsAsync();
+            foreach (var coin in exchangeCoins)
+            {
+                symbolArray.Add(coin);
+
+            }
+            return new JsonResult(symbolArray);
+        }
 
 
         [HttpGet]
@@ -173,7 +188,7 @@ namespace MyntUI.Controllers
             stat.CoinPerformance = coins.ToList().OrderByDescending(c => c.Value);
 
             // Create some viewbags
-            ViewBag.tradeOptions = Globals.GlobalTradeOptions;
+            ViewBag.tradeOptions = Globals.Configuration.TradeOptions;
             ViewBag.stat = stat;
 
             return new JsonResult(ViewBag);
@@ -187,9 +202,8 @@ namespace MyntUI.Controllers
         [Route("logs")]
         public IActionResult Logs()
         {
-            var log = Log.ReadTail("Logs/Mynt-" + DateTime.Now.ToString("yyyyMMdd") + ".log", 100);
-            ViewBag.log = log;
-            return new JsonResult(ViewBag);
+            var log = Log.ReadTail("Logs/Mynt-" + DateTime.Now.ToString("yyyyMMdd") + ".log", 500);
+            return new JsonResult(log);
         }
     }
 }

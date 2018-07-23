@@ -136,7 +136,7 @@ namespace MyntUI
             IWebHostBuilder webHostBuilder = WebHost.CreateDefaultBuilder()
             .UseKestrel(options =>
             {
-                options.Listen(IPAddress.Any, 5000);
+                options.Listen(IPAddress.Any, Globals.Configuration.SystemOptions.WebPort);
             })
             .UseStartup<Startup>()
             .ConfigureAppConfiguration(i =>

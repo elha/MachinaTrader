@@ -80,18 +80,55 @@ function beforeHook() {
   {
   	window.clearInterval(i);
   }*/
-  //Cleanup all keydown listeners -> Needed for some JS components
+  // Destroy all loaded vuejs components
+  for (var key in vueMain.$children) {
+    vueMain.$children[key].$destroy();
+  } //Cleanup all keydown listeners -> Needed for some JS components
+
+
   $(document).off("keydown");
   clearJsInterval();
   cleanSignalr();
 }
 
-function afterHook() {
-  $(".select2").select2({
-    theme: "bootstrap",
-    templateResult: selectPickerImage,
-    templateSelection: selectPickerImage,
-    width: "100%"
+function afterHook() {}
+
+function processDate(node) {
+  return false;
+}
+
+function postFormData(formId, submitUrl, reload) {
+  if (typeof reload === 'undefined') reload = true;
+  var formDataField = form2js(formId, '.', true, processDate);
+  $.ajax({
+    type: "POST",
+    url: submitUrl,
+    cache: false,
+    contentType: "application/json",
+    dataType: 'json',
+    data: JSON.stringify(formDataField, null, null)
   });
+
+  if (reload === true) {
+    setTimeout('location.reload();', 100);
+  }
+}
+
+function postFormDataSkipHidden(formId, submitUrl, reload) {
+  if (typeof reload === 'undefined') reload = true;
+  var formDataField = form2js(formId, '.', true, processDate, true);
+  console.log(formDataField);
+  $.ajax({
+    type: "POST",
+    url: submitUrl,
+    cache: false,
+    contentType: "application/json",
+    dataType: 'json',
+    data: JSON.stringify(formDataField, null, null)
+  });
+
+  if (reload === true) {
+    setTimeout('location.reload();', 100);
+  }
 }
 //# sourceMappingURL=global.js.map

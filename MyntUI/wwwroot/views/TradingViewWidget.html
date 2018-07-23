@@ -24,7 +24,7 @@
 </div>
 
 
-<script>
+<script type="text/javascript">
     if (typeof (exchange) != "undefined") {
         exchange = exchange;
     }
@@ -67,6 +67,7 @@
 
     var widgetTradingViewModal = new Vue({
         el: '#widgetTradingViewModal',
+        parent: vueMain,
 
         data: {
             market: market,

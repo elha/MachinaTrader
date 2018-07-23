@@ -12,6 +12,7 @@
     .bootbox > .modal-dialog {
         max-width: 500px;
     }
+
     .modal-dialog {
         max-width: 100%;
     }
@@ -141,7 +142,7 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
-<script>
+<script type="text/javascript">
     var pagefunction = function () {
     };
 
@@ -432,6 +433,11 @@
 
     var myntTrades = new Vue({
         el: '#myntTrades',
+        parent: vueMain,
+
+        destroyed() {
+            console.log('destroyed pending')
+        },
 
         data: {
             activeTradesData: null,
