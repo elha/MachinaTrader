@@ -204,8 +204,8 @@ namespace MyntUI.TradeManagers
         /// <returns></returns>
         private async Task<List<TradeSignal>> FindBuyOpportunities(ITradingStrategy strategy)
         {
-            Globals.TradeLogger.LogWarning("FindBuyOpportunities START: "+ DateTime.Now);
-            var watch = System.Diagnostics.Stopwatch.StartNew();          
+            Globals.TradeLogger.LogWarning("FindBuyOpportunities START: " + DateTime.Now);
+            var watch = System.Diagnostics.Stopwatch.StartNew();
 
             // Retrieve our current markets
             var markets = await Globals.GlobalExchangeApi.GetMarketSummaries(Globals.Configuration.TradeOptions.QuoteCurrency);
@@ -230,7 +230,7 @@ namespace MyntUI.TradeManagers
 
             // Remove items that are on our blacklist.
             foreach (var market in Globals.Configuration.TradeOptions.MarketBlackList)
-                markets.RemoveAll(x => x.CurrencyPair.BaseCurrency == market);
+                markets.RemoveAll(x => x.MarketName == market);
 
 
             // Buy from external - Currently for Debug -> This will buy on each tick !
@@ -272,30 +272,26 @@ namespace MyntUI.TradeManagers
 
 
 
-
             int pairsCount = 0;
 
-            // Prioritize markets with high volume.
-            foreach (var market in markets.Distinct().OrderByDescending(x => x.Volume).ToList())
+            var cts = new CancellationTokenSource();
+            var parallelOptions = new ParallelOptions();
+            parallelOptions.CancellationToken = cts.Token;
+            parallelOptions.MaxDegreeOfParallelism = Environment.ProcessorCount;
+
+            await Task.Run(() => Parallel.ForEach(markets.Distinct().OrderByDescending(x => x.Volume).ToList(), parallelOptions, market =>
             {
-                var signal = await GetStrategySignal(market.MarketName, strategy);
+                var signal = GetStrategySignal(market.MarketName, strategy).Result;
+
                 // A match was made, buy that please!
                 if (signal != null && signal.TradeAdvice == TradeAdvice.Buy)
                 {
-                    /*pairs.Add(new TradeSignal
-                    {
-                        MarketName = market.MarketName,
-                        QuoteCurrency = market.CurrencyPair.QuoteCurrency,
-                        BaseCurrency = market.CurrencyPair.BaseCurrency,
-                        TradeAdvice = signal.TradeAdvice,
-                        SignalCandle = signal.SignalCandle
-                    });*/
-                    _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
+                    _activeTrades = Globals.GlobalDataStore.GetActiveTradesAsync().Result;
                     int currentActiveTrades = _activeTrades.Where(x => x.IsOpen).Count();
 
                     if (currentActiveTrades < Globals.Configuration.TradeOptions.MaxNumberOfConcurrentTrades)
                     {
-                        await CreateNewTrade(new TradeSignal
+                        CreateNewTrade(new TradeSignal
                         {
                             MarketName = market.MarketName,
                             QuoteCurrency = market.CurrencyPair.QuoteCurrency,
@@ -303,14 +299,16 @@ namespace MyntUI.TradeManagers
                             TradeAdvice = signal.TradeAdvice,
                             SignalCandle = signal.SignalCandle
                         }, strategy);
+
                         pairsCount = pairsCount + 1;
                         Globals.TradeLogger.LogInformation("Match signal -> Buying " + market.MarketName);
-                    } else
+                    }
+                    else
                     {
                         Globals.TradeLogger.LogInformation("Too Many Trades: Ignore Match signal " + market.MarketName);
                     }
                 }
-            };
+            }));
 
             if (pairs.Count == 0)
             {
@@ -339,16 +337,19 @@ namespace MyntUI.TradeManagers
 
                 var candles = await Globals.GlobalExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate);
 
-               
+
 
 
                 var desiredLastCandleTime = candleDate.AddMinutes(-(strategy.IdealPeriod.ToMinutesEquivalent()));
 
                 Globals.TradeLogger.LogInformation("Checking market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
 
-                while (candles.Last().Timestamp < desiredLastCandleTime)
+                int k = 1;
+
+                while (candles.Last().Timestamp < desiredLastCandleTime && k < 20)
                 {
-                    Thread.Sleep(5000);
+                    k++;
+                    Thread.Sleep(1000 * k);
 
                     candles = await Globals.GlobalExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate);
                     Globals.TradeLogger.LogInformation("R Checking market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
@@ -586,7 +587,7 @@ namespace MyntUI.TradeManagers
                         trade.IsBuying = false;
                     }
                 }
-                
+
                 Globals.TradeLogger.LogInformation("{Market} BUY order filled @ {OpenRate}...", trade.Market, trade.OpenRate.ToString("0.00000000"));
 
                 // If this is enabled we place a sell order as soon as our buy order got filled.
@@ -628,7 +629,7 @@ namespace MyntUI.TradeManagers
                     // Papertrading
                     var candles = await Globals.GlobalExchangeApi.GetTickerHistory(order.Market, Period.Minute, 1);
                     var candle = candles.FirstOrDefault();
-                    
+
                     if (candle != null && (order.CloseRate <= candle.Low || (order.CloseRate >= candle.Low && order.CloseRate <= candle.High) || Globals.GlobalOrderBehavior == OrderBehavior.AlwaysFill))
                     {
                         order.OpenOrderId = null;
@@ -660,7 +661,7 @@ namespace MyntUI.TradeManagers
                 await Globals.GlobalDataStore.SaveTradeAsync(order);
 
                 await SendNotification($"Selling #{order.Market} with limit {order.CloseRate:0.00000000} BTC (profit: ± {order.CloseProfitPercentage:0.00}%, {order.CloseProfit:0.00000000} BTC).");
-                
+
             }
         }
 
