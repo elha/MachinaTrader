@@ -22,3 +22,11 @@ This is a WIP - Dont use productive !
 # Recommended plugin for debugging VueJS
 
 - Get Chrome DevTools for VueJS [here](https://chrome.google.com/webstore/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
+After installing the tools in chrome add these scripts to target .html file and remove or uncomment the existing vue.min.js:
+```
+<!-- development version, includes helpful console warnings -->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    Vue.config.devtools = true;
+</script>
+```
