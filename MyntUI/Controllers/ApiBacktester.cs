@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -10,9 +11,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Mynt.Core.Backtester;
 using Mynt.Core.Enums;
-using Mynt.Core.Exchanges;
-using Mynt.Core.Interfaces;
-using Mynt.Core.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -43,17 +41,17 @@ namespace MyntUI.Controllers
     public class ApiTradingBacktesterCandlesAge : Controller
     {
         [HttpGet]
-        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string candleSize = "5")
+        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string baseCurrency, string candleSize = "5")
         {
             List<string> coins = new List<string>();
            
             if (String.IsNullOrEmpty(coinsToBuy))
             {
                 IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
-                var exchangeCoins = await api.GetSymbolsAsync();
+                var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
                 foreach (var coin in exchangeCoins)
                 {
-                    coins.Add(api.ExchangeSymbolToGlobalSymbol(coin));
+                    coins.Add(api.ExchangeSymbolToGlobalSymbol(coin.MarketName));
                 }
             }
             else
@@ -81,17 +79,17 @@ namespace MyntUI.Controllers
     {
 
         [HttpGet]
-        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string candleSize = "5")
+        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string baseCurrency, string candleSize = "5")
         {
             List<string> coins = new List<string>();
 
             if (String.IsNullOrEmpty(coinsToBuy))
             {
                 IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
-                var exchangeCoins = await api.GetSymbolsAsync();
+                var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m=>m.BaseCurrency == baseCurrency);
                 foreach (var coin in exchangeCoins)
                 {
-                    coins.Add(api.ExchangeSymbolToGlobalSymbol(coin));
+                    coins.Add(api.ExchangeSymbolToGlobalSymbol(coin.MarketName));
                 }
             }
             else
@@ -140,17 +138,34 @@ namespace MyntUI.Controllers
     public class ApiTradingGetExchangePairs : Controller
     {
         [HttpGet]
-        public async Task<ActionResult> Get(string exchange)
+        public async Task<ActionResult> Get(string exchange, string baseCurrency)
         {
-            JArray symbolArray = new JArray();
+            var result = new JArray();
+
+            var symbolArray = new JArray();
+
             IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
-            var exchangeCoins = await api.GetSymbolsAsync();
+            var exchangeCoins = api.GetSymbolsMetadataAsync().Result;
+
+            if (!String.IsNullOrEmpty(baseCurrency))
+                exchangeCoins = exchangeCoins.Where(e => e.BaseCurrency.ToLowerInvariant() == baseCurrency.ToLowerInvariant());
+
             foreach (var coin in exchangeCoins)
             {
-                symbolArray.Add(api.ExchangeSymbolToGlobalSymbol(coin));
-
+                symbolArray.Add(api.ExchangeSymbolToGlobalSymbol(coin.MarketName));
             }
-            return new JsonResult(symbolArray);
+
+            var baseCurrencyArray = new JArray();
+            var exchangeBaseCurrencies = api.GetSymbolsMetadataAsync().Result.Select(m=>m.BaseCurrency).Distinct();
+            foreach (var currency in exchangeBaseCurrencies)
+            {
+                baseCurrencyArray.Add(currency);
+            }
+
+            result.Add(symbolArray);
+            result.Add(baseCurrencyArray);
+
+            return new JsonResult(result);
         }
     }
 
@@ -158,7 +173,7 @@ namespace MyntUI.Controllers
     public class ApiBacktesterDisplay : Controller
     {
         [HttpGet]
-        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string candleSize = "5", string strategy = "all")
+        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string baseCurrency, string candleSize = "5", string strategy = "all")
         {
             JObject strategies = new JObject();
 
@@ -166,10 +181,10 @@ namespace MyntUI.Controllers
             if (String.IsNullOrEmpty(coinsToBuy))
             {
                 IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
-                var exchangeCoins = await api.GetSymbolsAsync();
+                var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
                 foreach (var coin in exchangeCoins)
                 {
-                    coins.Add(api.ExchangeSymbolToGlobalSymbol(coin));
+                    coins.Add(api.ExchangeSymbolToGlobalSymbol(coin.MarketName));
                 }
             }
             else
@@ -194,14 +209,11 @@ namespace MyntUI.Controllers
             parallelOptions.MaxDegreeOfParallelism = Environment.ProcessorCount;
             Parallel.ForEach(BacktestFunctions.GetTradingStrategies(), parallelOptions, async tradingStrategy =>
             {
-                //    foreach (var tradingStrategy in BacktestFunctions.GetTradingStrategies())
-                //{
-                if (strategy != "all")
+               if (strategy != "all")
                 {
                     var base64EncodedBytes = Convert.FromBase64String(strategy);
                     if (tradingStrategy.Name != Encoding.UTF8.GetString(base64EncodedBytes))
                     {
-                        //continue;
                         return;
                     }
                 }
@@ -223,9 +235,7 @@ namespace MyntUI.Controllers
         [HttpGet]
         public async Task<ActionResult> Get(string exchange, string coinsToBuy, string strategy, string candleSize)
         {
-            //var base64EncodedBytes = Convert.FromBase64String(strategy);
-            //var strategyName = Encoding.UTF8.GetString(base64EncodedBytes);
-            var strategyName = WebUtility.HtmlDecode(strategy);
+           var strategyName = WebUtility.HtmlDecode(strategy);
 
             List<string> coins = new List<string>();
             Char delimiter = ',';
@@ -254,9 +264,7 @@ namespace MyntUI.Controllers
         [HttpGet]
         public async Task<ActionResult> Get(string exchange, string coinsToBuy, string strategy, string candleSize = "5")
         {
-            //var base64EncodedBytes = Convert.FromBase64String(strategy);
-            //var strategyName = Encoding.UTF8.GetString(base64EncodedBytes);
-            var strategyName = WebUtility.HtmlDecode(strategy);
+           var strategyName = WebUtility.HtmlDecode(strategy);
 
             List<string> coins = new List<string>();
             Char delimiter = ',';
@@ -274,26 +282,6 @@ namespace MyntUI.Controllers
 
             var candleProvider = new DatabaseCandleProvider();
             var items = await candleProvider.GetSignals(backtestOptions, Globals.GlobalDataStoreBacktest, strategyName);
-
-            //var items = new List<TradeSignal>()
-            //{
-            //    new TradeSignal()
-            //    {
-            //        Timestamp  = DateTime.Parse("2018-01-24T22:45:00Z").ToUniversalTime(),
-            //        Price = 25,
-            //        TradeAdvice = TradeAdvice.Buy,
-            //        Profit = 0,
-            //        PercentageProfit = 0m
-            //    },
-            //    new TradeSignal()
-            //    {
-            //        Timestamp  = DateTime.Parse("2018-01-24T23:45:00Z").ToUniversalTime(),
-            //        Price = 30,
-            //        TradeAdvice = TradeAdvice.Sell,
-            //        Profit = 1,
-            //        PercentageProfit = 0.02m
-            //    }
-            //};
 
             return new JsonResult(items);
         }

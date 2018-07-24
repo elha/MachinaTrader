@@ -8,32 +8,68 @@
 <script src="/vendors/axios/js/axios.min.js"></script>
 
 <style>
-    .greenCell { background: rgba(0, 255, 0, 0.2) !important; }
+    .greenCell {
+        background: rgba(0, 255, 0, 0.2) !important;
+    }
 
-    .redCell { background: rgba(255, 0, 0, 0.20) !important; }
+    .redCell {
+        background: rgba(255, 0, 0, 0.20) !important;
+    }
 </style>
 <style>
-    .small-text { font-size: 10px; line-height: 24px; }
+    .small-text {
+        font-size: 10px;
+        line-height: 24px;
+    }
 
-    .table-round > .box-body { padding: 0; }
+    .table-round > .box-body {
+        padding: 0;
+    }
 
-    .table th, .table td { padding: 0.75rem; vertical-align: top; border-top: 0; }
+    .table th, .table td {
+        padding: 0.75rem;
+        vertical-align: top;
+        border-top: 0;
+    }
 
-    .table thead th { vertical-align: bottom; border-bottom: 0; }
+    .table thead th {
+        vertical-align: bottom;
+        border-bottom: 0;
+    }
 
-    table.dataTable { margin-top: 0 !important; margin-bottom: 0 !important; border-collapse: collapse !important; }
+    table.dataTable {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        border-collapse: collapse !important;
+    }
 
-    .dataTables_wrapper .row .col-sm-12 { padding: 0 !important; }
+    .dataTables_wrapper .row .col-sm-12 {
+        padding: 0 !important;
+    }
 
-    div.dataTables_wrapper div.dataTables_info { padding: 1.8em; }
+    div.dataTables_wrapper div.dataTables_info {
+        padding: 1.8em;
+    }
 
-    div.dataTables_wrapper div.dataTables_paginate { padding: 1em; }
+    div.dataTables_wrapper div.dataTables_paginate {
+        padding: 1em;
+    }
 
-    .card-body-header { margin-right: 0; margin-left: 0; padding-top: 15px; background-color: rgba(198, 198, 198, 0.5); box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12); }
+    .card-body-header {
+        margin-right: 0;
+        margin-left: 0;
+        padding-top: 15px;
+        background-color: rgba(198, 198, 198, 0.5);
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+    }
 
-    .table-bordered { border: 0; }
+    .table-bordered {
+        border: 0;
+    }
 
-    .select2-selection { width: 100%; }
+    .select2-selection {
+        width: 100%;
+    }
 </style>
 
 <div class="row animated fadeIn" id="widgetBackendTester">
@@ -49,7 +85,7 @@
                 <div class="col-3">
                     <select id="tradingStrategy" name="tradingStrategy" class="selectpicker">
                         <option value="all" data-icon="fas fa-star">&nbsp;&nbsp;Test all Strategies</option>
-                        <option v-for="(value, key) in allStrategiesData" v-bind:value="btoa(allStrategiesData[key]['Name'])" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{allStrategiesData[key]['Name']}}</option>
+                        <option v-for="(value, key) in allStrategiesData" v-bind:value="toBase64(allStrategiesData[key]['Name'])" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{allStrategiesData[key]['Name']}}</option>
                     </select>
                 </div>
                 <div class="col-1">
@@ -90,10 +126,21 @@
                     </div>
                 </div>
 
-                <div class="col-6">
+                <div class="col-3">
                     <div class="form-group row">
-                        <label for="exchangeExchangeId" class="col-3 col-form-label">Exchange:</label>
-                        <div class='col-9 input-group date' id='exchangeExchangeId'>
+                        <label for="exchangeBaseCurrencyId" class="col-4 col-form-label">Currency:</label>
+                        <div class='col-8 input-group date' id='exchangeBaseCurrencyId'>
+                            <select name="display" id="baseCurrencyToCheck" class="selectpicker">
+                                <option v-for="(value, key) in exchangeBaseCurrenciesData" v-bind:value="value" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{value}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-3">
+                    <div class="form-group row">
+                        <label for="exchangeExchangeId" class="col-4 col-form-label">Exchange:</label>
+                        <div class='col-8 input-group date' id='exchangeExchangeId'>
                             <select name="display" id="exchangeSelect" class="selectpicker">
                                 <option value="binance" data-image="/img/exchange/binance.png">Binance</option>
                                 <option value="gdax" data-image="/img/exchange/gdax.png">Gdax</option>
@@ -155,7 +202,7 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
-<script>
+<script type="text/javascript">
 
     var table = null;
     var initDatatable;
@@ -206,6 +253,11 @@
             widgetBackendTester.updateSymbols();
         });
 
+        $('#baseCurrencyToCheck').change(function () {
+            widgetBackendTester.updateSymbolsByCurrency();
+            widgetBackendTester.updateCandleAge();
+        });              
+
         $('#currencyToCheck').change(function () {
             widgetBackendTester.updateCandleAge();
         });
@@ -230,14 +282,14 @@
         $("#refreshButton").prop("disabled", true);
         $("#startButton").prop("disabled", true);
 
-        axios.get('/api/trading/refreshCandles?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val()).then((response) => {
+        axios.get('/api/trading/refreshCandles?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val()).then((response) => {
             $("#refreshButton").prop("disabled", false);
             $("#startButton").prop("disabled", false);
             widgetBackendTester.updateCandleAge();
         })
-            .catch((error) => {
-                console.log(error);
-            });
+        .catch((error) => {
+            console.log(error);
+        });
     };
 
     var runStrategy = function () {
@@ -246,7 +298,7 @@
             dataArray = new Array();
         }
 
-        axios.get('/api/trading/backtester?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&strategy=' + $("#tradingStrategy").val()).then((response) => {
+        axios.get('/api/trading/backtester?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&strategy=' + $("#tradingStrategy").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val()).then((response) => {
         }).catch((error) => {
             console.log(error);
         });
@@ -288,7 +340,7 @@
                         "sClass": "center",
                         responsivePriority: 2,
                         mRender: function (data, type, full, meta) {
-                            var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadSignalsViewModal(\'/views/SignalsWidget.html\', \'' + $("#exchangeSelect").val() + '\', \'' + full.Market+ '\', \'' + $("#candleSize").val() + '\', \'' + full.Strategy + '\' )">signals</a>';
+                            var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadSignalsViewModal(\'/views/SignalsWidget.html\', \'' + $("#exchangeSelect").val() + '\', \'' + full.Market + '\', \'' + $("#candleSize").val() + '\', \'' + full.Strategy + '\' )">signals</a>';
                             return formatted;
                         }
                     },
@@ -379,10 +431,12 @@
 
     var widgetBackendTester = new Vue({
         el: '#widgetBackendTester',
+        parent: vueMain,
 
         data: {
             allStrategiesData: null,
             exchangeCoinsData: null,
+            exchangeBaseCurrenciesData: null,
             candleAgeData: []
         },
 
@@ -430,6 +484,7 @@
                             table.clear().rows.add(dataArray).draw();
                         }
                     });
+
                 connectionBacktester.onclose(function () {
                     console.log("disconnected");
                     reconnectSignalr();
@@ -443,35 +498,44 @@
                     self.allStrategiesData = data;
                     self.$nextTick(function () {
                         pagefunction();
-                        self.updateSymbols();
-
+                        //self.updateSymbols();
                     });
                 });
             },
             formatDate: function (date) {
                 return moment(date).format('YYYY-MM-DD HH:mm');
             },
+            toBase64: function (date) {
+                return btoa(date);
+            },
             updateSymbols: function () {
                 var self = this;
                 $.get('/api/trading/getExchangePairs?exchange=' + $("#exchangeSelect").val(), function (data) {
-                    self.exchangeCoinsData = data;
+                    self.exchangeCoinsData = data[0];
+                    self.exchangeBaseCurrenciesData = data[1];
                     self.$nextTick(function () {
-                        pagefunction();
+                        //pagefunction();
                         //self.updateCandleAge();
-
                     });
                 });
             },
+            updateSymbolsByCurrency: function () {
+                var self = this;
+
+                $.get('/api/trading/getExchangePairs?exchange=' + $("#exchangeSelect").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val(), function (data) {
+                    self.exchangeCoinsData = data[0];               
+                });                                
+            },
+
             updateCandleAge: function () {
                 var self = this;
-                $.get('/api/trading/candlesAge?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val(), function (data) {
+                $.get('/api/trading/candlesAge?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val(), function (data) {
                     self.candleAgeData = data["result"];
                     if (data["result"].length === 0) {
                         $("#startButton").prop("disabled", true);
                     } else {
                         $("#startButton").prop("disabled", false);
                     }
-
                 });
             }
         }

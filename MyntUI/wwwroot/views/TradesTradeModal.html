@@ -246,7 +246,7 @@
 </div>
 
 
-<script>
+<script type="text/javascript">
     if (typeof (tradeId) != "undefined") {
         tradeId = tradeId;
     }
@@ -283,6 +283,7 @@
 
     var tradesModalEdit = new Vue({
         el: '#tradesModalEdit',
+        parent: vueMain,
 
         data: {
             trade: null,

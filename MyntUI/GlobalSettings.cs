@@ -76,7 +76,7 @@ namespace MyntUI
             Globals.NotificationManagers = new List<INotificationManager>()
             {
                 new SignalrNotificationManager(),
-                //new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
+                new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
             };
 
             if (Globals.Configuration.SystemOptions.Database == "MongoDB")

@@ -100,11 +100,7 @@
     </div>
 </div>
 
-
-<script src="/vendors/vue/js/vue.min.js"></script>
-
-
-<script>
+<script type="text/javascript">
     var pagefunction = function () {
     };
 
@@ -170,10 +166,11 @@
             ]
         });
     });
-    
+
 
     var myntLogs = new Vue({
         el: '#myntLogs',
+        parent: vueMain,
 
         data: {
             myntLogsData: null
@@ -221,7 +218,7 @@
 
                 connection.on('Send', function (msg) {
                     console.log("Msg from signalR: " + msg);
-                    
+
                     table.ajax.url('/api/mynt/logs').load();
                     //self.updateData();
                 });
