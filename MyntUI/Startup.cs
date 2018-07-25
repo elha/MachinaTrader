@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using MyntUI.Data;
 using System;
 using MyntUI.Services;
+using MyntUI.Helpers;
 
 namespace MyntUI
 {
@@ -36,11 +37,11 @@ namespace MyntUI
             {
                 o.AddPolicy("Everything", p =>
           {
-                  p.AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowAnyOrigin()
-              .AllowCredentials();
-              });
+              p.AllowAnyHeader()
+          .AllowAnyMethod()
+          .AllowAnyOrigin()
+          .AllowCredentials();
+          });
             });
 
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -80,6 +81,7 @@ namespace MyntUI
             // Configure serilog from appsettings.json
             var serilogger = new LoggerConfiguration()
                 .ReadFrom.Configuration(Configuration)
+                .WriteTo.SignalRLogEventSink()
                 .CreateLogger();
 
             services.AddLogging(b => { b.AddSerilog(serilogger); });
@@ -90,7 +92,7 @@ namespace MyntUI
                 options.Conventions.AuthorizeFolder("/");
                 //options.Conventions.AllowAnonymousToPage("/Account");
                 //options.Conventions.AllowAnonymousToFolder("/Account");
-      });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -132,7 +134,6 @@ namespace MyntUI
 
         public static void RunWebHost()
         {
-
             IWebHostBuilder webHostBuilder = WebHost.CreateDefaultBuilder()
             .UseKestrel(options =>
             {
@@ -144,7 +145,6 @@ namespace MyntUI
 
             IWebHost webHost = webHostBuilder.Build();
             webHost.Run();
-
         }
     }
 }
