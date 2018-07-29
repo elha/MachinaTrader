@@ -221,8 +221,8 @@ namespace MyntUI.TradeManagers
 
             // If there are items on the only trade list remove the rest
             if (Globals.Configuration.TradeOptions.OnlyTradeList.Count > 0)
-                markets = markets.Where(m => Globals.Configuration.TradeOptions.OnlyTradeList.Any(c => c == m.CurrencyPair.BaseCurrency)).ToList();
-
+                markets = markets.Where(m => Globals.Configuration.TradeOptions.OnlyTradeList.Any(c => c.Contains(m.CurrencyPair.BaseCurrency))).ToList();
+            
             // Remove existing trades from the list to check.
             var _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
             foreach (var trade in _activeTrades)
