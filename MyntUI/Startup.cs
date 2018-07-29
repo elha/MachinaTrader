@@ -135,13 +135,13 @@ namespace MyntUI
         public static void RunWebHost()
         {
             IWebHostBuilder webHostBuilder = WebHost.CreateDefaultBuilder()
-            .UseKestrel(options =>
-            {
-                options.Listen(IPAddress.Any, Globals.Configuration.SystemOptions.WebPort);
-            })
-            .UseStartup<Startup>()
-            .ConfigureAppConfiguration(i =>
-                i.AddJsonFile("appsettings.overrides.json", true));
+                .UseKestrel(options => { options.Listen(IPAddress.Any, Globals.Configuration.SystemOptions.WebPort); })
+                .UseStartup<Startup>()
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                {
+                    config.AddJsonFile("appsettings.overrides.json", true)
+                          .AddJsonFile($"MainConfig.json", optional: true, reloadOnChange: true);
+                });
 
             IWebHost webHost = webHostBuilder.Build();
             webHost.Run();
