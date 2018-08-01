@@ -309,7 +309,7 @@ namespace MyntUI.Controllers
 
             var tradeManager = new TradeManager();
 
-            Globals.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate = databaseFirstCandle.Timestamp;
+            Globals.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate = currenDate>databaseFirstCandle.Timestamp? currenDate: databaseFirstCandle.Timestamp;
             while (Globals.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate <= databaseLastCandle.Timestamp)
             {
                 await tradeManager.LookForNewTrades();

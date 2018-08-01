@@ -175,9 +175,11 @@ namespace MyntUI.SimulationExchanges
             //  }
             //};
 
-            var markets =  Globals.AppCache.GetOrAdd("markets", (a) => _realApi.GetSymbolsMetadataAsync().Result);
+            var markets =  Globals.AppCache.GetOrAdd("markets", async (a) => await _realApi.GetSymbolsMetadataAsync());
+            if (markets.Result.Count() == 0)
+                throw new Exception();
 
-            return markets;
+            return markets.Result;
         }
 
         private ExchangeMarket GetExchangeMarkets()
