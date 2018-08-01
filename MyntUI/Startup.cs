@@ -13,6 +13,7 @@ using MyntUI.Data;
 using System;
 using MyntUI.Services;
 using MyntUI.Helpers;
+using LazyCache;
 
 namespace MyntUI
 {
@@ -36,13 +37,15 @@ namespace MyntUI
             services.AddCors(o =>
             {
                 o.AddPolicy("Everything", p =>
-          {
+             {
               p.AllowAnyHeader()
-          .AllowAnyMethod()
-          .AllowAnyOrigin()
-          .AllowCredentials();
-          });
+              .AllowAnyMethod()
+              .AllowAnyOrigin()
+              .AllowCredentials();
+              });
             });
+
+            services.AddLazyCache();
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite("Filename=MyntUIAuth.db")
@@ -96,12 +99,13 @@ namespace MyntUI
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment hostingEnvironment, ILoggerFactory loggerFactory, IDatabaseInitializer databaseInitializer)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment hostingEnvironment, ILoggerFactory loggerFactory, IDatabaseInitializer databaseInitializer, IAppCache cache)
         {
             ServiceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
             Globals.GlobalServiceScope = ServiceScope;
             Globals.GlobalLoggerFactory = loggerFactory;
             Globals.GlobalApplicationBuilder = app;
+            Globals.AppCache = cache;
 
             app.UseStaticFiles();
 

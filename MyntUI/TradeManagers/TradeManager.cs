@@ -51,29 +51,6 @@ namespace MyntUI.TradeManagers
             int currentActiveTrades = _activeTrades.Where(x => x.IsOpen).Count();
 
             await FindBuyOpportunities(strategy);
-
-            // We have available traders to work for us!
-            /*if (currentActiveTrades < Globals.Configuration.TradeOptions.MaxNumberOfConcurrentTrades)
-            {
-                // There's room for more.
-                var trades = await FindBuyOpportunities();
-
-                if (trades.Count > 0)
-                {
-                    // Depending on what we have more of we create trades.
-                    var loopCount = currentActiveTrades >= trades.Count ? trades.Count : currentActiveTrades;
-
-                    // Only create trades for our free traders
-                    for (int i = 0; i < loopCount; i++)
-                    {
-                        await CreateNewTrade(trades[i]);
-                    }
-                }
-                else
-                {
-                    Globals.TradeLogger.LogInformation("No trade opportunities found...");
-                }
-            }*/
         }
 
         /// <summary>
@@ -204,7 +181,7 @@ namespace MyntUI.TradeManagers
         /// <returns></returns>
         private async Task<List<TradeSignal>> FindBuyOpportunities(ITradingStrategy strategy)
         {
-            Globals.TradeLogger.LogWarning("FindBuyOpportunities START: " + DateTime.Now);
+            Globals.TradeLogger.LogWarning("FindBuyOpportunities START: " + DateTime.Now + " " + strategy.Name);
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
             // Retrieve our current markets
@@ -222,7 +199,7 @@ namespace MyntUI.TradeManagers
             // If there are items on the only trade list remove the rest
             if (Globals.Configuration.TradeOptions.OnlyTradeList.Count > 0)
                 markets = markets.Where(m => Globals.Configuration.TradeOptions.OnlyTradeList.Any(c => c.Contains(m.CurrencyPair.BaseCurrency))).ToList();
-            
+
             // Remove existing trades from the list to check.
             var _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
             foreach (var trade in _activeTrades)
@@ -277,21 +254,24 @@ namespace MyntUI.TradeManagers
             var cts = new CancellationTokenSource();
             var parallelOptions = new ParallelOptions();
             parallelOptions.CancellationToken = cts.Token;
-            parallelOptions.MaxDegreeOfParallelism = Environment.ProcessorCount;
+            parallelOptions.MaxDegreeOfParallelism = 1; //Environment.ProcessorCount;
 
-            await Task.Run(() => Parallel.ForEach(markets.Distinct().OrderByDescending(x => x.Volume).ToList(), parallelOptions, market =>
+            await Task.Run(() => Parallel.ForEach(markets.Distinct().OrderByDescending(x => x.Volume).ToList(), parallelOptions, async market =>
             {
-                var signal = GetStrategySignal(market.MarketName, strategy).Result;
+                var watch1 = System.Diagnostics.Stopwatch.StartNew();
+                Globals.TradeLogger.LogInformation("Parallel start " + market.MarketName);
+
+                var signal = await GetStrategySignal(market.MarketName, strategy);
 
                 // A match was made, buy that please!
                 if (signal != null && signal.TradeAdvice == TradeAdvice.Buy)
                 {
-                    _activeTrades = Globals.GlobalDataStore.GetActiveTradesAsync().Result;
+                    _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
                     int currentActiveTrades = _activeTrades.Where(x => x.IsOpen).Count();
 
                     if (currentActiveTrades < Globals.Configuration.TradeOptions.MaxNumberOfConcurrentTrades)
                     {
-                        CreateNewTrade(new TradeSignal
+                        await CreateNewTrade(new TradeSignal
                         {
                             MarketName = market.MarketName,
                             QuoteCurrency = market.CurrencyPair.QuoteCurrency,
@@ -308,6 +288,9 @@ namespace MyntUI.TradeManagers
                         Globals.TradeLogger.LogInformation("Too Many Trades: Ignore Match signal " + market.MarketName);
                     }
                 }
+
+                watch1.Stop();
+                Globals.TradeLogger.LogWarning("Parallel END: " + DateTime.Now + " / " + watch1.Elapsed.TotalSeconds);
             }));
 
             if (pairs.Count == 0)
@@ -334,8 +317,20 @@ namespace MyntUI.TradeManagers
 
                 var minimumDate = strategy.GetMinimumDateTime();
                 var candleDate = strategy.GetCurrentCandleDateTime();
+                DateTime? endDate = null;
 
-                var candles = await Globals.GlobalExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate);
+                if (Globals.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+                {
+                    //in simulation the date comes from external
+                    candleDate = Globals.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
+
+                    //TODO: improve to other timeframe
+                    minimumDate = candleDate.AddMinutes(-(30 * strategy.MinimumAmountOfCandles));
+
+                    endDate = candleDate;
+                }
+
+                var candles = await Globals.GlobalExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate, endDate);
 
 
 
@@ -351,7 +346,7 @@ namespace MyntUI.TradeManagers
                     k++;
                     Thread.Sleep(1000 * k);
 
-                    candles = await Globals.GlobalExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate);
+                    candles = await Globals.GlobalExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate, endDate);
                     Globals.TradeLogger.LogInformation("R Checking market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
                 }
 
@@ -376,9 +371,16 @@ namespace MyntUI.TradeManagers
 
                 // Get the date for the last candle.
                 var signalDate = candles[candles.Count - 1].Timestamp;
+                var strategySignalDate = strategy.GetSignalDate();
+
+                if (Globals.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+                {
+                    //TODO: improve to other timeframe
+                    strategySignalDate = candleDate.AddMinutes(-30);
+                }
 
                 // This is an outdated candle...
-                if (signalDate < strategy.GetSignalDate())
+                if (signalDate < strategySignalDate)
                 {
                     Globals.TradeLogger.LogInformation("Outdated candle for {Market}...", market);
                     return null;
@@ -498,6 +500,9 @@ namespace MyntUI.TradeManagers
             await SendNotification($"Buying #{pair} with limit {openRate:0.00000000} BTC ({amount:0.0000} units).");
 
             var fullApi = await Globals.GlobalExchangeApi.GetFullApi();
+
+            var symbol = await Globals.GlobalExchangeApi.ExchangeCurrencyToGlobalCurrency(pair);
+
             var trade = new Trade()
             {
                 Market = pair,
@@ -512,7 +517,7 @@ namespace MyntUI.TradeManagers
                 StrategyUsed = strategy.Name,
                 SellType = SellType.None,
                 TickerLast = await Globals.GlobalExchangeApi.GetTicker(pair),
-                GlobalSymbol = await Globals.GlobalExchangeApi.ExchangeCurrencyToGlobalCurrency(pair),
+                GlobalSymbol = symbol,
                 Exchange = fullApi.Name,
                 PaperTrade = Globals.Configuration.TradeOptions.PaperTrade
             };
@@ -560,15 +565,26 @@ namespace MyntUI.TradeManagers
 
                 if (Globals.Configuration.TradeOptions.PaperTrade)
                 {
-                    // Papertrading
-                    var candles = await Globals.GlobalExchangeApi.GetTickerHistory(trade.Market, Period.Minute, 1);
-                    var candle = candles.FirstOrDefault();
-
-
-                    if (candle != null && (trade.OpenRate >= candle.High || (trade.OpenRate >= candle.Low && trade.OpenRate <= candle.High) || Globals.GlobalOrderBehavior == OrderBehavior.AlwaysFill))
+                    //in simulation mode we always fill..
+                    if (Globals.Configuration.ExchangeOptions.Last().IsSimulation)
                     {
                         trade.OpenOrderId = null;
                         trade.IsBuying = false;
+                    }
+                    else
+                    {
+                        // Papertrading
+                        var candles = await Globals.GlobalExchangeApi.GetTickerHistory(trade.Market, Period.Minute, 1);
+                        var candle = candles.FirstOrDefault();
+
+                        if (candle != null && (trade.OpenRate >= candle.High ||
+                                                (trade.OpenRate >= candle.Low && trade.OpenRate <= candle.High) ||
+                                                Globals.GlobalOrderBehavior == OrderBehavior.AlwaysFill
+                                                ))
+                        {
+                            trade.OpenOrderId = null;
+                            trade.IsBuying = false;
+                        }
                     }
                 }
                 else
@@ -627,10 +643,9 @@ namespace MyntUI.TradeManagers
                 if (Globals.Configuration.TradeOptions.PaperTrade)
                 {
                     // Papertrading
-                    var candles = await Globals.GlobalExchangeApi.GetTickerHistory(order.Market, Period.Minute, 1);
-                    var candle = candles.FirstOrDefault();
 
-                    if (candle != null && (order.CloseRate <= candle.Low || (order.CloseRate >= candle.Low && order.CloseRate <= candle.High) || Globals.GlobalOrderBehavior == OrderBehavior.AlwaysFill))
+                    //in simulation mode we always fill..
+                    if (Globals.Configuration.ExchangeOptions.Last().IsSimulation)
                     {
                         order.OpenOrderId = null;
                         order.IsOpen = false;
@@ -638,6 +653,21 @@ namespace MyntUI.TradeManagers
                         order.CloseDate = DateTime.UtcNow;
                         order.CloseProfit = (order.CloseRate * order.Quantity) - order.StakeAmount;
                         order.CloseProfitPercentage = ((order.CloseRate * order.Quantity) - order.StakeAmount) / order.StakeAmount * 100;
+                    }
+                    else
+                    {
+                        var candles = await Globals.GlobalExchangeApi.GetTickerHistory(order.Market, Period.Minute, 1);
+                        var candle = candles.FirstOrDefault();
+
+                        if (candle != null && (order.CloseRate <= candle.Low || (order.CloseRate >= candle.Low && order.CloseRate <= candle.High) || Globals.GlobalOrderBehavior == OrderBehavior.AlwaysFill))
+                        {
+                            order.OpenOrderId = null;
+                            order.IsOpen = false;
+                            order.IsSelling = false;
+                            order.CloseDate = DateTime.UtcNow;
+                            order.CloseProfit = (order.CloseRate * order.Quantity) - order.StakeAmount;
+                            order.CloseProfitPercentage = ((order.CloseRate * order.Quantity) - order.StakeAmount) / order.StakeAmount * 100;
+                        }
                     }
                 }
                 else

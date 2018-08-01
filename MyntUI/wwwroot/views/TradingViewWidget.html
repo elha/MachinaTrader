@@ -1,6 +1,6 @@
 <div id="widgetTradingViewModal">
     <div class="modal-header">
-        <h4 class="modal-title" id="modal-title"><i class="fas fa-chart-line"></i> Exchange: {{exchange}} Market: {{market}}</h4>
+        <h4 class="modal-title" id="modal-title"><i class="fas fa-chart-line"></i> x Exchange: {{exchange}} Market: {{market}}</h4>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
     </div>
 
@@ -30,6 +30,14 @@
     }
     else if (getParam('exchange') != null) {
         exchange = getParam('exchange');
+
+        //fast fix for coinbase
+        if (exchange == 'GDAX')
+            exchange = 'COINBASE';
+
+        if (exchange.localeCompare('GDAX') || exchange.localeCompare('ExchangeGdaxSimulationApi'))
+            exchange = 'COINBASE';      
+
     } else {
         exchange = "BINANCE";
     }
@@ -39,6 +47,9 @@
     }
     else if (getParam('market') != null) {
         market = getParam('market');
+
+        //fast fix for coinbase
+        market = market.replace('-', '');
     } else {
         market = "BTCUSDT";
     }

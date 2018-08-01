@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using LazyCache;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
@@ -39,6 +40,7 @@ namespace MyntUI
         public static IDataStore GlobalDataStore { get; set; }
         public static IDataStoreBacktest GlobalDataStoreBacktest { get; set; }
         public static IExchangeApi GlobalExchangeApi { get; set; }
+        public static IAppCache AppCache { get; set; }
         public static ILoggerFactory GlobalLoggerFactory { get; set; }
         public static CancellationToken GlobalTimerCancellationToken = new CancellationToken();
         public static IHubContext<HubMyntTraders> GlobalHubMyntTraders;
@@ -86,7 +88,9 @@ namespace MyntUI
                 Globals.GlobalDataStore = new MongoDBDataStore(databaseOptions);
                 MongoDBOptions backtestDatabaseOptions = new MongoDBOptions();
                 Globals.GlobalDataStoreBacktest = new MongoDBDataStoreBacktest(backtestDatabaseOptions);
-            } else {
+            }
+            else
+            {
                 Log.LogInformation("Database set to LiteDB");
                 LiteDBOptions databaseOptions = new LiteDBOptions();
                 Globals.GlobalDataStore = new LiteDBDataStore(databaseOptions);
@@ -156,13 +160,29 @@ namespace MyntUI
                 Globals.Configuration.ExchangeOptions.Add(defaultExchangeOptions);
                 Globals.Configuration = MergeObjects.MergeCsDictionaryAndSave(Globals.Configuration, "MainConfig.json", JObject.FromObject(Globals.Configuration)).ToObject<MainConfig>();
 
-            } else
+            }
+            else
             {
 
                 Globals.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), "MainConfig.json").ToObject<MainConfig>();
             }
 
-            Globals.GlobalExchangeApi = new Mynt.Core.Exchanges.BaseExchange(Globals.Configuration.ExchangeOptions.FirstOrDefault());
+            var exchangeOption = Globals.Configuration.ExchangeOptions.FirstOrDefault();
+            switch (exchangeOption.Exchange)
+            {
+                case Exchange.GdaxSimulation:
+                    Globals.GlobalExchangeApi = new BaseExchange(exchangeOption, new SimulationExchanges.ExchangeGdaxSimulationApi());
+                    exchangeOption.IsSimulation = true;
+                    break;
+                case Exchange.BinanceSimulation:
+                    //Globals.GlobalExchangeApi = new BaseExchange(exchangeOption, new SimulationExchanges.ExchangeBinanceSimulationApi());
+                    exchangeOption.IsSimulation = true;
+                    break;
+                default:
+                    Globals.GlobalExchangeApi = new BaseExchange(exchangeOption);
+                    exchangeOption.IsSimulation = false;
+                    break;
+            }
 
             //Websocket Test
             var fullApi = Globals.GlobalExchangeApi.GetFullApi().Result;
@@ -178,11 +198,11 @@ namespace MyntUI
                 Globals.ExchangeCurrencys.Add(fullApi.GlobalSymbolToExchangeSymbol(currency));
             }
 
-            fullApi.GetTickersWebSocket(OnWebsocketTickersUpdated);
+            if (!exchangeOption.IsSimulation)
+                fullApi.GetTickersWebSocket(OnWebsocketTickersUpdated);
 
             // Telegram Notifications
             Globals.GlobalTelegramNotificationOptions = Globals.GlobalConfiguration.GetSection("Telegram").Get<TelegramNotificationOptions>();
-
         }
 
 

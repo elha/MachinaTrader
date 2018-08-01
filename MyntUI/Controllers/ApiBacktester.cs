@@ -6,11 +6,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ExchangeSharp;
+using LazyCache;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Mynt.Core.Backtester;
 using Mynt.Core.Enums;
+using Mynt.Core.Models;
+using MyntUI.TradeManagers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -44,7 +47,7 @@ namespace MyntUI.Controllers
         public async Task<ActionResult> Get(string exchange, string coinsToBuy, string baseCurrency, string candleSize = "5")
         {
             List<string> coins = new List<string>();
-           
+
             if (String.IsNullOrEmpty(coinsToBuy))
             {
                 IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
@@ -86,7 +89,7 @@ namespace MyntUI.Controllers
             if (String.IsNullOrEmpty(coinsToBuy))
             {
                 IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
-                var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m=>m.BaseCurrency == baseCurrency);
+                var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
                 foreach (var coin in exchangeCoins)
                 {
                     coins.Add(api.ExchangeSymbolToGlobalSymbol(coin.MarketName));
@@ -156,7 +159,7 @@ namespace MyntUI.Controllers
             }
 
             var baseCurrencyArray = new JArray();
-            var exchangeBaseCurrencies = api.GetSymbolsMetadataAsync().Result.Select(m=>m.BaseCurrency).Distinct();
+            var exchangeBaseCurrencies = api.GetSymbolsMetadataAsync().Result.Select(m => m.BaseCurrency).Distinct();
             foreach (var currency in exchangeBaseCurrencies)
             {
                 baseCurrencyArray.Add(currency);
@@ -209,7 +212,7 @@ namespace MyntUI.Controllers
             parallelOptions.MaxDegreeOfParallelism = Environment.ProcessorCount;
             Parallel.ForEach(BacktestFunctions.GetTradingStrategies(), parallelOptions, async tradingStrategy =>
             {
-               if (strategy != "all")
+                if (strategy != "all")
                 {
                     var base64EncodedBytes = Convert.FromBase64String(strategy);
                     if (tradingStrategy.Name != Encoding.UTF8.GetString(base64EncodedBytes))
@@ -235,7 +238,7 @@ namespace MyntUI.Controllers
         [HttpGet]
         public async Task<ActionResult> Get(string exchange, string coinsToBuy, string strategy, string candleSize)
         {
-           var strategyName = WebUtility.HtmlDecode(strategy);
+            var strategyName = WebUtility.HtmlDecode(strategy);
 
             List<string> coins = new List<string>();
             Char delimiter = ',';
@@ -264,7 +267,7 @@ namespace MyntUI.Controllers
         [HttpGet]
         public async Task<ActionResult> Get(string exchange, string coinsToBuy, string strategy, string candleSize = "5")
         {
-           var strategyName = WebUtility.HtmlDecode(strategy);
+            var strategyName = WebUtility.HtmlDecode(strategy);
 
             List<string> coins = new List<string>();
             Char delimiter = ',';
@@ -287,4 +290,37 @@ namespace MyntUI.Controllers
         }
     }
 
+
+    [Route("api/trading/backtest/simulation")]
+    public class ApiTradingBacktestSimulation : Controller
+    {
+        //string exchange, string coinsToBuy, string strategy, string candleSize, string date
+        [HttpGet]
+        public async Task<bool> Get(string coinsToBuy, string date)
+        {
+            var currenDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(date, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
+
+            var backtestOptions = new BacktestOptions();
+            backtestOptions.Exchange = Exchange.Gdax;
+            backtestOptions.Coin = coinsToBuy;
+            backtestOptions.CandlePeriod = Int32.Parse(Globals.Configuration.ExchangeOptions.FirstOrDefault().SimulationCandleSize);
+            Candle databaseFirstCandle = await Globals.GlobalDataStoreBacktest.GetBacktestFirstCandle(backtestOptions);
+            Candle databaseLastCandle = await Globals.GlobalDataStoreBacktest.GetBacktestLastCandle(backtestOptions);
+
+            var tradeManager = new TradeManager();
+
+            Globals.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate = databaseFirstCandle.Timestamp;
+            while (Globals.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate <= databaseLastCandle.Timestamp)
+            {
+                await tradeManager.LookForNewTrades();
+                await tradeManager.UpdateExistingTrades();
+
+                Globals.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate = Globals.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate.AddMinutes(10);
+
+                Console.WriteLine(Globals.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate);
+            }        
+
+            return true;
+        }
+    }
 }
