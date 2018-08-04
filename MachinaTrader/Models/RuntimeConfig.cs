@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace MachinaTrader.Models
 {
@@ -32,6 +31,7 @@ namespace MachinaTrader.Models
 
         public string ComputerName { get; set; } = Environment.MachineName;
         public string UserName { get; set; } = Environment.UserName;
+        public JObject Plugins { get; set; }
         public List<string> SignalrClients { get; set; }
     }
 }

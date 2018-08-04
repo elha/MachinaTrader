@@ -299,7 +299,15 @@ Mynt.db
 MyntUI.db
 MyntUIAuth.db
 
+MachinaTrader.db
+MachinaTraderAuth.db
+
 package-lock.json
 appsettings.overrides.json
 /MyntUI/Mynt - Copy.db
 MainConfig.json
+CoreConfig.json
+/BuildRelease/*
+!/BuildRelease/App/
+!/BuildRelease/AppAdditions/
+/MachinaTraderLauncher*.*

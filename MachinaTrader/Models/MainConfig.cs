@@ -1,17 +1,15 @@
-using Mynt.Core.Enums;
 using Mynt.Core.Exchanges;
-using Mynt.Core.TradeManagers;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using TradeOptions = MachinaTrader.TradeManagers.TradeOptions;
+using Mynt.Core.Notifications;
 
 namespace MachinaTrader.Models
 {
     public class MainConfig
     {
         public SystemOptions SystemOptions = new SystemOptions();
-        public MachinaTrader.TradeManagers.TradeOptions TradeOptions = new MachinaTrader.TradeManagers.TradeOptions();
+        public TradeOptions TradeOptions = new TradeOptions();
+        public TelegramNotificationOptions TelegramOptions = new TelegramNotificationOptions();
         public List<ExchangeOptions> ExchangeOptions = new List<ExchangeOptions> { };
     }
 
@@ -19,5 +17,9 @@ namespace MachinaTrader.Models
     {
         public int WebPort { get; set; } = 5000;
         public string Database { get; set; } = "LiteDB";
+        public string DefaultUserName { get; set; } = "admin";
+        public string DefaultUserEmail { get; set; } = "admin@localhost";
+        public string DefaultUserPassword { get; set; } = "admin";
     }
+
 }

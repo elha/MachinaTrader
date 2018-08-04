@@ -4,6 +4,7 @@ namespace MachinaTrader
     {
         static void Main(string[] args)
         {
+            MachinaTrader.Globals.Global.InitGlobals();
             RuntimeSettings.LoadSettings();
             WebApplication.ProcessInit();
         }

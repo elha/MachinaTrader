@@ -9,11 +9,12 @@ using System.Net;
 using Microsoft.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using MachinaTrader.Data;
 using System;
 using MachinaTrader.Services;
 using MachinaTrader.Helpers;
 using LazyCache;
+using MachinaTrader.Globals.Data;
+using MachinaTrader.Globals.Models;
 
 namespace MachinaTrader
 {
@@ -47,11 +48,12 @@ namespace MachinaTrader
 
             services.AddLazyCache();
 
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite("Filename=MachinaTraderAuth.db")
-            );
+            // Add Database Initializer
+            services.AddTransient<IDatabaseInitializer, DatabaseInitializer>();
 
-            services.AddIdentity<IdentityUser, IdentityRole>(options => options.Stores.MaxLengthForKeys = 128)
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite("Filename=MachinaTraderAuth.db"));
+
+            services.AddIdentity<ApplicationUser, IdentityRole>(options => options.Stores.MaxLengthForKeys = 128)
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 // .AddDefaultUI()
                 .AddDefaultTokenProviders();
@@ -65,9 +67,6 @@ namespace MachinaTrader
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
             });
-
-            // Add Database Initializer
-            services.AddTransient<IDatabaseInitializer, DatabaseInitializer>();
 
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();
