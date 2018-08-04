@@ -14,7 +14,7 @@ namespace MachinaTrader.Controllers
         [HttpGet]
         public ActionResult Get()
         {
-            return new JsonResult(Globals.RuntimeSettings);
+            return new JsonResult(Runtime.RuntimeSettings);
         }
     }
 
@@ -24,14 +24,13 @@ namespace MachinaTrader.Controllers
         [HttpGet]
         public FileContentResult Get()
         {
-            if (Globals.RuntimeSettings.OS == "Windows")
+            if (Runtime.RuntimeSettings.OS == "Windows")
             {
                 using (var ms = new MemoryStream())
                 {
-                    Image userAvatarImage = GetUserAvatar.GetUserTile(Globals.RuntimeSettings.UserName);
+                    Image userAvatarImage = GetUserAvatar.GetUserTile(Runtime.RuntimeSettings.UserName);
                     userAvatarImage.Save(ms, ImageFormat.Jpeg);
-                    ArraySegment<byte> buffer;
-                    if (!ms.TryGetBuffer(out buffer)) throw new ArgumentException();
+                    if (!ms.TryGetBuffer(out var buffer)) throw new ArgumentException();
                     return File(buffer.Array, "image/png");
                 }
             }

@@ -14,7 +14,7 @@ namespace MachinaTrader.Timers
     [DisallowConcurrentExecution]
     public class BuyTimer : IJob
     {
-        private static readonly ILogger Log = Globals.GlobalLoggerFactory.CreateLogger<BuyTimer>();
+        private static readonly ILogger Log = Runtime.GlobalLoggerFactory.CreateLogger<BuyTimer>();
 
         /// <summary>
         /// Called by the <see cref="IScheduler" /> when a

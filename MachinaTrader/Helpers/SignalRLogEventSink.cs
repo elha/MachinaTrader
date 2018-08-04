@@ -34,8 +34,8 @@ namespace MachinaTrader.Helpers
             var message = logEvent.RenderMessage(_formatProvider);
             //Console.WriteLine("FROM MySink " + DateTimeOffset.Now.ToString() + " " + message);
 
-            if (Globals.GlobalHubMyntLogs != null)
-                Globals.GlobalHubMyntLogs.Clients.All.SendAsync("Send", message);
+            if (Runtime.GlobalHubMyntLogs != null)
+                Runtime.GlobalHubMyntLogs.Clients.All.SendAsync("Send", message);
         }
     }
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+using MachinaTrader.Globals;
 using Mynt.Core.Enums;
 using Mynt.Core.Extensions;
 using Mynt.Core.Interfaces;
@@ -33,22 +33,22 @@ namespace MachinaTrader.TradeManagers
             }
             else
             {
-                var type = Type.GetType($"Mynt.Core.Strategies.{Globals.Configuration.TradeOptions.DefaultStrategy}, Mynt.Core", true, true);
+                var type = Type.GetType($"Mynt.Core.Strategies.{Runtime.Configuration.TradeOptions.DefaultStrategy}, Mynt.Core", true, true);
                 strategy = Activator.CreateInstance(type) as ITradingStrategy ?? new TheScalper();
             }
 
-            Globals.TradeLogger.LogInformation($"Looking for trades using {strategy.Name}");
+            Global.Logger.Information($"Looking for trades using {strategy.Name}");
 
             // This means an order to buy has been open for an entire buy cycle.
-            if (Globals.Configuration.TradeOptions.CancelUnboughtOrdersEachCycle && Globals.GlobalOrderBehavior == OrderBehavior.CheckMarket)
+            if (Runtime.Configuration.TradeOptions.CancelUnboughtOrdersEachCycle && Runtime.GlobalOrderBehavior == OrderBehavior.CheckMarket)
                 await CancelUnboughtOrders();
 
             // Check active trades against our strategy.
             // If the strategy tells you to sell, we create a sell.
             await CheckActiveTradesAgainstStrategy(strategy);
 
-            var _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
-            int currentActiveTrades = _activeTrades.Where(x => x.IsOpen).Count();
+            //var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            //int currentActiveTrades = activeTrades.Count(x => x.IsOpen);
 
             await FindBuyOpportunities(strategy);
         }
@@ -60,23 +60,23 @@ namespace MachinaTrader.TradeManagers
         private async Task CancelUnboughtOrders()
         {
             // Only trigger if there are orders still buying.
-            var _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
-            if (_activeTrades.Any(x => x.IsBuying))
+            var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            if (activeTrades.Any(x => x.IsBuying))
             {
                 // Loop our current trades that are still looking to buy if there are any.
-                foreach (var trade in _activeTrades.Where(x => x.IsBuying))
+                foreach (var trade in activeTrades.Where(x => x.IsBuying))
                 {
                     // Only in livetrading
-                    if (!Globals.Configuration.TradeOptions.PaperTrade)
+                    if (!Runtime.Configuration.TradeOptions.PaperTrade)
                     {
                         // Cancel our open buy order on the exchange.
-                        var exchangeOrder = await Globals.GlobalExchangeApi.GetOrder(trade.BuyOrderId, trade.Market);
+                        var exchangeOrder = await Runtime.GlobalExchangeApi.GetOrder(trade.BuyOrderId, trade.Market);
 
                         // If this order is PartiallyFilled, don't cancel
                         if (exchangeOrder?.Status == OrderStatus.PartiallyFilled)
                             continue;  // not yet completed so wait
 
-                        await Globals.GlobalExchangeApi.CancelOrder(trade.BuyOrderId, trade.Market);
+                        await Runtime.GlobalExchangeApi.CancelOrder(trade.BuyOrderId, trade.Market);
                     }
 
                     // Update the buy order in our data storage.
@@ -87,7 +87,7 @@ namespace MachinaTrader.TradeManagers
                     trade.CloseDate = DateTime.UtcNow;
 
                     // Update the order
-                    await Globals.GlobalDataStore.SaveTradeAsync(trade);
+                    await Runtime.GlobalDataStore.SaveTradeAsync(trade);
 
                     await SendNotification($"Cancelled {trade.Market} buy order because it wasn't filled in time.");
                 }
@@ -102,9 +102,9 @@ namespace MachinaTrader.TradeManagers
         private async Task CheckActiveTradesAgainstStrategy(ITradingStrategy strategy)
         {
             // Check our active trades for a sell signal from the strategy
-            var _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
+            var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
 
-            foreach (var trade in _activeTrades.Where(x => !x.IsSelling && x.IsOpen))
+            foreach (var trade in activeTrades.Where(x => !x.IsSelling && x.IsOpen))
             {
                 //Check against main conditions -> No Signal mode
                 // Sell if we setup instant sell
@@ -112,14 +112,14 @@ namespace MachinaTrader.TradeManagers
                 {
                     await SendNotification($"Sell now is set: Selling with {(trade.SellOnPercentage / 100)} for {trade.TradeId}");
 
-                    var orderId = Globals.Configuration.TradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
+                    var orderId = Runtime.Configuration.TradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Runtime.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
                     trade.CloseRate = trade.TickerLast.Bid;
                     trade.OpenOrderId = orderId;
                     trade.SellOrderId = orderId;
                     trade.SellType = SellType.Immediate;
                     trade.IsSelling = true;
 
-                    await Globals.GlobalDataStore.SaveTradeAsync(trade);
+                    await Runtime.GlobalDataStore.SaveTradeAsync(trade);
                     continue;
                 }
                 // Hold
@@ -135,7 +135,7 @@ namespace MachinaTrader.TradeManagers
                 if ((currentProfit) >= (trade.SellOnPercentage / 100))
                 {
                     await SendNotification($"We've reached defined percentage ({(trade.SellOnPercentage)})for {trade.TradeId} - Selling now");
-                    var orderId = Globals.Configuration.TradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
+                    var orderId = Runtime.Configuration.TradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Runtime.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
 
                     trade.CloseRate = trade.TickerLast.Bid;
                     trade.OpenOrderId = orderId;
@@ -143,7 +143,7 @@ namespace MachinaTrader.TradeManagers
                     trade.SellType = SellType.Immediate;
                     trade.IsSelling = true;
 
-                    await Globals.GlobalDataStore.SaveTradeAsync(trade);
+                    await Runtime.GlobalDataStore.SaveTradeAsync(trade);
                     continue;
                 }
 
@@ -158,10 +158,10 @@ namespace MachinaTrader.TradeManagers
                 if (signal != null && signal.TradeAdvice == TradeAdvice.Sell)
                 {
                     // Create a sell order for our strategy.
-                    var ticker = await Globals.GlobalExchangeApi.GetTicker(trade.Market);
+                    var ticker = await Runtime.GlobalExchangeApi.GetTicker(trade.Market);
 
                     // Check Trading Mode
-                    var orderId = Globals.Configuration.TradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, ticker.Bid);
+                    var orderId = Runtime.Configuration.TradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Runtime.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, ticker.Bid);
 
                     trade.CloseRate = ticker.Bid;
                     trade.OpenOrderId = orderId;
@@ -169,7 +169,7 @@ namespace MachinaTrader.TradeManagers
                     trade.SellType = SellType.Strategy;
                     trade.IsSelling = true;
 
-                    await Globals.GlobalDataStore.SaveTradeAsync(trade);
+                    await Runtime.GlobalDataStore.SaveTradeAsync(trade);
                 }
             }
         }
@@ -181,38 +181,38 @@ namespace MachinaTrader.TradeManagers
         /// <returns></returns>
         private async Task<List<TradeSignal>> FindBuyOpportunities(ITradingStrategy strategy)
         {
-            Globals.TradeLogger.LogWarning("FindBuyOpportunities START: " + DateTime.Now + " " + strategy.Name);
+            Global.Logger.Warning("FindBuyOpportunities START: " + DateTime.Now + " " + strategy.Name);
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
             // Retrieve our current markets
-            var markets = await Globals.GlobalExchangeApi.GetMarketSummaries(Globals.Configuration.TradeOptions.QuoteCurrency);
+            var markets = await Runtime.GlobalExchangeApi.GetMarketSummaries(Runtime.Configuration.TradeOptions.QuoteCurrency);
             var pairs = new List<TradeSignal>();
 
-            Globals.TradeLogger.LogInformation($"Markets found: {markets.Count}");
+            Global.Logger.Information($"Markets found: {markets.Count}");
 
             // Check if there are markets matching our volume.
             markets = markets.Where(x =>
-                (x.Volume > Globals.Configuration.TradeOptions.MinimumAmountOfVolume ||
-                 Globals.Configuration.TradeOptions.AlwaysTradeList.Contains(x.CurrencyPair.BaseCurrency)) &&
-                 Globals.Configuration.TradeOptions.QuoteCurrency.ToUpper() == x.CurrencyPair.QuoteCurrency.ToUpper()).ToList();
+                (x.Volume > Runtime.Configuration.TradeOptions.MinimumAmountOfVolume ||
+                 Runtime.Configuration.TradeOptions.AlwaysTradeList.Contains(x.CurrencyPair.BaseCurrency)) &&
+                 Runtime.Configuration.TradeOptions.QuoteCurrency.ToUpper() == x.CurrencyPair.QuoteCurrency.ToUpper()).ToList();
 
             // If there are items on the only trade list remove the rest
-            if (Globals.Configuration.TradeOptions.OnlyTradeList.Count > 0)
-                markets = markets.Where(m => Globals.Configuration.TradeOptions.OnlyTradeList.Any(c => c.Contains(m.CurrencyPair.BaseCurrency))).ToList();
-
+            if (Runtime.Configuration.TradeOptions.OnlyTradeList.Count > 0)
+                markets = markets.Where(m => Runtime.Configuration.TradeOptions.OnlyTradeList.Any(c => c.Contains(m.CurrencyPair.BaseCurrency))).ToList();
+            
             // Remove existing trades from the list to check.
-            var _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
-            foreach (var trade in _activeTrades)
+            var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            foreach (var trade in activeTrades)
                 markets.RemoveAll(x => x.MarketName == trade.Market);
 
             // Remove items that are on our blacklist.
-            foreach (var market in Globals.Configuration.TradeOptions.MarketBlackList)
+            foreach (var market in Runtime.Configuration.TradeOptions.MarketBlackList)
                 markets.RemoveAll(x => x.MarketName == market);
 
 
             // Buy from external - Currently for Debug -> This will buy on each tick !
             /******************************/
-            //var externalTicker = await Globals.GlobalExchangeApi.GetTicker("LINKBTC");
+            //var externalTicker = await Runtime.GlobalExchangeApi.GetTicker("LINKBTC");
             //Candle externalCandle = new Candle();
             //externalCandle.Timestamp = DateTime.UtcNow;
             //externalCandle.Open = externalTicker.Last;
@@ -228,8 +228,8 @@ namespace MachinaTrader.TradeManagers
             //    SignalCandle = externalCandle
             //});
 
-            //_activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
-            //if (_activeTrades.Where(x => x.IsOpen).Count() < Globals.Configuration.TradeOptions.MaxNumberOfConcurrentTrades)
+            //_activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            //if (_activeTrades.Where(x => x.IsOpen).Count() < Runtime.Configuration.TradeOptions.MaxNumberOfConcurrentTrades)
             //{
             //    await CreateNewTrade(new TradeSignal
             //    {
@@ -239,37 +239,37 @@ namespace MachinaTrader.TradeManagers
             //        TradeAdvice = TradeAdvice.StrongBuy,
             //        SignalCandle = externalCandle
             //    }, strategy);
-            //    Globals.TradeLogger.LogInformation("Match signal -> Buying " + "LINKBTC");
+            //    Global.Logger.Information("Match signal -> Buying " + "LINKBTC");
             //}
             //else
             //{
-            //    Globals.TradeLogger.LogInformation("Too Many Trades: Ignore Match signal " + "LINKBTC");
+            //    Global.Logger.Information("Too Many Trades: Ignore Match signal " + "LINKBTC");
             //}
             /******************************/
-
-
 
             int pairsCount = 0;
 
             var cts = new CancellationTokenSource();
-            var parallelOptions = new ParallelOptions();
-            parallelOptions.CancellationToken = cts.Token;
-            parallelOptions.MaxDegreeOfParallelism = 1; //Environment.ProcessorCount;
+            var parallelOptions = new ParallelOptions
+            {
+                CancellationToken = cts.Token,
+                MaxDegreeOfParallelism = 1 //Environment.ProcessorCount
+            };
 
             await Task.Run(() => Parallel.ForEach(markets.Distinct().OrderByDescending(x => x.Volume).ToList(), parallelOptions, async market =>
             {
                 var watch1 = System.Diagnostics.Stopwatch.StartNew();
-                Globals.TradeLogger.LogInformation("Parallel start " + market.MarketName);
+                Global.Logger.Information("Parallel start " + market.MarketName);
 
                 var signal = await GetStrategySignal(market.MarketName, strategy);
 
                 // A match was made, buy that please!
                 if (signal != null && signal.TradeAdvice == TradeAdvice.Buy)
                 {
-                    _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
-                    int currentActiveTrades = _activeTrades.Where(x => x.IsOpen).Count();
+                    activeTrades = Runtime.GlobalDataStore.GetActiveTradesAsync().Result;
+                    int currentActiveTrades = activeTrades.Count(x => x.IsOpen);
 
-                    if (currentActiveTrades < Globals.Configuration.TradeOptions.MaxNumberOfConcurrentTrades)
+                    if (currentActiveTrades < Runtime.Configuration.TradeOptions.MaxNumberOfConcurrentTrades)
                     {
                         await CreateNewTrade(new TradeSignal
                         {
@@ -281,25 +281,24 @@ namespace MachinaTrader.TradeManagers
                         }, strategy);
 
                         pairsCount = pairsCount + 1;
-                        Globals.TradeLogger.LogInformation("Match signal -> Buying " + market.MarketName);
+                        Global.Logger.Information("Match signal -> Buying " + market.MarketName);
                     }
                     else
                     {
-                        Globals.TradeLogger.LogInformation("Too Many Trades: Ignore Match signal " + market.MarketName);
+                        Global.Logger.Information("Too Many Trades: Ignore Match signal " + market.MarketName);
                     }
                 }
-
                 watch1.Stop();
-                Globals.TradeLogger.LogWarning("Parallel END: " + DateTime.Now + " / " + watch1.Elapsed.TotalSeconds);
-            }));
+                Global.Logger.Warning("Parallel END: " + DateTime.Now + " / " + watch1.Elapsed.TotalSeconds);
+            }), cts.Token);
 
             if (pairs.Count == 0)
             {
-                Globals.TradeLogger.LogInformation("No trade opportunities found...");
+                Global.Logger.Information("No trade opportunities found...");
             }
 
             watch.Stop();
-            Globals.TradeLogger.LogWarning("FindBuyOpportunities END: " + DateTime.Now + " / " + watch.Elapsed.TotalSeconds);
+            Global.Logger.Warning("FindBuyOpportunities END: " + DateTime.Now + " / " + watch.Elapsed.TotalSeconds);
 
             return pairs;
         }
@@ -308,21 +307,22 @@ namespace MachinaTrader.TradeManagers
         /// Calculates a buy signal based on several technical analysis indicators.
         /// </summary>
         /// <param name="market">The market we're going to check against.</param>
+        /// <param name="strategy"></param>
         /// <returns></returns>
         private async Task<TradeSignal> GetStrategySignal(string market, ITradingStrategy strategy)
         {
             try
             {
-                Globals.TradeLogger.LogInformation("Checking market {Market}...", market);
+                Global.Logger.Information("Checking market {Market}...", market);
 
                 var minimumDate = strategy.GetMinimumDateTime();
                 var candleDate = strategy.GetCurrentCandleDateTime();
                 DateTime? endDate = null;
 
-                if (Globals.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+                if (Runtime.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
                 {
                     //in simulation the date comes from external
-                    candleDate = Globals.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
+                    candleDate = Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
 
                     //TODO: improve to other timeframe
                     minimumDate = candleDate.AddMinutes(-(30 * strategy.MinimumAmountOfCandles));
@@ -330,14 +330,11 @@ namespace MachinaTrader.TradeManagers
                     endDate = candleDate;
                 }
 
-                var candles = await Globals.GlobalExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate, endDate);
-
-
-
+                var candles = await Runtime.GlobalExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate, endDate);
 
                 var desiredLastCandleTime = candleDate.AddMinutes(-(strategy.IdealPeriod.ToMinutesEquivalent()));
 
-                Globals.TradeLogger.LogInformation("Checking market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
+                Global.Logger.Information("Checking market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
 
                 int k = 1;
 
@@ -346,14 +343,11 @@ namespace MachinaTrader.TradeManagers
                     k++;
                     Thread.Sleep(1000 * k);
 
-                    candles = await Globals.GlobalExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate, endDate);
-                    Globals.TradeLogger.LogInformation("R Checking market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
+                    candles = await Runtime.GlobalExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate, endDate);
+                    Global.Logger.Information("R Checking market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
                 }
 
-                Globals.TradeLogger.LogInformation("Checking market {Market}... lastCandleTime: {last} , close: {close}", market, candles.Last().Timestamp, candles.Last().Close);
-
-
-
+                Global.Logger.Information("Checking market {Market}... lastCandleTime: {last} , close: {close}", market, candles.Last().Timestamp, candles.Last().Close);
 
                 // We eliminate all candles that aren't needed for the dataset incl. the last one (if it's the current running candle).
                 candles = candles.Where(x => x.Timestamp >= minimumDate && x.Timestamp < candleDate).ToList();
@@ -361,7 +355,7 @@ namespace MachinaTrader.TradeManagers
                 // Not enough candles to perform what we need to do.
                 if (candles.Count < strategy.MinimumAmountOfCandles)
                 {
-                    Globals.TradeLogger.LogWarning("Not enough candle data for {Market}...", market);
+                    Global.Logger.Warning("Not enough candle data for {Market}...", market);
                     return new TradeSignal
                     {
                         TradeAdvice = TradeAdvice.Hold,
@@ -373,7 +367,7 @@ namespace MachinaTrader.TradeManagers
                 var signalDate = candles[candles.Count - 1].Timestamp;
                 var strategySignalDate = strategy.GetSignalDate();
 
-                if (Globals.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+                if (Runtime.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
                 {
                     //TODO: improve to other timeframe
                     strategySignalDate = candleDate.AddMinutes(-30);
@@ -382,12 +376,12 @@ namespace MachinaTrader.TradeManagers
                 // This is an outdated candle...
                 if (signalDate < strategySignalDate)
                 {
-                    Globals.TradeLogger.LogInformation("Outdated candle for {Market}...", market);
+                    Global.Logger.Information("Outdated candle for {Market}...", market);
                     return null;
                 }
 
                 // This calculates an advice for the next timestamp.
-                var advice = strategy.Forecast(candles, Globals.TradeLogger);
+                var advice = strategy.Forecast(candles);
 
                 return new TradeSignal
                 {
@@ -399,7 +393,7 @@ namespace MachinaTrader.TradeManagers
             catch (Exception ex)
             {
                 // Couldn't get a buy signal for this market, no problem. Let's skip it.
-                Globals.TradeLogger.LogError(ex, "Couldn't get buy signal for {Market}...", market);
+                Global.Logger.Error(ex, "Couldn't get buy signal for {Market}...", market);
                 return null;
             }
         }
@@ -412,25 +406,25 @@ namespace MachinaTrader.TradeManagers
         /// <returns></returns>
         private decimal GetTargetBid(Ticker tick, Candle signalCandle)
         {
-            if (Globals.Configuration.TradeOptions.BuyInPriceStrategy == BuyInPriceStrategy.AskLastBalance)
+            if (Runtime.Configuration.TradeOptions.BuyInPriceStrategy == BuyInPriceStrategy.AskLastBalance)
             {
                 // If the ask is below the last, we can get it on the cheap.
                 if (tick.Ask < tick.Last) return tick.Ask;
 
-                return tick.Ask + Globals.Configuration.TradeOptions.AskLastBalance * (tick.Last - tick.Ask);
+                return tick.Ask + Runtime.Configuration.TradeOptions.AskLastBalance * (tick.Last - tick.Ask);
             }
-            else if (Globals.Configuration.TradeOptions.BuyInPriceStrategy == BuyInPriceStrategy.SignalCandleClose)
+
+            if (Runtime.Configuration.TradeOptions.BuyInPriceStrategy == BuyInPriceStrategy.SignalCandleClose)
             {
                 return signalCandle.Close;
             }
-            else if (Globals.Configuration.TradeOptions.BuyInPriceStrategy == BuyInPriceStrategy.MatchCurrentBid)
+
+            if (Runtime.Configuration.TradeOptions.BuyInPriceStrategy == BuyInPriceStrategy.MatchCurrentBid)
             {
                 return tick.Bid;
             }
-            else
-            {
-                return Math.Round(tick.Bid * (1 - Globals.Configuration.TradeOptions.BuyInPricePercentage), 8);
-            }
+
+            return Math.Round(tick.Bid * (1 - Runtime.Configuration.TradeOptions.BuyInPricePercentage), 8);
         }
 
         /// <summary>
@@ -439,23 +433,21 @@ namespace MachinaTrader.TradeManagers
         /// <returns></returns>
         private async Task CreateNewTrade(TradeSignal signal, ITradingStrategy strategy)
         {
-            AccountBalance exchangeQuoteBalance = new AccountBalance(signal.QuoteCurrency, 9999, 0);
             decimal currentQuoteBalance = 9999;
 
-            if (!Globals.Configuration.TradeOptions.PaperTrade)
+            if (!Runtime.Configuration.TradeOptions.PaperTrade)
             {
                 // Get our Bitcoin balance from the exchange
-                exchangeQuoteBalance = await Globals.GlobalExchangeApi.GetBalance(signal.QuoteCurrency);
+                var exchangeQuoteBalance = await Runtime.GlobalExchangeApi.GetBalance(signal.QuoteCurrency);
 
                 // Check trading mode
-                currentQuoteBalance = Globals.Configuration.TradeOptions.PaperTrade ? 9999 : exchangeQuoteBalance.Available;
+                currentQuoteBalance = Runtime.Configuration.TradeOptions.PaperTrade ? 9999 : exchangeQuoteBalance.Available;
             }
 
-
             // Do we even have enough funds to invest?
-            if (currentQuoteBalance < Globals.Configuration.TradeOptions.AmountToInvestPerTrader)
+            if (currentQuoteBalance < Runtime.Configuration.TradeOptions.AmountToInvestPerTrader)
             {
-                Globals.TradeLogger.LogWarning("Insufficient funds ({Available}) to perform a {MarketName} trade. Skipping this trade.", currentQuoteBalance, signal.MarketName);
+                Global.Logger.Warning("Insufficient funds ({Available}) to perform a {MarketName} trade. Skipping this trade.", currentQuoteBalance, signal.MarketName);
                 return;
             }
 
@@ -465,44 +457,41 @@ namespace MachinaTrader.TradeManagers
             if (order != null)
             {
                 // Save the order.
-                await Globals.GlobalDataStore.SaveTradeAsync(order);
+                await Runtime.GlobalDataStore.SaveTradeAsync(order);
 
                 // Send a notification that we found something suitable
-                Globals.TradeLogger.LogInformation("New trade signal {Market}...", order.Market);
+                Global.Logger.Information("New trade signal {Market}...", order.Market);
             }
         }
 
         /// <summary>
         /// Creates a buy order on the exchange.
         /// </summary>
-        /// <param name="freeTrader">The trader placing the order</param>
         /// <param name="pair">The pair we're buying</param>
+        /// <param name="signalCandle"></param>
+        /// <param name="strategy"></param>
         /// <returns></returns>
         private async Task<Trade> CreateBuyOrder(string pair, Candle signalCandle, ITradingStrategy strategy)
         {
             // Take the amount to invest per trader OR the current balance for this trader.
-            var btcToSpend = 0.0m;
 
-            //if (freeTrader.CurrentBalance < Globals.Configuration.TradeOptions.AmountToInvestPerTrader || Globals.Configuration.TradeOptions.ProfitStrategy == ProfitType.Reinvest)
+            //if (freeTrader.CurrentBalance < Runtime.Configuration.TradeOptions.AmountToInvestPerTrader || Runtime.Configuration.TradeOptions.ProfitStrategy == ProfitType.Reinvest)
             //    btcToSpend = freeTrader.CurrentBalance;
             //else
-            btcToSpend = Globals.Configuration.TradeOptions.AmountToInvestPerTrader;
+            var btcToSpend = Runtime.Configuration.TradeOptions.AmountToInvestPerTrader;
 
             // The amount here is an indication and will probably not be precisely what you get.
-            var ticker = await Globals.GlobalExchangeApi.GetTicker(pair);
+            var ticker = await Runtime.GlobalExchangeApi.GetTicker(pair);
             var openRate = GetTargetBid(ticker, signalCandle);
             var amount = btcToSpend / openRate;
 
             // Get the order ID, this is the most important because we need this to check
             // up on our trade. We update the data below later when the final data is present.
-            var orderId = Globals.Configuration.TradeOptions.PaperTrade ? GetOrderId() : await Globals.GlobalExchangeApi.Buy(pair, amount, openRate);
+            var orderId = Runtime.Configuration.TradeOptions.PaperTrade ? GetOrderId() : await Runtime.GlobalExchangeApi.Buy(pair, amount, openRate);
 
             await SendNotification($"Buying #{pair} with limit {openRate:0.00000000} BTC ({amount:0.0000} units).");
 
-            var fullApi = await Globals.GlobalExchangeApi.GetFullApi();
-
-            var symbol = await Globals.GlobalExchangeApi.ExchangeCurrencyToGlobalCurrency(pair);
-
+            var fullApi = await Runtime.GlobalExchangeApi.GetFullApi();
             var trade = new Trade()
             {
                 Market = pair,
@@ -516,16 +505,16 @@ namespace MachinaTrader.TradeManagers
                 IsBuying = true,
                 StrategyUsed = strategy.Name,
                 SellType = SellType.None,
-                TickerLast = await Globals.GlobalExchangeApi.GetTicker(pair),
-                GlobalSymbol = symbol,
+                TickerLast = await Runtime.GlobalExchangeApi.GetTicker(pair),
+                GlobalSymbol = await Runtime.GlobalExchangeApi.ExchangeCurrencyToGlobalCurrency(pair),
                 Exchange = fullApi.Name,
-                PaperTrade = Globals.Configuration.TradeOptions.PaperTrade
+                PaperTrade = Runtime.Configuration.TradeOptions.PaperTrade
             };
 
-            if (Globals.Configuration.TradeOptions.PlaceFirstStopAtSignalCandleLow)
+            if (Runtime.Configuration.TradeOptions.PlaceFirstStopAtSignalCandleLow)
             {
                 trade.StopLossRate = signalCandle.Low;
-                Globals.TradeLogger.LogInformation("Automatic stop set at signal candle low {Low}", signalCandle.Low.ToString("0.00000000"));
+                Global.Logger.Information("Automatic stop set at signal candle low {Low}", signalCandle.Low.ToString("0.00000000"));
             }
 
             return trade;
@@ -544,7 +533,7 @@ namespace MachinaTrader.TradeManagers
             await UpdateOpenSellOrders();
 
             // Third, our current trades need to be checked if one of these has hit its sell targets...
-            if (!Globals.Configuration.TradeOptions.OnlySellOnStrategySignals)
+            if (!Runtime.Configuration.TradeOptions.OnlySellOnStrategySignals)
             {
                 await CheckForSellConditions();
             }
@@ -557,16 +546,16 @@ namespace MachinaTrader.TradeManagers
         private async Task UpdateOpenBuyOrders()
         {
             // This means its a buy trade that is waiting to get bought. See if we can update that first.
-            var _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
-            foreach (var trade in _activeTrades.Where(x => x.IsBuying))
+            var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            foreach (var trade in activeTrades.Where(x => x.IsBuying))
             {
                 // Check trading mode
-                Globals.TradeLogger.LogInformation("Checking {Market} BUY order @ {OpenRate}...", trade.Market, trade.OpenRate.ToString("0.00000000"));
+                Global.Logger.Information("Checking {Market} BUY order @ {OpenRate}...", trade.Market, trade.OpenRate.ToString("0.00000000"));
 
-                if (Globals.Configuration.TradeOptions.PaperTrade)
+                if (Runtime.Configuration.TradeOptions.PaperTrade)
                 {
                     //in simulation mode we always fill..
-                    if (Globals.Configuration.ExchangeOptions.Last().IsSimulation)
+                    if (Runtime.Configuration.ExchangeOptions.Last().IsSimulation)
                     {
                         trade.OpenOrderId = null;
                         trade.IsBuying = false;
@@ -574,13 +563,13 @@ namespace MachinaTrader.TradeManagers
                     else
                     {
                         // Papertrading
-                        var candles = await Globals.GlobalExchangeApi.GetTickerHistory(trade.Market, Period.Minute, 1);
+                        var candles = await Runtime.GlobalExchangeApi.GetTickerHistory(trade.Market, Period.Minute, 1);
                         var candle = candles.FirstOrDefault();
 
                         if (candle != null && (trade.OpenRate >= candle.High ||
-                                                (trade.OpenRate >= candle.Low && trade.OpenRate <= candle.High) ||
-                                                Globals.GlobalOrderBehavior == OrderBehavior.AlwaysFill
-                                                ))
+                                               (trade.OpenRate >= candle.Low && trade.OpenRate <= candle.High) ||
+                                               Runtime.GlobalOrderBehavior == OrderBehavior.AlwaysFill
+                            ))
                         {
                             trade.OpenOrderId = null;
                             trade.IsBuying = false;
@@ -590,7 +579,7 @@ namespace MachinaTrader.TradeManagers
                 else
                 {
                     // Livetrading
-                    var exchangeOrder = await Globals.GlobalExchangeApi.GetOrder(trade.BuyOrderId, trade.Market);
+                    var exchangeOrder = await Runtime.GlobalExchangeApi.GetOrder(trade.BuyOrderId, trade.Market);
 
                     // if this order is filled, we can update our database.
                     if (exchangeOrder?.Status == OrderStatus.Filled)
@@ -604,13 +593,13 @@ namespace MachinaTrader.TradeManagers
                     }
                 }
 
-                Globals.TradeLogger.LogInformation("{Market} BUY order filled @ {OpenRate}...", trade.Market, trade.OpenRate.ToString("0.00000000"));
+                Global.Logger.Information("{Market} BUY order filled @ {OpenRate}...", trade.Market, trade.OpenRate.ToString("0.00000000"));
 
                 // If this is enabled we place a sell order as soon as our buy order got filled.
-                if (Globals.Configuration.TradeOptions.ImmediatelyPlaceSellOrder)
+                if (Runtime.Configuration.TradeOptions.ImmediatelyPlaceSellOrder)
                 {
-                    var sellPrice = Math.Round(trade.OpenRate * (1 + Globals.Configuration.TradeOptions.ImmediatelyPlaceSellOrderAtProfit), 8);
-                    var orderId = Globals.Configuration.TradeOptions.PaperTrade ? GetOrderId() : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, sellPrice);
+                    var sellPrice = Math.Round(trade.OpenRate * (1 + Runtime.Configuration.TradeOptions.ImmediatelyPlaceSellOrderAtProfit), 8);
+                    var orderId = Runtime.Configuration.TradeOptions.PaperTrade ? GetOrderId() : await Runtime.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, sellPrice);
 
                     trade.CloseRate = sellPrice;
                     trade.OpenOrderId = orderId;
@@ -618,10 +607,10 @@ namespace MachinaTrader.TradeManagers
                     trade.IsSelling = true;
                     trade.SellType = SellType.Immediate;
 
-                    Globals.TradeLogger.LogInformation("{Market} order placed @ {CloseRate}...", trade.Market, trade.CloseRate?.ToString("0.00000000"));
+                    Global.Logger.Information("{Market} order placed @ {CloseRate}...", trade.Market, trade.CloseRate?.ToString("0.00000000"));
                 }
 
-                await Globals.GlobalDataStore.SaveTradeAsync(trade);
+                await Runtime.GlobalDataStore.SaveTradeAsync(trade);
             }
         }
 
@@ -634,18 +623,16 @@ namespace MachinaTrader.TradeManagers
             // There are trades that have an open order ID set & sell order id set
             // that means its a sell trade that is waiting to get sold. See if we can update that first.
 
-            var _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
-            foreach (var order in _activeTrades.Where(x => x.IsSelling))
+            var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            foreach (var order in activeTrades.Where(x => x.IsSelling))
             {
                 // Check trading mode
-                Globals.TradeLogger.LogInformation("Checking {Market} SELL order @ {CloseRate}...", order.Market, order.CloseRate?.ToString("0.00000000"));
+                Global.Logger.Information("Checking {Market} SELL order @ {CloseRate}...", order.Market, order.CloseRate?.ToString("0.00000000"));
 
-                if (Globals.Configuration.TradeOptions.PaperTrade)
+                if (Runtime.Configuration.TradeOptions.PaperTrade)
                 {
-                    // Papertrading
-
                     //in simulation mode we always fill..
-                    if (Globals.Configuration.ExchangeOptions.Last().IsSimulation)
+                    if (Runtime.Configuration.ExchangeOptions.Last().IsSimulation)
                     {
                         order.OpenOrderId = null;
                         order.IsOpen = false;
@@ -656,10 +643,10 @@ namespace MachinaTrader.TradeManagers
                     }
                     else
                     {
-                        var candles = await Globals.GlobalExchangeApi.GetTickerHistory(order.Market, Period.Minute, 1);
+                        var candles = await Runtime.GlobalExchangeApi.GetTickerHistory(order.Market, Period.Minute, 1);
                         var candle = candles.FirstOrDefault();
 
-                        if (candle != null && (order.CloseRate <= candle.Low || (order.CloseRate >= candle.Low && order.CloseRate <= candle.High) || Globals.GlobalOrderBehavior == OrderBehavior.AlwaysFill))
+                        if (candle != null && (order.CloseRate <= candle.Low || (order.CloseRate >= candle.Low && order.CloseRate <= candle.High) || Runtime.GlobalOrderBehavior == OrderBehavior.AlwaysFill))
                         {
                             order.OpenOrderId = null;
                             order.IsOpen = false;
@@ -673,7 +660,7 @@ namespace MachinaTrader.TradeManagers
                 else
                 {
                     // Livetrading
-                    var exchangeOrder = await Globals.GlobalExchangeApi.GetOrder(order.SellOrderId, order.Market);
+                    var exchangeOrder = await Runtime.GlobalExchangeApi.GetOrder(order.SellOrderId, order.Market);
 
                     // if this order is filled, we can update our database.
                     if (exchangeOrder?.Status == OrderStatus.Filled)
@@ -688,7 +675,7 @@ namespace MachinaTrader.TradeManagers
                     }
                 }
 
-                await Globals.GlobalDataStore.SaveTradeAsync(order);
+                await Runtime.GlobalDataStore.SaveTradeAsync(order);
 
                 await SendNotification($"Selling #{order.Market} with limit {order.CloseRate:0.00000000} BTC (profit: ± {order.CloseProfitPercentage:0.00}%, {order.CloseProfit:0.00000000} BTC).");
 
@@ -706,23 +693,23 @@ namespace MachinaTrader.TradeManagers
 
             // An open order currently not selling or being an immediate sell are checked for SL  etc.
             // Prioritize markets with high volume.
-            var _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
-            foreach (var trade in _activeTrades.Where(x => !x.IsSelling && !x.IsBuying && x.IsOpen))
+            var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            foreach (var trade in activeTrades.Where(x => !x.IsSelling && !x.IsBuying && x.IsOpen))
             {
                 // These are trades that are not being bought or sold at the moment so these need to be checked for sell conditions.
-                var ticker = Globals.GlobalExchangeApi.GetTicker(trade.Market).Result;
+                var ticker = Runtime.GlobalExchangeApi.GetTicker(trade.Market).Result;
                 var sellType = await ShouldSell(trade, ticker, DateTime.UtcNow);
 
-                Globals.TradeLogger.LogInformation("Checking {Market} sell conditions...", trade.Market);
+                Global.Logger.Information("Checking {Market} sell conditions...", trade.Market);
 
                 if (sellType == SellType.TrailingStopLossUpdated)
                 {
                     // Update the stop loss for this trade, which was set in ShouldSell.
-                    await Globals.GlobalDataStore.SaveTradeAsync(trade);
+                    await Runtime.GlobalDataStore.SaveTradeAsync(trade);
                 }
                 else if (sellType != SellType.None)
                 {
-                    var orderId = Globals.Configuration.TradeOptions.PaperTrade ? GetOrderId() : await Globals.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, ticker.Bid);
+                    var orderId = Runtime.Configuration.TradeOptions.PaperTrade ? GetOrderId() : await Runtime.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, ticker.Bid);
 
                     trade.CloseRate = trade.TickerLast.Bid;
                     trade.OpenOrderId = orderId;
@@ -730,38 +717,41 @@ namespace MachinaTrader.TradeManagers
                     trade.SellType = sellType;
                     trade.IsSelling = true;
 
-                    Globals.TradeLogger.LogInformation("Selling {Market} ({SellType})...", trade.Market, sellType);
+                    Global.Logger.Information("Selling {Market} ({SellType})...", trade.Market, sellType);
 
-                    await Globals.GlobalDataStore.SaveTradeAsync(trade);
+                    await Runtime.GlobalDataStore.SaveTradeAsync(trade);
                 }
-            };
+            }
         }
 
         /// <summary>
         /// Based on earlier trade and current price and configuration, decides whether bot should sell.
         /// </summary>
         /// <param name="trade"></param>
-        /// <param name="currentRateBid"></param>
+        /// <param name="ticker"></param>
         /// <param name="utcNow"></param>
         /// <returns>True if bot should sell at current rate.</returns>
         private async Task<SellType> ShouldSell(Trade trade, Ticker ticker, DateTime utcNow)
         {
             var currentProfit = (ticker.Bid - trade.OpenRate) / trade.OpenRate;
 
-            Globals.TradeLogger.LogInformation("Should sell {Market}? Profit: {Profit}%...", trade.Market, (currentProfit * 100).ToString("0.00"));
+            Global.Logger.Information("Should sell {Market}? Profit: {Profit}%...", trade.Market, (currentProfit * 100).ToString("0.00"));
 
-            var _activeTrades = await Globals.GlobalDataStore.GetActiveTradesAsync();
-            var tradeToUpdate = _activeTrades.Where(x => x.TradeId == trade.TradeId).FirstOrDefault();
-            tradeToUpdate.TickerLast = ticker;
-            await Globals.GlobalDataStore.SaveTradeAsync(tradeToUpdate);
+            var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            var tradeToUpdate = activeTrades.FirstOrDefault(x => x.TradeId == trade.TradeId);
+            if (tradeToUpdate != null)
+            {
+                tradeToUpdate.TickerLast = ticker;
+                await Runtime.GlobalDataStore.SaveTradeAsync(tradeToUpdate);
+            }
 
             // too much notification to slack/telegram! :-)
             //await SendNotification($"Update LastPrice for Trade {trade.TradeId}");
 
             // Let's not do a stoploss for now...
-            if (currentProfit < Globals.Configuration.TradeOptions.StopLossPercentage)
+            if (currentProfit < Runtime.Configuration.TradeOptions.StopLossPercentage)
             {
-                Globals.TradeLogger.LogInformation("Stop loss hit: {StopLoss}%", Globals.Configuration.TradeOptions.StopLossPercentage);
+                Global.Logger.Information("Stop loss hit: {StopLoss}%", Runtime.Configuration.TradeOptions.StopLossPercentage);
                 return SellType.StopLoss;
             }
 
@@ -771,32 +761,32 @@ namespace MachinaTrader.TradeManagers
             if (!trade.StopLossRate.HasValue)
             {
                 // Check if time matches and current rate is above threshold
-                foreach (var item in Globals.Configuration.TradeOptions.ReturnOnInvestment)
+                foreach (var item in Runtime.Configuration.TradeOptions.ReturnOnInvestment)
                 {
                     var timeDiff = (utcNow - trade.OpenDate).TotalSeconds / 60;
 
                     if (timeDiff > item.Duration && currentProfit > item.Profit)
                     {
-                        Globals.TradeLogger.LogInformation("Timer hit: {TimeDifference} mins, profit {Profit}%", timeDiff, item.Profit.ToString("0.00"));
+                        Global.Logger.Information("Timer hit: {TimeDifference} mins, profit {Profit}%", timeDiff, item.Profit.ToString("0.00"));
                         return SellType.Timed;
                     }
                 }
             }
 
             // Only run this when we're past our starting percentage for trailing stop.
-            if (Globals.Configuration.TradeOptions.EnableTrailingStop)
+            if (Runtime.Configuration.TradeOptions.EnableTrailingStop)
             {
                 // If the current rate is below our current stoploss percentage, close the trade.
                 if (trade.StopLossRate.HasValue && ticker.Bid < trade.StopLossRate.Value)
                     return SellType.TrailingStopLoss;
 
                 // The new stop would be at a specific percentage above our starting point.
-                var newStopRate = trade.OpenRate * (1 + (currentProfit - Globals.Configuration.TradeOptions.TrailingStopPercentage));
+                var newStopRate = trade.OpenRate * (1 + (currentProfit - Runtime.Configuration.TradeOptions.TrailingStopPercentage));
 
                 // Only update the trailing stop when its above our starting percentage and higher than the previous one.
-                if (currentProfit > Globals.Configuration.TradeOptions.TrailingStopStartingPercentage && (trade.StopLossRate < newStopRate || !trade.StopLossRate.HasValue))
+                if (currentProfit > Runtime.Configuration.TradeOptions.TrailingStopStartingPercentage && (trade.StopLossRate < newStopRate || !trade.StopLossRate.HasValue))
                 {
-                    Globals.TradeLogger.LogInformation("Trailing stop loss updated for {Market} from {StopLossRate} to {NewStopRate}", trade.Market, trade.StopLossRate?.ToString("0.00000000"), newStopRate.ToString("0.00000000"));
+                    Global.Logger.Information("Trailing stop loss updated for {Market} from {StopLossRate} to {NewStopRate}", trade.Market, trade.StopLossRate?.ToString("0.00000000"), newStopRate.ToString("0.00000000"));
 
                     // The current profit percentage is high enough to create the trailing stop value.
                     // If we are getting our first stop loss raise, we set it to break even. From there the stop
@@ -825,8 +815,8 @@ namespace MachinaTrader.TradeManagers
 
         private async Task SendNotification(string message)
         {
-            if (Globals.NotificationManagers != null)
-                foreach (var notificationManager in Globals.NotificationManagers)
+            if (Runtime.NotificationManagers != null)
+                foreach (var notificationManager in Runtime.NotificationManagers)
                     await notificationManager.SendNotification(message);
         }
     }

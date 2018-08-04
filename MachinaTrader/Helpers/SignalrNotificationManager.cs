@@ -9,7 +9,7 @@ namespace MachinaTrader.Helpers
     {
         public async Task<bool> SendNotification(string message)
         {
-            await Globals.GlobalHubMyntTraders.Clients.All.SendAsync("Send", message);
+            await Runtime.GlobalHubMyntTraders.Clients.All.SendAsync("Send", message);
             return true;
         }
 

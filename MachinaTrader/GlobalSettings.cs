@@ -32,7 +32,7 @@ using Quartz.Impl;
 
 namespace MachinaTrader
 {
-    public static class Globals
+    public static class Runtime
     {
         public static IApplicationBuilder GlobalApplicationBuilder;
         public static IServiceScope GlobalServiceScope { get; set; }
@@ -64,48 +64,48 @@ namespace MachinaTrader
     /// <summary>
     /// Global Settings
     /// </summary>
-    public class GlobalSettings
+    public class RuntimeSettings
     {
         public async static void Init()
         {
 
-            ILogger Log = Globals.GlobalLoggerFactory.CreateLogger<GlobalSettings>();
+            ILogger Log = Runtime.GlobalLoggerFactory.CreateLogger<RuntimeSettings>();
 
-            Globals.TradeLogger = Globals.GlobalLoggerFactory.CreateLogger<TradeManager>();
+            Runtime.TradeLogger = Runtime.GlobalLoggerFactory.CreateLogger<TradeManager>();
 
-            Globals.GlobalOrderBehavior = OrderBehavior.AlwaysFill;
+            Runtime.GlobalOrderBehavior = OrderBehavior.AlwaysFill;
 
-            Globals.NotificationManagers = new List<INotificationManager>()
+            Runtime.NotificationManagers = new List<INotificationManager>()
             {
                 new SignalrNotificationManager(),
-                new TelegramNotificationManager(Globals.GlobalTelegramNotificationOptions)
+                new TelegramNotificationManager(Runtime.GlobalTelegramNotificationOptions)
             };
 
-            if (Globals.Configuration.SystemOptions.Database == "MongoDB")
+            if (Runtime.Configuration.SystemOptions.Database == "MongoDB")
             {
                 Log.LogInformation("Database set to MongoDB");
                 MongoDBOptions databaseOptions = new MongoDBOptions();
-                Globals.GlobalDataStore = new MongoDBDataStore(databaseOptions);
+                Runtime.GlobalDataStore = new MongoDBDataStore(databaseOptions);
                 MongoDBOptions backtestDatabaseOptions = new MongoDBOptions();
-                Globals.GlobalDataStoreBacktest = new MongoDBDataStoreBacktest(backtestDatabaseOptions);
+                Runtime.GlobalDataStoreBacktest = new MongoDBDataStoreBacktest(backtestDatabaseOptions);
             }
             else
             {
                 Log.LogInformation("Database set to LiteDB");
                 LiteDBOptions databaseOptions = new LiteDBOptions();
-                Globals.GlobalDataStore = new LiteDBDataStore(databaseOptions);
+                Runtime.GlobalDataStore = new LiteDBDataStore(databaseOptions);
                 LiteDBOptions backtestDatabaseOptions = new LiteDBOptions();
-                Globals.GlobalDataStoreBacktest = new LiteDBDataStoreBacktest(backtestDatabaseOptions);
+                Runtime.GlobalDataStoreBacktest = new LiteDBDataStoreBacktest(backtestDatabaseOptions);
             }
 
             // Global Hubs
-            Globals.GlobalHubMyntTraders = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubTraders>>();
-            Globals.GlobalHubMyntStatistics = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubStatistics>>();
-            Globals.GlobalHubMyntLogs = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubLogs>>();
-            Globals.GlobalHubMyntBacktest = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubBacktest>>();
+            Runtime.GlobalHubMyntTraders = Runtime.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubTraders>>();
+            Runtime.GlobalHubMyntStatistics = Runtime.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubStatistics>>();
+            Runtime.GlobalHubMyntLogs = Runtime.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubLogs>>();
+            Runtime.GlobalHubMyntBacktest = Runtime.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubBacktest>>();
 
             //Run Cron
-            IScheduler scheduler = Globals.QuartzTimer;
+            IScheduler scheduler = Runtime.QuartzTimer;
 
             IJobDetail buyTimerJob = JobBuilder.Create<Timers.BuyTimer>()
                 .WithIdentity("buyTimerJobTrigger", "buyTimerJob")
@@ -113,7 +113,7 @@ namespace MachinaTrader
 
             ITrigger buyTimerJobTrigger = TriggerBuilder.Create()
                 .WithIdentity("buyTimerJobTrigger", "buyTimerJob")
-                .WithCronSchedule(Globals.Configuration.TradeOptions.BuyTimer)
+                .WithCronSchedule(Runtime.Configuration.TradeOptions.BuyTimer)
                 .UsingJobData("force", false)
                 .Build();
 
@@ -125,7 +125,7 @@ namespace MachinaTrader
 
             ITrigger sellTimerJobTrigger = TriggerBuilder.Create()
                 .WithIdentity("sellTimerJobTrigger", "sellTimerJob")
-                .WithCronSchedule(Globals.Configuration.TradeOptions.SellTimer)
+                .WithCronSchedule(Runtime.Configuration.TradeOptions.SellTimer)
                 .UsingJobData("force", false)
                 .Build();
 
@@ -144,65 +144,65 @@ namespace MachinaTrader
                 settingsStr = "appsettings.overrides.json";
 
             var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(settingsStr, optional: true);
-            Globals.GlobalConfiguration = builder.Build();
+            Runtime.GlobalConfiguration = builder.Build();
 
-            if (!File.Exists(Globals.ConfigFilePath))
+            if (!File.Exists(Runtime.ConfigFilePath))
             {
                 //Init Global Config with default currency array
-                Globals.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), "MainConfig.json").ToObject<MainConfig>();
-                Globals.Configuration.TradeOptions.MarketBlackList = new List<string> { };
-                Globals.Configuration.TradeOptions.OnlyTradeList = new List<string> { "ETHBTC", "LTCBTC" };
-                Globals.Configuration.TradeOptions.AlwaysTradeList = new List<string> { "ETHBTC", "LTCBTC" };
+                Runtime.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), "MainConfig.json").ToObject<MainConfig>();
+                Runtime.Configuration.TradeOptions.MarketBlackList = new List<string> { };
+                Runtime.Configuration.TradeOptions.OnlyTradeList = new List<string> { "ETHBTC", "LTCBTC" };
+                Runtime.Configuration.TradeOptions.AlwaysTradeList = new List<string> { "ETHBTC", "LTCBTC" };
                 var defaultExchangeOptions = new ExchangeOptions();
                 defaultExchangeOptions.Exchange = Exchange.Binance;
                 defaultExchangeOptions.ApiKey = "";
                 defaultExchangeOptions.ApiSecret = "";
-                Globals.Configuration.ExchangeOptions.Add(defaultExchangeOptions);
-                Globals.Configuration = MergeObjects.MergeCsDictionaryAndSave(Globals.Configuration, "MainConfig.json", JObject.FromObject(Globals.Configuration)).ToObject<MainConfig>();
+                Runtime.Configuration.ExchangeOptions.Add(defaultExchangeOptions);
+                Runtime.Configuration = MergeObjects.MergeCsDictionaryAndSave(Runtime.Configuration, "MainConfig.json", JObject.FromObject(Runtime.Configuration)).ToObject<MainConfig>();
 
             }
             else
             {
 
-                Globals.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), "MainConfig.json").ToObject<MainConfig>();
+                Runtime.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), "MainConfig.json").ToObject<MainConfig>();
             }
 
-            var exchangeOption = Globals.Configuration.ExchangeOptions.FirstOrDefault();
+            var exchangeOption = Runtime.Configuration.ExchangeOptions.FirstOrDefault();
             switch (exchangeOption.Exchange)
             {
                 case Exchange.GdaxSimulation:
-                    Globals.GlobalExchangeApi = new BaseExchange(exchangeOption, new SimulationExchanges.ExchangeGdaxSimulationApi());
+                    Runtime.GlobalExchangeApi = new BaseExchange(exchangeOption, new SimulationExchanges.ExchangeGdaxSimulationApi());
                     exchangeOption.IsSimulation = true;
                     break;
                 case Exchange.BinanceSimulation:
-                    //Globals.GlobalExchangeApi = new BaseExchange(exchangeOption, new SimulationExchanges.ExchangeBinanceSimulationApi());
+                    //Runtime.GlobalExchangeApi = new BaseExchange(exchangeOption, new SimulationExchanges.ExchangeBinanceSimulationApi());
                     exchangeOption.IsSimulation = true;
                     break;
                 default:
-                    Globals.GlobalExchangeApi = new BaseExchange(exchangeOption);
+                    Runtime.GlobalExchangeApi = new BaseExchange(exchangeOption);
                     exchangeOption.IsSimulation = false;
                     break;
             }
 
             //Websocket Test
-            var fullApi = Globals.GlobalExchangeApi.GetFullApi().Result;
+            var fullApi = Runtime.GlobalExchangeApi.GetFullApi().Result;
 
             //Create Exchange Currencies as List
-            foreach (var currency in Globals.Configuration.TradeOptions.AlwaysTradeList)
+            foreach (var currency in Runtime.Configuration.TradeOptions.AlwaysTradeList)
             {
-                Globals.GlobalCurrencys.Add(Globals.Configuration.TradeOptions.QuoteCurrency + "-" + currency);
+                Runtime.GlobalCurrencys.Add(Runtime.Configuration.TradeOptions.QuoteCurrency + "-" + currency);
             }
 
-            foreach (var currency in Globals.GlobalCurrencys)
+            foreach (var currency in Runtime.GlobalCurrencys)
             {
-                Globals.ExchangeCurrencys.Add(fullApi.GlobalSymbolToExchangeSymbol(currency));
+                Runtime.ExchangeCurrencys.Add(fullApi.GlobalSymbolToExchangeSymbol(currency));
             }
 
             if (!exchangeOption.IsSimulation)
                 fullApi.GetTickersWebSocket(OnWebsocketTickersUpdated);
 
             // Telegram Notifications
-            Globals.GlobalTelegramNotificationOptions = Globals.GlobalConfiguration.GetSection("Telegram").Get<TelegramNotificationOptions>();
+            Runtime.GlobalTelegramNotificationOptions = Runtime.GlobalConfiguration.GetSection("Telegram").Get<TelegramNotificationOptions>();
         }
 
 
@@ -211,9 +211,9 @@ namespace MachinaTrader
         {
             foreach (var update in updatedTickers)
             {
-                if (Globals.ExchangeCurrencys.Contains(update.Key))
+                if (Runtime.ExchangeCurrencys.Contains(update.Key))
                 {
-                    if (Globals.WebSocketTickers.TryGetValue(update.Key, out Ticker ticker))
+                    if (Runtime.WebSocketTickers.TryGetValue(update.Key, out Ticker ticker))
                     {
                         ticker.Ask = update.Value.Ask;
                         ticker.Bid = update.Value.Bid;
@@ -221,7 +221,7 @@ namespace MachinaTrader
                     }
                     else
                     {
-                        Globals.WebSocketTickers.TryAdd(update.Key, new Ticker
+                        Runtime.WebSocketTickers.TryAdd(update.Key, new Ticker
                         {
                             Ask = update.Value.Ask,
                             Bid = update.Value.Bid,

@@ -102,10 +102,10 @@ namespace MachinaTrader
         public void Configure(IApplicationBuilder app, IHostingEnvironment hostingEnvironment, ILoggerFactory loggerFactory, IDatabaseInitializer databaseInitializer, IAppCache cache)
         {
             ServiceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
-            Globals.GlobalServiceScope = ServiceScope;
-            Globals.GlobalLoggerFactory = loggerFactory;
-            Globals.GlobalApplicationBuilder = app;
-            Globals.AppCache = cache;
+            Runtime.GlobalServiceScope = ServiceScope;
+            Runtime.GlobalLoggerFactory = loggerFactory;
+            Runtime.GlobalApplicationBuilder = app;
+            Runtime.AppCache = cache;
 
             app.UseStaticFiles();
 
@@ -133,13 +133,13 @@ namespace MachinaTrader
             databaseInitializer.Initialize();
 
             // DI is ready - Init 
-            GlobalSettings.Init();
+            RuntimeSettings.Init();
         }
 
         public static void RunWebHost()
         {
             IWebHostBuilder webHostBuilder = WebHost.CreateDefaultBuilder()
-                .UseKestrel(options => { options.Listen(IPAddress.Any, Globals.Configuration.SystemOptions.WebPort); })
+                .UseKestrel(options => { options.Listen(IPAddress.Any, Runtime.Configuration.SystemOptions.WebPort); })
                 .UseStartup<Startup>()
                 .ConfigureAppConfiguration(i => i.AddJsonFile("appsettings.overrides.json", true));
 

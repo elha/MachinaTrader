@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Mynt.Core.Interfaces;
 using Mynt.Core.Models;
 
 namespace MachinaTrader.Controllers
@@ -12,7 +11,7 @@ namespace MachinaTrader.Controllers
         [HttpGet]
         public async Task<List<Trader>> Get()
         {
-            return await Globals.GlobalDataStore.GetTradersAsync();
+            return await Runtime.GlobalDataStore.GetTradersAsync();
         }
     }
 }
