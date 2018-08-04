@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace MachinaTrader.Hubs
 {
-    public class HubMyntBacktest : Hub
+    public class HubStatistics : Hub
     {
     }
 }

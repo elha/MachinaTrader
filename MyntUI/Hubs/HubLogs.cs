@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace MachinaTrader.Hubs
 {
-    public class HubMyntLogs : Hub
+    public class HubLogs : Hub
     {
     }
 }

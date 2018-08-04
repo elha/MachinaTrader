@@ -121,10 +121,10 @@ namespace MachinaTrader
             app.UseSignalR(routes =>
             {
                 routes.MapHub<HubMainIndex>("/signalr/HubMainIndex");
-                routes.MapHub<HubMyntTraders>("/signalr/HubMyntTraders");
-                routes.MapHub<HubMyntStatistics>("/signalr/HubMyntStatistics");
-                routes.MapHub<HubMyntLogs>("/signalr/HubMyntLogs");
-                routes.MapHub<HubMyntBacktest>("/signalr/HubMyntBacktest");
+                routes.MapHub<HubTraders>("/signalr/HubMyntTraders");
+                routes.MapHub<HubStatistics>("/signalr/HubMyntStatistics");
+                routes.MapHub<HubLogs>("/signalr/HubMyntLogs");
+                routes.MapHub<HubBacktest>("/signalr/HubMyntBacktest");
             });
 
             app.UseMvc();

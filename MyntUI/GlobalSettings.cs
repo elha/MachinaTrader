@@ -43,10 +43,10 @@ namespace MachinaTrader
         public static IAppCache AppCache { get; set; }
         public static ILoggerFactory GlobalLoggerFactory { get; set; }
         public static CancellationToken GlobalTimerCancellationToken = new CancellationToken();
-        public static IHubContext<HubMyntTraders> GlobalHubMyntTraders;
-        public static IHubContext<HubMyntStatistics> GlobalHubMyntStatistics;
-        public static IHubContext<HubMyntLogs> GlobalHubMyntLogs;
-        public static IHubContext<HubMyntBacktest> GlobalHubMyntBacktest;
+        public static IHubContext<HubTraders> GlobalHubMyntTraders;
+        public static IHubContext<HubStatistics> GlobalHubMyntStatistics;
+        public static IHubContext<HubLogs> GlobalHubMyntLogs;
+        public static IHubContext<HubBacktest> GlobalHubMyntBacktest;
         public static RuntimeConfig RuntimeSettings = new RuntimeConfig();
         public static IScheduler QuartzTimer = new StdSchedulerFactory().GetScheduler().Result;
         public static TelegramNotificationOptions GlobalTelegramNotificationOptions { get; set; }
@@ -99,10 +99,10 @@ namespace MachinaTrader
             }
 
             // Global Hubs
-            Globals.GlobalHubMyntTraders = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntTraders>>();
-            Globals.GlobalHubMyntStatistics = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntStatistics>>();
-            Globals.GlobalHubMyntLogs = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntLogs>>();
-            Globals.GlobalHubMyntBacktest = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubMyntBacktest>>();
+            Globals.GlobalHubMyntTraders = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubTraders>>();
+            Globals.GlobalHubMyntStatistics = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubStatistics>>();
+            Globals.GlobalHubMyntLogs = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubLogs>>();
+            Globals.GlobalHubMyntBacktest = Globals.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubBacktest>>();
 
             //Run Cron
             IScheduler scheduler = Globals.QuartzTimer;
