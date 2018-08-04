@@ -3,7 +3,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace MyntUI.Helpers
+namespace MachinaTrader.Helpers
 {
     public static class FormatHelper
     {

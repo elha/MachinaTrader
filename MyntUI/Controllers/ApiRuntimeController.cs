@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MyntUI.Controllers
+namespace MachinaTrader.Controllers
 {
     [Route("api/runtime")]
     public class ApiCoreConfigRuntime : Controller

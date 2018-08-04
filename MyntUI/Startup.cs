@@ -3,19 +3,19 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MyntUI.Hubs;
+using MachinaTrader.Hubs;
 using Serilog;
 using System.Net;
 using Microsoft.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using MyntUI.Data;
+using MachinaTrader.Data;
 using System;
-using MyntUI.Services;
-using MyntUI.Helpers;
+using MachinaTrader.Services;
+using MachinaTrader.Helpers;
 using LazyCache;
 
-namespace MyntUI
+namespace MachinaTrader
 {
     public class Startup
     {
@@ -48,7 +48,7 @@ namespace MyntUI
             services.AddLazyCache();
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite("Filename=MyntUIAuth.db")
+                options.UseSqlite("Filename=MachinaTraderAuth.db")
             );
 
             services.AddIdentity<IdentityUser, IdentityRole>(options => options.Stores.MaxLengthForKeys = 128)

@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MyntUI.Services;
+using MachinaTrader.Services;
 
-namespace MyntUI.Pages.Account
+namespace MachinaTrader.Pages.Account
 {
     [AllowAnonymous]
     public class ForgotPasswordModel : PageModel

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Mynt.Core.Enums;
 using Mynt.Core.Strategies;
 
-namespace MyntUI.TradeManagers
+namespace MachinaTrader.TradeManagers
 {
     public class Roi
     {

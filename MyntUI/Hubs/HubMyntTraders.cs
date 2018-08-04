@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace MyntUI.Hubs
+namespace MachinaTrader.Hubs
 {
     public class HubMyntTraders : Hub
     {

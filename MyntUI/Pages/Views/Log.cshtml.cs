@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace MyntUI.Pages.Views
+namespace MachinaTrader.Pages.Views
 {
     public class LogModel : PageModel
     {

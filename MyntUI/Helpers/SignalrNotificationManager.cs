@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using Mynt.Core.Interfaces;
 using Mynt.Core.Notifications;
 
-namespace MyntUI.Helpers
+namespace MachinaTrader.Helpers
 {
     public class SignalrNotificationManager : INotificationManager
     {

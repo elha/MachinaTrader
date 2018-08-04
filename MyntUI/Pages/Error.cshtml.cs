@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 
-namespace MyntUI.Pages
+namespace MachinaTrader.Pages
 {
     [AllowAnonymous]
     public class ErrorModel : PageModel

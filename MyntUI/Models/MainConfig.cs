@@ -6,12 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MyntUI.Models
+namespace MachinaTrader.Models
 {
     public class MainConfig
     {
         public SystemOptions SystemOptions = new SystemOptions();
-        public MyntUI.TradeManagers.TradeOptions TradeOptions = new MyntUI.TradeManagers.TradeOptions();
+        public MachinaTrader.TradeManagers.TradeOptions TradeOptions = new MachinaTrader.TradeManagers.TradeOptions();
         public List<ExchangeOptions> ExchangeOptions = new List<ExchangeOptions> { };
     }
 

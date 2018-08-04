@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace MyntUI.Pages.Account
+namespace MachinaTrader.Pages.Account
 {
     [AllowAnonymous]
     public class ResetPasswordModel : PageModel

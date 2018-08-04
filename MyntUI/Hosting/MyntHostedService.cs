@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Mynt.Core.Interfaces;
 
-namespace MyntUI.Hosting
+namespace MachinaTrader.Hosting
 {
     public class MyntHostedService : IHostedService, IDisposable
     {

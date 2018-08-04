@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Mynt.Core.Interfaces;
 using Mynt.Core.Models;
 
-namespace MyntUI.Controllers
+namespace MachinaTrader.Controllers
 {
     [Route("api/[controller]")]
     public class TradersController : Controller

@@ -1,6 +1,6 @@
 using System;
 
-namespace MyntUI.Models
+namespace MachinaTrader.Models
 {
     public class ErrorViewModel
     {

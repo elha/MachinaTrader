@@ -1,4 +1,4 @@
-namespace MyntUI.Hosting
+namespace MachinaTrader.Hosting
 {
     public class MyntHostedServiceOptions
     {

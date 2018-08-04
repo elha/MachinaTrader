@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using MyntUI.Models;
+using MachinaTrader.Models;
 
-namespace MyntUI.Controllers
+namespace MachinaTrader.Controllers
 {
     public class Log
     {

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace MyntUI.Controllers
+namespace MachinaTrader.Controllers
 {
     [Route("favicon.ico")]
     public class FaviconController : Controller

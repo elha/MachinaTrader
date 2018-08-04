@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Hosting.WindowsServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace MyntUI.Hosting
+namespace MachinaTrader.Hosting
 {
     internal class MyntWebHostService : WebHostService
     {

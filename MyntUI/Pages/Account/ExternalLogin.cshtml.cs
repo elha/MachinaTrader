@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 
-namespace MyntUI.Pages.Account
+namespace MachinaTrader.Pages.Account
 {
     [AllowAnonymous]
     public class ExternalLoginModel : PageModel

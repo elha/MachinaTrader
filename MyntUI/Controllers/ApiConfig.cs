@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using MyntUI.Helpers;
-using MyntUI.Models;
-using MyntUI.TradeManagers;
+using MachinaTrader.Helpers;
+using MachinaTrader.Models;
+using MachinaTrader.TradeManagers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MyntUI.Controllers
+namespace MachinaTrader.Controllers
 {
     [Route("api/core/config/mainconfig")]
     public class ApiCoreConfigMainconfig : Controller

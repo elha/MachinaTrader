@@ -1,4 +1,4 @@
-namespace MyntUI
+namespace MachinaTrader
 {
     class Program
     {

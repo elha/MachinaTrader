@@ -4,7 +4,7 @@ using System.Linq;
 using Mynt.Core.Models;
 using Mynt.Core.TradeManagers;
 
-namespace MyntUI.Models
+namespace MachinaTrader.Models
 {
     public class LogEntry
     {

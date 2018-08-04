@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MyntUI.Services;
+using MachinaTrader.Services;
 
-namespace MyntUI.Pages.Account.Manage
+namespace MachinaTrader.Pages.Account.Manage
 {
     public partial class IndexModel : PageModel
     {

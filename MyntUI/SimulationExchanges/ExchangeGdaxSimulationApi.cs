@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MyntUI.SimulationExchanges
+namespace MachinaTrader.SimulationExchanges
 {
     public class ExchangeGdaxSimulationApi : ExchangeAPI
     {

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 
-namespace MyntUI.Pages.Account.Manage
+namespace MachinaTrader.Pages.Account.Manage
 {
     public class PersonalDataModel : PageModel
     {

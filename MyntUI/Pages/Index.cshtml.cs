@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace MyntUI.Pages
+namespace MachinaTrader.Pages
 {
     public class IndexModel : PageModel
     {

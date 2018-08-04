@@ -2,7 +2,7 @@
 using System.ServiceProcess;
 using Microsoft.AspNetCore.Hosting;
 
-namespace MyntUI.Host.Hosting
+namespace MachinaTrader.Host.Hosting
 {
     public static class WebHostExtensions
     {

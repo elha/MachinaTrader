@@ -10,7 +10,7 @@ using Mynt.Core.Interfaces;
 using Mynt.Core.Models;
 using Mynt.Core.Strategies;
 
-namespace MyntUI.TradeManagers
+namespace MachinaTrader.TradeManagers
 {
     public class TradeManager : ITradeManager
     {

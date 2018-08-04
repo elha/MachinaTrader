@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 
-namespace MyntUI.Services
+namespace MachinaTrader.Services
 {
     // This class is used by the application to send Email and SMS
     // when you turn on two-factor authentication in ASP.NET Identity.

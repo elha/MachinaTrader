@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
-using MyntUI.Services;
+using MachinaTrader.Services;
 
-namespace MyntUI.Pages.Account
+namespace MachinaTrader.Pages.Account
 {
     [AllowAnonymous]
     public class RegisterModel : PageModel

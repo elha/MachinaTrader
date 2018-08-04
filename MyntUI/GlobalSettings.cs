@@ -21,16 +21,16 @@ using Mynt.Core.Notifications;
 using Mynt.Core.Strategies;
 using Mynt.Data.LiteDB;
 using Mynt.Data.MongoDB;
-using MyntUI.Helpers;
-using MyntUI.Hubs;
-using MyntUI.Models;
-using MyntUI.TradeManagers;
+using MachinaTrader.Helpers;
+using MachinaTrader.Hubs;
+using MachinaTrader.Models;
+using MachinaTrader.TradeManagers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Quartz;
 using Quartz.Impl;
 
-namespace MyntUI
+namespace MachinaTrader
 {
     public static class Globals
     {

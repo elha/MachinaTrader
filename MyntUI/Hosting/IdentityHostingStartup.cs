@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MyntUI.Data;
+using MachinaTrader.Data;
 
-[assembly: HostingStartup(typeof(MyntUI.Hosting.IdentityHostingStartup))]
-namespace MyntUI.Hosting
+[assembly: HostingStartup(typeof(MachinaTrader.Hosting.IdentityHostingStartup))]
+namespace MachinaTrader.Hosting
 {
     public class IdentityHostingStartup : IHostingStartup
     {

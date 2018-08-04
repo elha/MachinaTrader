@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 
-namespace MyntUI.Services
+namespace MachinaTrader.Services
 {
     public interface IEmailSender
     {

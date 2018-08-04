@@ -6,11 +6,11 @@ using Mynt.Core.Interfaces;
 using Mynt.Core.Notifications;
 using Mynt.Core.Strategies;
 using Mynt.Core.TradeManagers;
-using MyntUI.Helpers;
-using MyntUI.TradeManagers;
+using MachinaTrader.Helpers;
+using MachinaTrader.TradeManagers;
 using Quartz;
 
-namespace MyntUI.Timers
+namespace MachinaTrader.Timers
 {
     [DisallowConcurrentExecution]
     public class SellTimer : IJob

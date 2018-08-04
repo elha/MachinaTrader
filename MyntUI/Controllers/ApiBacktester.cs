@@ -13,11 +13,11 @@ using Microsoft.AspNetCore.SignalR;
 using Mynt.Core.Backtester;
 using Mynt.Core.Enums;
 using Mynt.Core.Models;
-using MyntUI.TradeManagers;
+using MachinaTrader.TradeManagers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace MyntUI.Controllers
+namespace MachinaTrader.Controllers
 {
     [Route("api/backtest/refresh")]
     public class BacktestRefresh : Controller

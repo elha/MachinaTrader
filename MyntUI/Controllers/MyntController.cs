@@ -8,12 +8,12 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Mynt.Core.Interfaces;
-using MyntUI.Models;
-using MyntUI.TradeManagers;
+using MachinaTrader.Models;
+using MachinaTrader.TradeManagers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace MyntUI.Controllers
+namespace MachinaTrader.Controllers
 {
 
     [Route("api/mynt/")]

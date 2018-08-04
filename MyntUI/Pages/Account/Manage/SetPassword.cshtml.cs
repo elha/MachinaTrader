@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace MyntUI.Pages.Account.Manage
+namespace MachinaTrader.Pages.Account.Manage
 {
     public class SetPasswordModel : PageModel
     {

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2000
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyntUI", "MyntUI\MyntUI.csproj", "{6501F0ED-7E57-4062-9E93-B9C2FDB768CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader", "MyntUI\MachinaTrader.csproj", "{6501F0ED-7E57-4062-9E93-B9C2FDB768CF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mynt.Core", "Mynt\src\Mynt.Core\Mynt.Core.csproj", "{FDFDC074-9420-4769-9B17-960498C32560}"
 EndProject
