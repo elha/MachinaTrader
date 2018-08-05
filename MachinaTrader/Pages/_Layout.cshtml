@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 
 <!--
-* MachinaTrader -
+* MachinaTrader
 * @@version v2.0.0
 * @@link https://github.com/LORDofDOOM/MachinaTrader
 * Copyright (c) 2018 Thiemo Borger
-* Licensed under MIT
 -->
 
 <html lang="en">
@@ -13,20 +12,23 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>MachinaTrader - Mynt Bot Admin Interface</title>
+    <title>MachinaTrader - Admin Interface</title>
     <!-- Icons-->
-    <link href="/vendors/@@coreui/icons/css/coreui-icons.min.css" rel="stylesheet">
-    <link href="/vendors/flag-icon-css/css/flag-icon.min.css" rel="stylesheet">
-    <link href="/vendors/@@fortawesome/fontawesome-free-webfonts/css/fontawesome.css" rel="stylesheet">
-    <link href="/vendors/@@fortawesome/fontawesome-free-webfonts/css/fa-regular.css" rel="stylesheet">
-    <link href="/vendors/@@fortawesome/fontawesome-free-webfonts/css/fa-brands.css" rel="stylesheet">
-    <link href="/vendors/@@fortawesome/fontawesome-free-webfonts/css/fa-solid.css" rel="stylesheet">
-    <link href="/vendors/bootstrap-touchspin/css/jquery.bootstrap-touchspin.min.css" rel="stylesheet">
-    
-    <link href="/vendors/simple-line-icons/css/simple-line-icons.css" rel="stylesheet">
-    <!-- Main styles for this application-->
-    <link href="/css/style.css" rel="stylesheet">
-    <link href="/vendors/select2/css/select2.min.css" rel="stylesheet" />
+    <link href="/vendors/@@coreui/icons/css/coreui-icons.min.css" rel="stylesheet" asp-append-version="true">
+    <link href="/css/fortawesome/css/fontawesome.css" rel="stylesheet" asp-append-version="true">
+    <link href="/css/fortawesome/css/fa-regular.css" rel="stylesheet" asp-append-version="true">
+    <link href="/css/fortawesome/css/fa-solid.css" rel="stylesheet" asp-append-version="true">
+    <link href="/css/fortawesome/css/fa-light.css" rel="stylesheet" asp-append-version="true">
+    <link href="/css/fortawesome/css/fa-brands.css" rel="stylesheet" asp-append-version="true">
+    <link href="/vendors/@@mdi/font/css/materialdesignicons.min.css" rel="stylesheet" asp-append-version="true">
+    <link href="/vendors/select2/css/select2.min.css" rel="stylesheet" asp-append-version="true">
+    <link href="/css/style.min.css" rel="stylesheet" asp-append-version="true">
+    <link href="/css/MachinaTrader-font/style.css" rel="stylesheet" asp-append-version="true">
+    <style>
+        .navbar a, .btn, button {
+            -webkit-app-region: no-drag;
+        }
+    </style>
 </head>
 
 <body class="app header-fixed sidebar-fixed aside-menu-fixed sidebar-lg-show">
@@ -42,16 +44,15 @@
             </div>
         </div>
 
-        <header class="app-header navbar">
+        <header class="app-header navbar" style="-webkit-app-region: drag">
             <button class="navbar-toggler sidebar-toggler d-lg-none mr-auto" type="button" data-toggle="sidebar-show">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <a class="navbar-brand" href="#">
-                <img class="navbar-brand-full" src="/img/mynt.png" height="25" alt="CoreUI Logo">&nbsp;&nbsp;MachinaTrader
-                <img class="navbar-brand-minimized" src="/img/mynt.png" width="30" height="30" alt="CoreUI Logo">
+                <i class="MachinaTrader-icon-logo" style="color: #fff;font-size: 30px;"></i><span class="navbar-brand-full" style="margin-right: 12px; margin-left: 12px;color: #fff;font-size: 1.4rem;">&nbsp;<b>Machina</b>Trader</span>
             </a>
             <button class="navbar-toggler sidebar-toggler d-md-down-none" type="button" data-toggle="sidebar-lg-show">
-                <span class="navbar-toggler-icon"></span>
+                <i class="far fa-bars"></i>
             </button>
             <ul class="nav navbar-nav d-md-down-none">
                 <li class="nav-item px-3">
@@ -73,81 +74,13 @@
             <button class="navbar-toggler aside-menu-toggler d-lg-none" type="button" data-toggle="aside-menu-show">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            <button id="min-btn" type="button" class="navbar-toggler electronControl" style="display: none;" onclick="remote.getCurrentWindow().minimize();"><i class="mdi mdi-window-minimize" style="vertical-align: bottom;"></i></button>
+            <button href="#" type="button" id="max-btn" class="navbar-toggler electronControl" style="display: none;" onclick="if (remote.getCurrentWindow().isMaximized()) {remote.getCurrentWindow().unmaximize()} else {remote.getCurrentWindow().maximize()};"><i class="mdi mdi-window-maximize"></i></button>
+            <button href="#" type="button" id="close-btn" class="navbar-toggler electronControl" style="display: none;" onclick="remote.getCurrentWindow().close();"><i class="mdi mdi-window-close"></i></button>
         </header>
         <div class="app-body">
             <div class="sidebar">
-                <nav class="sidebar-nav">
-                    <ul class="nav">
-                        <li class="navigationHeader">
-                            <partial name="_UserSidebar" />
-                            <!-- Sidebar user panel -->
-                            <!-- search form -->
-                            <form action="#" method="get" class="sidebar-search">
-                                <div class="input-group">
-                                    <input type="text" name="q" class="form-control" placeholder="Search...">
-                                    <span class="input-group-btn">
-                                        <button type="submit" name="search" id="search-btn" class="btn btn-flat">
-                                            <i class="fas fa-search"></i>
-                                        </button>
-                                    </span>
-                                </div>
-                            </form>
-                            <!-- /.search form -->
-                        </li>
-
-                        <li class="nav-title">MAIN NAVIGATION</li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/#/views/main.html">
-                                <i class="nav-icon fas fa-tachometer-alt"></i>
-                                <span>Dashboard</span>
-                                <span class="badge badge-primary">NEW</span>
-                            </a>
-                        </li>
-                        @*<li class="nav-item">
-                                <a class="nav-link" href="/#/views/Traders.html">
-                                    <i class="nav-icon fas fa-chart-line"></i>
-                                    <span>Traders</span>
-                                </a>
-                            </li>*@
-                        <li class="nav-item">
-                            <a class="nav-link" href="/#/views/Trades.html">
-                                <i class="nav-icon fas fa-chart-line"></i>
-                                <span>Trades</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/#/views/Backtester.html">
-                                <i class="nav-icon fas fa-list-ul"></i>
-                                <span>Backtester</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/#/views/TradingStats.html">
-                                <i class="nav-icon fas fa-chart-pie"></i>
-                                <span>Statistic</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/#/views/Logging.html">
-                                <i class="nav-icon fas fa-file-alt"></i>
-                                <span>Log</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/#/views/Configuration.html">
-                                <i class="nav-icon fas fa-file-alt"></i>
-                                <span>Configuration</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/Account/Manage">
-                                <i class="nav-icon fas fa-user-alt"></i>
-                                <span>User Account</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-                <button class="sidebar-minimizer brand-minimizer" type="button"></button>
+                <partial name="_SidebarNavigation" />
             </div>
             <main class="main">
                 <!-- Breadcrumb-->
@@ -177,52 +110,57 @@
                 </div>
             </main>
             <aside class="aside-menu">
-                <ul class="nav nav-tabs" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" data-toggle="tab" href="#timeline" role="tab">
-                            <i class="icon-list"></i>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-toggle="tab" href="#messages" role="tab">
-                            <i class="icon-speech"></i>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-toggle="tab" href="#settings" role="tab">
-                            <i class="icon-settings"></i>
-                        </a>
-                    </li>
-                </ul>
-                <!-- Tab panes-->
-                <div class="tab-content">
-                    <div class="tab-pane active" id="timeline" role="tabpanel">
-                    </div>
-                    <div class="tab-pane p-3" id="messages" role="tabpanel">
-                    </div>
-                    <div class="tab-pane p-3" id="settings" role="tabpanel">
-                    </div>
-                </div>
+                <partial name="_AsideMenu" />
             </aside>
         </div>
     </div>
 
     <!-- Bootstrap and necessary plugins-->
-    <script src="/js/global.js"></script>
-    <script src="/vendors/jquery/js/jquery.min.js"></script>
-    <script src="/vendors/axios/js/axios.min.js"></script>
-    <script src="/vendors/popper.js/js/popper.min.js"></script>
-    <script src="/vendors/bootstrap/js/bootstrap.min.js"></script>
-    <script src="/vendors/bootstrap-touchspin/js/jquery.bootstrap-touchspin.min.js"></script>
-    <script src="/vendors/select2/js/select2.min.js"></script>
-    <script src="/vendors/@@aspnet/signalr/js/signalr.min.js"></script>
-    <script src="/vendors/perfect-scrollbar/js/perfect-scrollbar.min.js"></script>
-    <script src="/vendors/@@coreui/coreui/js/coreui.min.js"></script>
-    <script src="/vendors/vue/js/vue.min.js"></script>
-    <script src="/js/form2js.js"></script>
+    <script>
+        //Check for electron Plugins
+        try {
+            window.nodeRequire = require;
+            //delete window.require;
+            //delete window.exports;
+            delete window.module;
+        } catch (e) {
+        };
+    </script>
+    <script src="/vendors/jquery/js/jquery.min.js" asp-append-version="true"></script>
+    <script src="/vendors/jquery-ui-dist/js/jquery-ui.min.js" asp-append-version="true"></script>
+    <script src="/vendors/axios/js/axios.min.js" asp-append-version="true"></script>
+    <script src="/vendors/popper.js/js/popper.min.js" asp-append-version="true"></script>
+    <script src="/vendors/bootstrap/js/bootstrap.min.js" asp-append-version="true"></script>
+    <script src="/vendors/select2/js/select2.min.js" asp-append-version="true"></script>
+    <script>
+        //Fix Pace interop with signalr
+        /*window.paceOptions = {
+            ajax: false,
+            restartOnRequestAfter: false
+        };*/
+    </script>
+    <script src="/vendors/@@aspnet/signalr/js/signalr.min.js" asp-append-version="true"></script>
+    <!--<script src="/vendors/pace-progress/js/pace.min.js" asp-append-version="true"></script>-->
+    <script src="/vendors/perfect-scrollbar/js/perfect-scrollbar.min.js" asp-append-version="true"></script>
+    <script src="/vendors/@@machinacore/machinacoreui/js/coreui.min.js" asp-append-version="true"></script>
+    <script src="/vendors/vue/js/vue.min.js" asp-append-version="true"></script>
+    <script src="/js/main.js" asp-append-version="true"></script>
 
     <script type="text/javascript">
         var isConnected = false;
+        //Resolve conflict in jQuery UI tooltip with Bootstrap tooltip
+        //$.widget.bridge('uibutton', $.ui.button);
+
+        //Use Remote if in Electron
+        try {
+            var remote = require('electron').remote; var app = require('electron');
+            $(document).ready(function () {
+                $('.electronControl').show();
+            });
+        } catch (e) {
+            console.log("Not running in MachinaTrader Interface (" + e + ")");
+        };
+
         let hubRoute = "/signalr/HubMainIndex";
         let protocol = new signalR.JsonHubProtocol();
         var options = {};
@@ -276,11 +214,13 @@
 
         reconnectSignalr();
 
+
         var vueMain = new Vue({
             el: '#wrapper',
 
             data: {
                 runtimeSettings: null,
+                navigationItems: null,
                 serverOnline: false
             },
 
@@ -291,20 +231,24 @@
             methods: {
                 fetchData: function () {
                     var self = this;
-                    $.get("/api/runtime", function (data) {
+                    $.get('/api/runtime', function (data) {
                         self.runtimeSettings = data;
+                        console.log("ready");
+                    });
+                    $.get('/api/core/navigation', function (data) {
+                        self.navigationItems = data;
+                        //Trigger active menu item after DOM is ready
                         self.$nextTick(function () {
                             $('#ui-view').ajaxLoad();
                         });
                     });
-                    //Trigger ajaxLoad
-                    //api/runtime
-
                 }
             }
         });
 
     </script>
     @RenderSection("Scripts", required: false)
+
 </body>
 </html>
+

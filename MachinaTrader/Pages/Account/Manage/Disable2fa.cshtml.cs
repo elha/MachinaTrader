@@ -1,25 +1,23 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MachinaTrader.Globals;
+using MachinaTrader.Globals.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging;
 
 namespace MachinaTrader.Pages.Account.Manage
 {
     public class Disable2faModel : PageModel
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly ILogger<Disable2faModel> _logger;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public Disable2faModel(
-            UserManager<IdentityUser> userManager,
-            ILogger<Disable2faModel> logger)
+            UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
-            _logger = logger;
         }
 
         [TempData]
@@ -55,7 +53,7 @@ namespace MachinaTrader.Pages.Account.Manage
                 throw new InvalidOperationException($"Unexpected error occurred disabling 2FA for user with ID '{_userManager.GetUserId(User)}'.");
             }
 
-            _logger.LogInformation("User with ID '{UserId}' has disabled 2fa.", _userManager.GetUserId(User));
+            Global.Logger.Information("User with ID '{UserId}' has disabled 2fa.", _userManager.GetUserId(User));
             StatusMessage = "2fa has been disabled. You can reenable 2fa when you setup an authenticator app";
             return RedirectToPage("./TwoFactorAuthentication");
         }

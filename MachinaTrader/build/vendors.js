@@ -6,6 +6,12 @@ const fs         = require('fs')
 const path       = require('path')
 const mkdirp     = require('mkdirp')
 const sh         = require('shelljs')
+const uglifyjs   = require('uglify-js');
+const cleancss   = require('clean-css');
+const { promisify } = require('util');
+
+const readFileAsync  = promisify(fs.readFile);
+const writeFileAsync = promisify(fs.writeFile)
 
 const basename   = path.basename
 const dirname    = path.dirname
@@ -86,10 +92,16 @@ const findVendors = () => {
 		  {
 			  jsFolderMatch.forEach((jsFileMatch) => {
 					//Prevent usage of cjs/esm/umd folder for js files if there are any
-					if (jsFileMatch.includes("/js/"))
+					if (jsFileMatch.includes("/dist/")) {
+					  src = jsFileMatch;
+					}
+					else if (jsFileMatch.includes("/js/"))
 					{
 						src = jsFileMatch;
 					}
+          else if (jsFileMatch.includes("/min/")) {
+            src = jsFileMatch;
+          }
 			  });			  
 		  }
 		  
@@ -137,10 +149,61 @@ const copyFiles = (files, dest) => {
     let dir
     file.filetype !== 'other' ? dir = resolve(dest, file.name, file.filetype) : dir = resolve(dest, file.name, dirname(file.src))
     mkdirp.sync(dir)
-    fs.createReadStream(file.absolute).pipe(fs.createWriteStream(resolve(dir, basename(file.src))))
+    if (fs.lstatSync(file.absolute).isDirectory()) {
+      console.log(`${file.absolute} is a directory, not a file - Ignore`)
+      return;
+    }
 
-    if (fs.existsSync(`${file.absolute}.map`)) {
-      fs.createReadStream(`${file.absolute}.map`).pipe(fs.createWriteStream(resolve(dir, `${basename(file.src)}.map`)))
+    // Copy Asserts - e.g. webfonts
+    if (file.filetype !== "js" && file.filetype !== "css") {
+      fs.createReadStream(file.absolute).pipe(fs.createWriteStream(resolve(dir, basename(file.src))))
+
+      if (fs.existsSync(`${file.absolute}.map`)) {
+        fs.createReadStream(`${file.absolute}.map`).pipe(fs.createWriteStream(resolve(dir, `${basename(file.src)}.map`)))
+      }
+    }
+
+    // Minify JS
+    if (file.filetype === "js") {
+      let options = {
+        mangle: {
+          toplevel: true,
+        },
+        nameCache: {}
+      };
+      let outputFile = resolve(dir, basename(file.src))
+      readFileAsync(file.absolute, { encoding: 'utf8' })
+        .then((text) => {
+          let minifiedJs = uglifyjs.minify(text, options);
+          writeFileAsync(outputFile, minifiedJs.code)
+            .catch((error) => {
+              console.log(error)
+            });
+        })
+        .catch((err) => {
+          console.log('ERROR:', err);
+        })
+    }
+
+    // Minify CSS
+    if (file.filetype === "css") {
+      let options = {
+        level: {
+          1: { specialComments: 0 }
+        }
+      }
+      let outputFile = resolve(dir, basename(file.src))
+      readFileAsync(file.absolute, { encoding: 'utf8' })
+        .then((text) => {
+          let minifiedCss = new cleancss(options).minify(text)
+          writeFileAsync(outputFile, minifiedCss.styles)
+            .catch((error) => {
+              console.log(error)
+            });
+        })
+        .catch((err) => {
+          console.log('ERROR:', err);
+        })
     }
   })
 }

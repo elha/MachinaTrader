@@ -1,26 +1,25 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using MachinaTrader.Globals;
+using MachinaTrader.Globals.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging;
 
 namespace MachinaTrader.Pages.Account
 {
     [AllowAnonymous]
     public class LoginWithRecoveryCodeModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly ILogger<LoginWithRecoveryCodeModel> _logger;
+        private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public LoginWithRecoveryCodeModel(SignInManager<IdentityUser> signInManager, ILogger<LoginWithRecoveryCodeModel> logger)
+        public LoginWithRecoveryCodeModel(SignInManager<ApplicationUser> signInManager)
         {
             _signInManager = signInManager;
-            _logger = logger;
         }
 
         [BindProperty]
@@ -70,17 +69,17 @@ namespace MachinaTrader.Pages.Account
                 
             if (result.Succeeded)
             {
-                _logger.LogInformation("User with ID '{UserId}' logged in with a recovery code.", user.Id);
+                Global.Logger.Information("User with ID '{UserId}' logged in with a recovery code.", user.Id);
                 return LocalRedirect(returnUrl ?? Url.Content("~/"));
             }
             if (result.IsLockedOut)
             {
-                _logger.LogWarning("User with ID '{UserId}' account locked out.", user.Id);
+                Global.Logger.Warning("User with ID '{UserId}' account locked out.", user.Id);
                 return RedirectToPage("./Lockout");
             }
             else
             {
-                _logger.LogWarning("Invalid recovery code entered for user with ID '{UserId}' ", user.Id);
+                Global.Logger.Warning("Invalid recovery code entered for user with ID '{UserId}' ", user.Id);
                 ModelState.AddModelError(string.Empty, "Invalid recovery code entered.");
                 return Page();
             }

@@ -1,25 +1,23 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MachinaTrader.Globals;
+using MachinaTrader.Globals.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging;
 
 namespace MachinaTrader.Pages.Account.Manage
 {
     public class GenerateRecoveryCodesModel : PageModel
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly ILogger<GenerateRecoveryCodesModel> _logger;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public GenerateRecoveryCodesModel(
-            UserManager<IdentityUser> userManager,
-            ILogger<GenerateRecoveryCodesModel> logger)
+            UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
-            _logger = logger;
         }
 
         [TempData]
@@ -64,7 +62,7 @@ namespace MachinaTrader.Pages.Account.Manage
             var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
             RecoveryCodes = recoveryCodes.ToArray();
 
-            _logger.LogInformation("User with ID '{UserId}' has generated new 2FA recovery codes.", userId);
+            Global.Logger.Information("User with ID '{UserId}' has generated new 2FA recovery codes.", userId);
             StatusMessage = "You have generated new recovery codes.";
             return RedirectToPage("./ShowRecoveryCodes");
         }

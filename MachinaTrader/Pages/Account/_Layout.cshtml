@@ -12,14 +12,14 @@
     <!-- Icons-->
     <link href="/vendors/@@coreui/icons/css/coreui-icons.min.css" rel="stylesheet">
     <link href="/vendors/flag-icon-css/css/flag-icon.min.css" rel="stylesheet">
-    <link href="/vendors/@@fortawesome/fontawesome-free-webfonts/css/fontawesome.css" rel="stylesheet">
-    <link href="/vendors/@@fortawesome/fontawesome-free-webfonts/css/fa-regular.css" rel="stylesheet">
-    <link href="/vendors/@@fortawesome/fontawesome-free-webfonts/css/fa-brands.css" rel="stylesheet">
-    <link href="/vendors/@@fortawesome/fontawesome-free-webfonts/css/fa-solid.css" rel="stylesheet">
-    <link href="/vendors/simple-line-icons/css/simple-line-icons.css" rel="stylesheet">
-    <link href="/css/pace.min.css" rel="stylesheet">
+    <link href="/css/fortawesome/css/fontawesome.css" rel="stylesheet" asp-append-version="true">
+    <link href="/css/fortawesome/css/fa-regular.css" rel="stylesheet" asp-append-version="true">
+    <link href="/css/fortawesome/css/fa-solid.css" rel="stylesheet" asp-append-version="true">
+    <link href="/css/fortawesome/css/fa-light.css" rel="stylesheet" asp-append-version="true">
+    <link href="/css/fortawesome/css/fa-brands.css" rel="stylesheet" asp-append-version="true">
     <!-- Main styles for this application-->
     <link href="/css/style.css" rel="stylesheet">
+    <link href="/css/MachinaTrader-font/style.css" rel="stylesheet">
 </head>
 <body class="app flex-row align-items-center">
     <partial name="_CookieConsentPartial" />
@@ -38,15 +38,8 @@
     <script src="/vendors/bootstrap/js/bootstrap.min.js"></script>
     <script src="/vendors/pace-progress/js/pace.min.js"></script>
     <script src="/vendors/perfect-scrollbar/js/perfect-scrollbar.min.js"></script>
-    <script src="/vendors/@@coreui/coreui/js/coreui.min.js"></script>
-    <script src="/vendors/vue/js/vue.min.js"></script>
-   
-    <script>
-        $('#ui-view').ajaxLoad();
-        $(document).ajaxComplete(function () {
-            Pace.restart()
-        });
-    </script>
+    <script src="/vendors/@@machinacore/machinacoreui/js/coreui.min.js"></script>
+
     @RenderSection("Scripts", required: false)
 </body>
 </html>

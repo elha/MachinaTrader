@@ -1,4 +1,6 @@
-@inject SignInManager<IdentityUser> SignInManager
+@using MachinaTrader.Globals.Models
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
 @{
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
 }
