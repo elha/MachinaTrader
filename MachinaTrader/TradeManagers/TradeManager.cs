@@ -381,7 +381,7 @@ namespace MachinaTrader.TradeManagers
                 }
 
                 // This calculates an advice for the next timestamp.
-                var advice = strategy.Forecast(candles, Global.Logger);
+                var advice = strategy.Forecast(candles);
 
                 return new TradeSignal
                 {

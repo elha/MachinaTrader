@@ -29,9 +29,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MachinaTrader.Globals\MachinaTrader.Globals.csproj" />
-    <ProjectReference Include="..\Mynt\src\Mynt.Core\Mynt.Core.csproj" />
-    <ProjectReference Include="..\Mynt\src\Mynt.Data.LiteDB\Mynt.Data.LiteDB.csproj" />
-    <ProjectReference Include="..\Mynt\src\Mynt.Data.MongoDB\Mynt.Data.MongoDB.csproj" />
+    <ProjectReference Include="..\Mynt.Core\Mynt.Core.csproj" />
+    <ProjectReference Include="..\Mynt.Data.LiteDB\Mynt.Data.LiteDB.csproj" />
+    <ProjectReference Include="..\Mynt.Data.MongoDB\Mynt.Data.MongoDB.csproj" />
   </ItemGroup>
 
 </Project>
