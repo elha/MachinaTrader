@@ -39,6 +39,44 @@
         </div>
     </div>
 
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fab fa-telegram"></i>Telegram Configuration
+                <div class="card-actions">
+                    <a href="#" class="btn-minimize" data-widget="collapse"><i class="fas fa-angle-up"></i></a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped">
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">TelegramChatId <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control string" name="TelegramOptions.TelegramChatId" v-bind:value="apiMainConfigData['telegramOptions']['telegramChatId']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="">TelegramBotToken <i class="help-icon fas fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                <p></p>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control string" name="TelegramOptions.TelegramBotToken" v-bind:value="apiMainConfigData['telegramOptions']['telegramBotToken']" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
     <div class="col-md-12" v-for="(exchangeValue, exchangeKey) in apiMainConfigData['exchangeOptions']">
         <div class="card">
             <div class="card-header">

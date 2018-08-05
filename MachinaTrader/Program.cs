@@ -1,10 +1,12 @@
+using MachinaTrader.Globals;
+
 namespace MachinaTrader
 {
     class Program
     {
         static void Main(string[] args)
         {
-            MachinaTrader.Globals.Global.InitGlobals();
+            Global.InitGlobals();
             RuntimeSettings.LoadSettings();
             WebApplication.ProcessInit();
         }

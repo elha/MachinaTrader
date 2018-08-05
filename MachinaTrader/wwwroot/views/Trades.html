@@ -12,7 +12,6 @@
     .bootbox > .modal-dialog {
         max-width: 500px;
     }
-
     .modal-dialog {
         max-width: 100%;
     }
@@ -89,13 +88,32 @@
     }
 </style>
 <div class="animated fadeIn" id="myntTrades">
+
     <div class="row" id="widgetBackendTester">
 
         <div class="col-md-12">
             <div class="card">
 
                 <div class="card-header">
-                    <i class="fas fa-history"></i>&nbsp;Active Trades
+                    <i class="fas fa-history"></i>&nbsp;Open Orders
+                </div>
+
+                <div class="card-body" id="openTradesTable">
+                    <table class="table table-striped p-0 table-hover" id="openTradesTableId"></table>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="widgetBackendTester">
+
+        <div class="col-md-12">
+            <div class="card">
+
+                <div class="card-header">
+                    <i class="fas fa-history"></i>&nbsp;Open Positions
                 </div>
 
                 <div class="card-body" id="activeTradesTable">
@@ -113,7 +131,7 @@
             <div class="card">
 
                 <div class="card-header">
-                    <i class="fas fa-history"></i>&nbsp;Closed Trades
+                    <i class="fas fa-history"></i>&nbsp;Closed Positions
                 </div>
 
                 <div class="card-body" id="closedTradesTable">
@@ -174,39 +192,146 @@
 
     function sellPosition(tradeId) {
         bootbox.confirm("Sell this position now ?", function (result) {
-            if (result == true) {
+            if (result === true) {
                 $.get("/api/mynt/trading/SellNow/" + tradeId, function () {
                 });
             };
         });
     }
 
-    var sellNow = function () {
-        bootbox.confirm("Sollen die markierten Datensätze wirklich gelöscht werden ?", function (result) {
-            if (result == true) {
-                $("#log").empty();
-                // Iterate over all checkboxes in the table
-                table.$('input[type="checkbox"]').each(function () {
-                    // If checkbox doesn't exist in DOM
-                    if (!$.contains(document, this)) {
-                        // If checkbox is checked
-                        if (this.checked) {
-                            // Create a hidden element
-                            $('#example').append(
-                                $('<input>')
-                                    .attr('type', 'hidden')
-                                    .attr('name', this.name)
-                                    .val(this.value)
-                            );
-                        }
-                    }
+    function cancelPosition(tradeId) {
+        bootbox.confirm("Cancel this position now ?", function (result) {
+            if (result === true) {
+                $.get("/api/mynt/trading/CancelOrder/" + tradeId, function () {
                 });
-                postFormData('erpsubmit', '/api/erp/deleteorder', false);
             };
         });
-    };
+    }
 
     $(document).ready(function () {
+        tableOpenTrades = $('#openTradesTableId').DataTable({
+            ajax: {
+                url: '/api/mynt/trading/OpenTrades',
+                dataSrc: ''
+            },
+            responsive: true,
+            "autoWidth": false,
+            "iDisplayLength": 100,
+            'columnDefs': [{
+                'targets': 0,
+                'searchable': true,
+                'orderable': true,
+                'className': 'dt-body-center'
+            }],
+            'order': [0, 'asc'],
+            "createdRow": function (row, data, dataIndex) {
+                if (parseFloat(((100 * data.tickerLast.last) / data.openRate) - 100).toFixed(2) > 0) $(row).addClass('greenCell');
+                if (parseFloat(((100 * data.tickerLast.last) / data.openRate) - 100).toFixed(2) < 0) $(row).addClass('redCell');
+            },
+            "columns": [
+                { "title": "ID", "mDataProp": "id", "bVisible": false },
+                {
+                    "title": "Market",
+                    "mDataProp": "market",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadTradingViewModal(\'/views/TradingViewWidget.html\', \'' + full.exchange + '\', \'' + full.market + '\')"><img style="height: 18px "src="/img/exchange/' + full.exchange + '.png" />&nbsp;' + full.globalSymbol + '</a>';
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "Type",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        if (full.isBuying) {
+                            formatted = '<i class="fal fa-hand-holding-usd"></i>&nbsp;&nbsp;Buy';
+                        }
+                        if (full.isSelling) {
+                            formatted = '<i class="fal fa-tag"></i>&nbsp;&nbsp;Sell';
+                        }
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "Quantity",
+                    "mDataProp": "quantity",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = parseFloat(full.quantity).toFixed(8);
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "Cost",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = parseFloat(full.openRate * full.quantity).toFixed(8);
+                        return formatted;
+                    },
+                    /*createdCell: function (td, cellData, rowData, row, col) {
+                        if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
+                        if (rowData.TotalProfit < 0) $(td).addClass('redCell');
+                    }*/
+                },
+                {
+                    "title": "Result",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = '';
+                        if (full.tickerLast !== null) {
+                            var formatted = parseFloat(((100 * full.tickerLast.last) / full.openRate) - 100).toFixed(2) + " %";
+                        }
+                        return formatted;
+                    },
+                    /*createdCell: function (td, cellData, rowData, row, col) {
+                        if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
+                        if (rowData.TotalProfit < 0) $(td).addClass('redCell');
+                    }*/
+                },
+                {
+                    "title": "Age",
+                    "mDataProp": "openDate",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var now = moment();
+                        var formatted = moment.duration(now.diff(full.openDate)).humanize();
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "Actions",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = '<span><a href="javascript:void(0)" class="btn btn-primary btn-sm" style="width: 40%;" id="status" onclick="cancelPosition(\'' + full.tradeId + '\')">Cancel</a>';
+                        formatted = formatted + '&nbsp;<a href="javascript:void(0)" class="btn btn-success btn-sm" style="width: 40%;" id="status" onclick="loadTradeModal(\'/views/TradesTradeModal.html\', \'' + full.tradeId + '\', true)">Info</a></span>';
+                        return formatted;
+                    }
+                }
+            ]
+        });
+
+
         table = $('#activeTradesTableId').DataTable({
             ajax: {
                 url: '/api/mynt/trading/ActiveTrades',
@@ -305,7 +430,15 @@
                     "sClass": "center",
                     responsivePriority: 2,
                     mRender: function (data, type, full, meta) {
-                        var formatted = '<span><a href="javascript:void(0)" class="btn btn-danger btn-sm" style="width: 40%;" id="status" onclick="sellPosition(\'' + full.tradeId + '\')">Sell now</a>';
+                        if (!full.isSelling && !full.isBuying) {
+                            var formatted = '<span><a href="javascript:void(0)" class="btn btn-danger btn-sm" style="width: 40%;" id="status" onclick="sellPosition(\'' + full.tradeId + '\')">Sell now</a>';
+                        }
+                        if (full.isSelling && !full.isBuying) {
+                            var formatted = '<i class="fal fa-tag"></i>&nbsp;&nbsp;Selling&nbsp;';
+                        }
+                        if (!full.isSelling && full.isBuying) {
+                            var formatted = '<i class="fal fa-hand-holding-usd"></i>&nbsp;&nbsp;Buying&nbsp;';
+                        }
                         formatted = formatted + '&nbsp;<a href="javascript:void(0)" class="btn btn-success btn-sm" style="width: 40%;" id="status" onclick="loadTradeModal(\'/views/TradesTradeModal.html\', \'' + full.tradeId + '\', true)">Info</a></span>';
                         return formatted;
                     }
@@ -329,8 +462,10 @@
             }],
             'order': [0, 'asc'],
             "createdRow": function (row, data, dataIndex) {
-                if (parseFloat(((100 * data.closeRate) / data.openRate) - 100).toFixed(2) > 0) $(row).addClass('greenCell');
-                if (parseFloat(((100 * data.closeRate) / data.openRate) - 100).toFixed(2) < 0) $(row).addClass('redCell');
+                if (data.sellOrderId !== null) {
+                    if (parseFloat(((100 * data.closeRate) / data.openRate) - 100).toFixed(2) > 0) $(row).addClass('greenCell');
+                    if (parseFloat(((100 * data.closeRate) / data.openRate) - 100).toFixed(2) < 0) $(row).addClass('redCell');
+                }
             },
             "columns": [
                 { "title": "ID", "mDataProp": "id", "bVisible": false },
@@ -369,8 +504,10 @@
                     responsivePriority: 2,
                     mRender: function (data, type, full, meta) {
                         var formatted = '';
-                        if (full.tickerLast !== null) {
+                        if (full.tickerLast !== null && full.sellOrderId !== null) {
                             var formatted = parseFloat(((100 * full.closeRate) / full.openRate) - 100).toFixed(2) + " %";
+                        } else {
+                            var formatted = "0%";
                         }
                         return formatted;
                     },
@@ -387,7 +524,31 @@
                     "sClass": "center",
                     responsivePriority: 2,
                     mRender: function (data, type, full, meta) {
-                        var formatted = full.sellType;
+                        var formatted = "";
+                        if (full.sellType === 0) {
+                            formatted = "None";
+                        }
+                        if (full.sellType === 1) {
+                            formatted = "StopLoss";
+                        }
+                        if (full.sellType === 2) {
+                            formatted = "TrailingStopLoss";
+                        }
+                        if (full.sellType === 3) {
+                            formatted = "TrailingStopLossUpdated";
+                        }
+                        if (full.sellType === 4) {
+                            formatted = "Timed";
+                        }
+                        if (full.sellType === 5) {
+                            formatted = "Immediate";
+                        }
+                        if (full.sellType === 6) {
+                            formatted = "Strategy";
+                        }
+                        if (full.sellType === 7) {
+                            formatted = "Cancelled";
+                        }
                         return formatted;
                     }
                 },
@@ -435,10 +596,6 @@
         el: '#myntTrades',
         parent: vueMain,
 
-        destroyed() {
-            console.log('destroyed pending')
-        },
-
         data: {
             activeTradesData: null,
             closedTradesData: null
@@ -455,7 +612,7 @@
         methods: {
             connectSignalr: function () {
                 var self = this;
-                let hubRoute = "/signalr/HubMyntTraders";
+                let hubRoute = "/signalr/HubTraders";
                 let protocol = new signalR.JsonHubProtocol();
                 var options = {};
 

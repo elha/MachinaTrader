@@ -1,47 +1,38 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using LazyCache;
-using Microsoft.AspNetCore.Builder;
+using MachinaTrader.Globals;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Mynt.Core.Enums;
 using Mynt.Core.Exchanges;
 using Mynt.Core.Interfaces;
 using Mynt.Core.Models;
 using Mynt.Core.Notifications;
-using Mynt.Core.Strategies;
 using Mynt.Data.LiteDB;
 using Mynt.Data.MongoDB;
 using MachinaTrader.Helpers;
 using MachinaTrader.Hubs;
 using MachinaTrader.Models;
-using MachinaTrader.TradeManagers;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Quartz;
 using Quartz.Impl;
+using MachinaTrader.Globals.Helpers;
 
 namespace MachinaTrader
 {
     public static class Runtime
     {
-        public static IApplicationBuilder GlobalApplicationBuilder;
-        public static IServiceScope GlobalServiceScope { get; set; }
         public static IConfiguration GlobalConfiguration { get; set; }
         public static IDataStore GlobalDataStore { get; set; }
         public static IDataStoreBacktest GlobalDataStoreBacktest { get; set; }
         public static IExchangeApi GlobalExchangeApi { get; set; }
         public static IAppCache AppCache { get; set; }
-        public static ILoggerFactory GlobalLoggerFactory { get; set; }
         public static CancellationToken GlobalTimerCancellationToken = new CancellationToken();
         public static IHubContext<HubTraders> GlobalHubMyntTraders;
         public static IHubContext<HubStatistics> GlobalHubMyntStatistics;
@@ -50,12 +41,10 @@ namespace MachinaTrader
         public static RuntimeConfig RuntimeSettings = new RuntimeConfig();
         public static IScheduler QuartzTimer = new StdSchedulerFactory().GetScheduler().Result;
         public static TelegramNotificationOptions GlobalTelegramNotificationOptions { get; set; }
-        public static ILogger TradeLogger;
         public static List<INotificationManager> NotificationManagers;
         public static OrderBehavior GlobalOrderBehavior;
         public static ConcurrentDictionary<string, Ticker> WebSocketTickers = new ConcurrentDictionary<string, Ticker>();
         public static MainConfig Configuration { get; set; }
-        public static string ConfigFilePath = "MainConfig.json";
 
         public static List<string> GlobalCurrencys = new List<string>();
         public static List<string> ExchangeCurrencys = new List<string>();
@@ -68,11 +57,6 @@ namespace MachinaTrader
     {
         public async static void Init()
         {
-
-            ILogger Log = Runtime.GlobalLoggerFactory.CreateLogger<RuntimeSettings>();
-
-            Runtime.TradeLogger = Runtime.GlobalLoggerFactory.CreateLogger<TradeManager>();
-
             Runtime.GlobalOrderBehavior = OrderBehavior.AlwaysFill;
 
             Runtime.NotificationManagers = new List<INotificationManager>()
@@ -83,7 +67,7 @@ namespace MachinaTrader
 
             if (Runtime.Configuration.SystemOptions.Database == "MongoDB")
             {
-                Log.LogInformation("Database set to MongoDB");
+                Global.Logger.Information("Database set to MongoDB");
                 MongoDBOptions databaseOptions = new MongoDBOptions();
                 Runtime.GlobalDataStore = new MongoDBDataStore(databaseOptions);
                 MongoDBOptions backtestDatabaseOptions = new MongoDBOptions();
@@ -91,18 +75,18 @@ namespace MachinaTrader
             }
             else
             {
-                Log.LogInformation("Database set to LiteDB");
-                LiteDBOptions databaseOptions = new LiteDBOptions();
+                Global.Logger.Information("Database set to LiteDB");
+                LiteDBOptions databaseOptions = new LiteDBOptions { LiteDBName = Global.DataPath + "/MachinaTrader.db" };
                 Runtime.GlobalDataStore = new LiteDBDataStore(databaseOptions);
-                LiteDBOptions backtestDatabaseOptions = new LiteDBOptions();
+                LiteDBOptions backtestDatabaseOptions = new LiteDBOptions { LiteDBName = Global.DataPath + "/MachinaTrader.db" };
                 Runtime.GlobalDataStoreBacktest = new LiteDBDataStoreBacktest(backtestDatabaseOptions);
             }
 
             // Global Hubs
-            Runtime.GlobalHubMyntTraders = Runtime.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubTraders>>();
-            Runtime.GlobalHubMyntStatistics = Runtime.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubStatistics>>();
-            Runtime.GlobalHubMyntLogs = Runtime.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubLogs>>();
-            Runtime.GlobalHubMyntBacktest = Runtime.GlobalServiceScope.ServiceProvider.GetService<IHubContext<HubBacktest>>();
+            Runtime.GlobalHubMyntTraders = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubTraders>>();
+            Runtime.GlobalHubMyntStatistics = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubStatistics>>();
+            Runtime.GlobalHubMyntLogs = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubLogs>>();
+            Runtime.GlobalHubMyntBacktest = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubBacktest>>();
 
             //Run Cron
             IScheduler scheduler = Runtime.QuartzTimer;
@@ -132,8 +116,8 @@ namespace MachinaTrader
             await scheduler.ScheduleJob(sellTimerJob, sellTimerJobTrigger);
 
             await scheduler.Start();
-            Log.LogInformation($"Buy Cron will run at: {buyTimerJobTrigger.GetNextFireTimeUtc() ?? DateTime.MinValue:r}");
-            Log.LogInformation($"Sell Cron will run at: {sellTimerJobTrigger.GetNextFireTimeUtc() ?? DateTime.MinValue:r}");
+            Global.Logger.Information($"Buy Cron will run at: {buyTimerJobTrigger.GetNextFireTimeUtc() ?? DateTime.MinValue:r}");
+            Global.Logger.Information($"Sell Cron will run at: {sellTimerJobTrigger.GetNextFireTimeUtc() ?? DateTime.MinValue:r}");
         }
 
         public static void LoadSettings()
@@ -146,22 +130,24 @@ namespace MachinaTrader
             var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(settingsStr, optional: true);
             Runtime.GlobalConfiguration = builder.Build();
 
-            if (!File.Exists(Runtime.ConfigFilePath))
+            if (!File.Exists(Global.DataPath + "/MainConfig.json"))
             {
                 //Init Global Config with default currency array
-                Runtime.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), "MainConfig.json").ToObject<MainConfig>();
+                Runtime.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), Global.DataPath + "/MainConfig.json").ToObject<MainConfig>();
                 Runtime.Configuration.TradeOptions.MarketBlackList = new List<string> { };
                 Runtime.Configuration.TradeOptions.OnlyTradeList = new List<string> { "ETHBTC", "LTCBTC" };
                 Runtime.Configuration.TradeOptions.AlwaysTradeList = new List<string> { "ETHBTC", "LTCBTC" };
-                var defaultExchangeOptions = new ExchangeOptions();
-                defaultExchangeOptions.Exchange = Exchange.Binance;
-                defaultExchangeOptions.ApiKey = "";
-                defaultExchangeOptions.ApiSecret = "";
+                var defaultExchangeOptions = new ExchangeOptions
+                {
+                    Exchange = Exchange.Binance,
+                    ApiKey = "",
+                    ApiSecret = ""
+                };
                 Runtime.Configuration.ExchangeOptions.Add(defaultExchangeOptions);
-                Runtime.Configuration = MergeObjects.MergeCsDictionaryAndSave(Runtime.Configuration, "MainConfig.json", JObject.FromObject(Runtime.Configuration)).ToObject<MainConfig>();
-
+                Runtime.Configuration = MergeObjects.MergeCsDictionaryAndSave(Runtime.Configuration, Global.DataPath + "/MainConfig.json", JObject.FromObject(Runtime.Configuration)).ToObject<MainConfig>();
             }
             else
+
             {
 
                 Runtime.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), "MainConfig.json").ToObject<MainConfig>();
@@ -202,7 +188,7 @@ namespace MachinaTrader
                 fullApi.GetTickersWebSocket(OnWebsocketTickersUpdated);
 
             // Telegram Notifications
-            Runtime.GlobalTelegramNotificationOptions = Runtime.GlobalConfiguration.GetSection("Telegram").Get<TelegramNotificationOptions>();
+            Runtime.GlobalTelegramNotificationOptions = Runtime.Configuration.TelegramOptions;
         }
 
 

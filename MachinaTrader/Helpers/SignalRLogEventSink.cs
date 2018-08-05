@@ -21,8 +21,7 @@ namespace MachinaTrader.Helpers
             if (logEvent.Level < LogEventLevel.Information)
                 return;
 
-            LogEventPropertyValue dd;
-            if (logEvent.Properties.TryGetValue("RequestPath", out dd))
+            if (logEvent.Properties.TryGetValue("RequestPath", out var dd))
             {
                 if (dd.ToString().StartsWith("\"/signalr/"))
                     return;
