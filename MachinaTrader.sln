@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mynt.Data.LiteDB", "Mynt.Da
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mynt.Data.MongoDB", "Mynt.Data.MongoDB\Mynt.Data.MongoDB.csproj", "{3FAE6CD1-FC79-4AC5-AA76-89718D4C41DE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Plugin.Sample", "MachinaTrader.Plugin.Sample\MachinaTrader.Plugin.Sample.csproj", "{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{3FAE6CD1-FC79-4AC5-AA76-89718D4C41DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3FAE6CD1-FC79-4AC5-AA76-89718D4C41DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3FAE6CD1-FC79-4AC5-AA76-89718D4C41DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
