@@ -125,7 +125,7 @@ if BuildCreateInstaller:
     if not os.path.isfile(GlobalSourceFolder + "/BuildRelease/MachinaCore.comAppInstaller/PortableApps.comInstaller.exe"):
         print("Warning Build Tools dont exist - Downloading")
         os.chdir(GlobalSourceFolder + "/BuildRelease")
-        os.system('git clone https://github.com/MachinaCore/MachinaCore.comAppInstaller MachinaCore.comAppInstaller')
+        os.system('git clone https://github.com/MachinaCore/MachinaCore.comAppInstaller.git ' + GlobalScriptPath + "/BuildRelease/AppInstaller")
 
     os.chdir(GlobalScriptPath)
 
@@ -138,4 +138,4 @@ if BuildCreateInstaller:
     # Make sure data folder is deleted for release
     shutil.rmtree(GlobalReleasePath + "/App/Data", ignore_errors=True)
 
-    os.system(GlobalSourceFolder + '/BuildRelease/MachinaCore.comAppInstaller/PortableApps.comInstaller.exe "'+ GlobalReleasePath.replace("/","\\") + '"')
+    os.system(GlobalSourceFolder + '/BuildRelease/AppInstaller/PortableApps.comInstaller.exe "'+ GlobalReleasePath.replace("/","\\") + '"')
