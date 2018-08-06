@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ExchangeSharp;
+using MachinaTrader.Globals;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Mynt.Core.Enums;
 using Mynt.Core.Extensions;
@@ -89,7 +91,7 @@ namespace Mynt.Core.Exchanges
                     break;
                 case Exchange.Kucoin:
                     _api = new ExchangeSharp.ExchangeKucoinAPI();
-                    break;               
+                    break;
             }
 
             _api.LoadAPIKeysUnsecure(options.ApiKey, options.ApiSecret, options.PassPhrase);
@@ -477,13 +479,20 @@ namespace Mynt.Core.Exchanges
         {
             var summaries = new List<Models.MarketSummary>();
 
-#warning TODO: cache GetSymbolsMetadataAsync is unuseful call
-            //var symbols = Runtime.AppCache.GetOrAdd("markets", async (a) => await _api.GetSymbolsMetadataAsync());
-            //if (symbols.Result.Count() == 0)
-            //    throw new Exception();
+            var symbolsCacheKey = this.GetFullApi().Result.Name + "Markets";
+            var symbols = await Global.AppCache.GetAsync<IEnumerable<ExchangeMarket>>("symbolsCacheKey");
+            if (symbols == null || symbols.Any())
+            {
+                symbols = await _api.GetSymbolsMetadataAsync();
+                Global.AppCache.Add(symbolsCacheKey, symbols, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpiration = DateTimeOffset.Now.AddHours(1),
+                });
+            }
 
-            var symbols = await _api.GetSymbolsMetadataAsync();
-
+            if (symbols.Count() == 0)
+                throw new Exception();
+           
             var list = await _api.GetSymbolsAsync();
             var filteredList = list.Where(x => x.ToLower().EndsWith(quoteCurrency.ToLower(), StringComparison.Ordinal));
 

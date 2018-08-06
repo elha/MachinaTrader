@@ -32,7 +32,6 @@ namespace MachinaTrader
         public static IDataStore GlobalDataStore { get; set; }
         public static IDataStoreBacktest GlobalDataStoreBacktest { get; set; }
         public static IExchangeApi GlobalExchangeApi { get; set; }
-        public static IAppCache AppCache { get; set; }
         public static CancellationToken GlobalTimerCancellationToken = new CancellationToken();
         public static IHubContext<HubTraders> GlobalHubMyntTraders;
         public static IHubContext<HubStatistics> GlobalHubMyntStatistics;

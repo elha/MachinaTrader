@@ -160,14 +160,11 @@ namespace MachinaTrader.SimulationExchanges
 
         protected override async Task<IEnumerable<ExchangeMarket>> OnGetSymbolsMetadataAsync()
         {
-#warning TODO: introduce -portable- cache
-            //var markets =  Runtime.AppCache.GetOrAdd("markets", async (a) => await _realApi.GetSymbolsMetadataAsync());
-            //if (markets.Result.Count() == 0)
-            //    throw new Exception();
+            var markets =  Global.AppCache.GetOrAdd("gdaxMarkets", async (a) => await _realApi.GetSymbolsMetadataAsync());
+            if (markets.Result.Count() == 0)
+                throw new Exception();
 
-            var markets = await _realApi.GetSymbolsMetadataAsync();
-
-            return markets;
+            return markets.Result;
         }
 
         private ExchangeMarket GetExchangeMarkets()
