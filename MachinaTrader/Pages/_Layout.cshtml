@@ -222,7 +222,7 @@
             methods: {
                 fetchData: function () {
                     var self = this;
-                    $.get('/api/runtime', function (data) {
+                    $.get('/api/config/runtime', function (data) {
                         self.runtimeSettings = data;
                         console.log("ready");
                     });
