@@ -4,9 +4,23 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using MachinaTrader.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MachinaTrader.Controllers
 {
+    [Authorize, Route("api/logging/")]
+    public class ApiLogging : Controller
+    {
+        [HttpGet]
+        [Route("logs")]
+        public IActionResult Logs()
+        {
+            var log = Log.ReadTail("Logs/Mynt-" + DateTime.Now.ToString("yyyyMMdd") + ".log", 500);
+            return new JsonResult(log);
+        }
+    }
+
     public class Log
     {
         /// <summary>

@@ -6,18 +6,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using MachinaTrader.Models;
 using ExchangeSharp;
+using Microsoft.AspNetCore.Authorization;
 using Mynt.Core.Enums;
 using Newtonsoft.Json.Linq;
 
 namespace MachinaTrader.Controllers
 {
 
-    [Route("api/mynt/")]
+    [Authorize, Route("api/trading/")]
     public class MyntApiController : Controller
     {
         [HttpGet]
-        [Route("trading/GetExchangePairsExchangeSymbols")]
-        public async Task<ActionResult> Get(string exchange)
+        [Route("exchangePairsExchangeSymbols")]
+        public async Task<ActionResult> ExchangePairsExchangeSymbols(string exchange)
         {
             JArray symbolArray = new JArray();
             IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
@@ -30,7 +31,7 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
-        [Route("trading/GetBalance")]
+        [Route("balance")]
         public async Task<IActionResult> GetBalance()
         {
             var fullApi = Runtime.GlobalExchangeApi.GetFullApi().Result;
@@ -39,7 +40,7 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
-        [Route("trading/GetHistory")]
+        [Route("history")]
         public async Task<IActionResult> GetHistory()
         {
             var fullApi = Runtime.GlobalExchangeApi.GetFullApi().Result;
@@ -48,7 +49,7 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
-        [Route("trading/Trade/{tradeId}")]
+        [Route("trade/{tradeId}")]
         public async Task<IActionResult> TradingTrade(string tradeId)
         {
             var activeTrade = await Runtime.GlobalDataStore.GetActiveTradesAsync();
@@ -63,7 +64,7 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
-        [Route("trading/GetWebSocketValues")]
+        [Route("webSocketValues")]
         public IActionResult GetWebSocketValues()
         {
             return new JsonResult(Runtime.WebSocketTickers);
@@ -71,7 +72,7 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
-        [Route("trading/SellNow/{tradeId}")]
+        [Route("sellNow/{tradeId}")]
         public async Task TradingSellNow(string tradeId)
         {
             var activeTrade = await Runtime.GlobalDataStore.GetActiveTradesAsync();
@@ -94,7 +95,7 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
-        [Route("trading/CancelOrder/{tradeId}")]
+        [Route("cancelOrder/{tradeId}")]
         public async Task TradingCancelOrder(string tradeId)
         {
             var activeTrade = await Runtime.GlobalDataStore.GetActiveTradesAsync();
@@ -133,7 +134,7 @@ namespace MachinaTrader.Controllers
 
 
         [HttpGet]
-        [Route("trading/Hold/{tradeId}/{holdBoolean}")]
+        [Route("hold/{tradeId}/{holdBoolean}")]
         public async Task TradingHold(string tradeId, bool holdBoolean)
         {
             var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
@@ -149,7 +150,7 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
-        [Route("trading/SellOnProfit/{tradeId}/{profitPercentage}")]
+        [Route("sellOnProfit/{tradeId}/{profitPercentage}")]
         public async Task TradingSellOnProfit(string tradeId, decimal profitPercentage)
         {
             var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
@@ -167,7 +168,7 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
-        [Route("trading/TradersTester")]
+        [Route("tradersTester")]
         public IActionResult MyntTradersTester()
         {
             JObject testJson = JObject.Parse(System.IO.File.ReadAllText("wwwroot/views/mynt_traders.json"));
@@ -175,7 +176,7 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
-        [Route("trading/Traders")]
+        [Route("traders")]
         public async Task<IActionResult> Traders()
         {
             var traders = await Runtime.GlobalDataStore.GetTradersAsync();
@@ -183,7 +184,7 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
-        [Route("trading/ActiveTradesWithTrader")]
+        [Route("activeTradesWithTrader")]
         public async Task<IActionResult> GetActiveTradesWithTrader()
         {
             // Get trades
@@ -201,7 +202,7 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
-        [Route("trading/ActiveTrades")]
+        [Route("activeTrades")]
         public async Task<IActionResult> GetActiveTrades()
         {
             // Get trades
@@ -210,7 +211,7 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
-        [Route("trading/OpenTrades")]
+        [Route("openTrades")]
         public async Task<IActionResult> GetOpenTrades()
         {
             // Get trades
@@ -219,7 +220,7 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
-        [Route("trading/ClosedTrades")]
+        [Route("closedTrades")]
         public async Task<IActionResult> GetClosedTrades()
         {
             // Get trades
@@ -228,7 +229,7 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
-        [Route("trading/statistics")]
+        [Route("statistics")]
         public async Task<IActionResult> Statistics()
         {
             // Create Statistic model
@@ -264,16 +265,5 @@ namespace MachinaTrader.Controllers
             return new JsonResult(ViewBag);
         }
 
-        /// <summary>
-        /// Logs
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet]
-        [Route("logs")]
-        public IActionResult Logs()
-        {
-            var log = Log.ReadTail("Logs/Mynt-" + DateTime.Now.ToString("yyyyMMdd") + ".log", 500);
-            return new JsonResult(log);
-        }
     }
 }

@@ -473,18 +473,18 @@
         /*$('#apiMainConfig').find(':input').each(function () {
             $(this).on("propertychange, change, keyup, paste, input", function () {
                 event.preventDefault();
-                postFormData("apiMainConfig", "/api/core/config/mainconfig", false);
+                postFormData("apiMainConfig", "/api/config/mainConfig", false);
             });
             $(this).on('ifChanged', function (event) {
                 event.preventDefault();
-                postFormData("apiMainConfig", "/api/core/config/mainconfig", false);
+                postFormData("apiMainConfig", "/api/config/mainConfig", false);
             });
         });
 
         $('#apiMainConfig').find(':input[type=checkbox]').each(function () {
             $(this).change(function () {
                 event.preventDefault();
-                postFormData("apiMainConfig", "/api/core/config/mainconfig", false);
+                postFormData("apiMainConfig", "/api/config/mainConfig", false);
             });
         });*/
 
@@ -527,7 +527,7 @@
 
         methods: {
             serializeForm: function () {
-                postFormData("apiMainConfig", "/api/core/config/mainconfig", false);
+                postFormData("apiMainConfig", "/api/config/mainConfig", false);
             },
             isBool: function (data) {
                 if ((typeof (data) === "boolean")) {
@@ -546,11 +546,11 @@
                 var self = this;
 
 
-                $.get('/api/core/config/mainconfig', function (data) {
+                $.get('/api/config/mainConfig', function (data) {
                     self.apiMainConfigData = data;
-                    $.get('/api/trading/backtesterStrategy', function (data) {
+                    $.get('/api/backtester/backtesterStrategy', function (data) {
                         self.allStrategiesData = data;
-                        $.get('/api/mynt/trading/GetExchangePairsExchangeSymbols?exchange=Binance', function (data) {
+                        $.get('/api/trading/exchangePairsExchangeSymbols?exchange=Binance', function (data) {
                             self.exchangeCoinsData = data;
                             self.$nextTick(function () {
                                 pagefunction();

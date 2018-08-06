@@ -298,6 +298,7 @@ __pycache__/
 MachinaTrader.db
 MachinaTraderAuth.db
 MachinaTrader/Data
+MachinaTrader/MachinaTrader.csproj.bak
 
 package-lock.json
 appsettings.overrides.json

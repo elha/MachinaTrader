@@ -246,7 +246,7 @@ path.line { fill: none; }
                                 .attr("class", "y axis")
                                 .call(yAxis2);
 
-                            var url = '/api/trading/backtest/gettickers?exchange=' + widgetSignalsModalModal.exchange + '&coinsToBuy=' + widgetSignalsModalModal.market + '&candleSize=' + widgetSignalsModalModal.candleSize + '&strategy=' + widgetSignalsModalModal.tradingStrategy + '';
+                            var url = '/api/backtester/getTickers?exchange=' + widgetSignalsModalModal.exchange + '&coinsToBuy=' + widgetSignalsModalModal.market + '&candleSize=' + widgetSignalsModalModal.candleSize + '&strategy=' + widgetSignalsModalModal.tradingStrategy + '';
 
                             $.getJSON(url, null, function (data) {
 
@@ -278,7 +278,7 @@ path.line { fill: none; }
                                     };
                                 }).sort(function (a, b) { return d3.ascending(macdAccessor.d(a), macdAccessor.d(b)); });
 
-                                var url2 = '/api/trading/backtest/getsignals?exchange=' + widgetSignalsModalModal.exchange + '&coinsToBuy=' + widgetSignalsModalModal.market + '&candleSize=' + widgetSignalsModalModal.candleSize + '&strategy=' + widgetSignalsModalModal.tradingStrategy + '';
+                                var url2 = '/api/backtester/getSignals?exchange=' + widgetSignalsModalModal.exchange + '&coinsToBuy=' + widgetSignalsModalModal.market + '&candleSize=' + widgetSignalsModalModal.candleSize + '&strategy=' + widgetSignalsModalModal.tradingStrategy + '';
 
                                 $.getJSON(url2, null, function (signals) {
                                     var trades = signals.map(function (d) {

@@ -108,7 +108,7 @@
     $(document).ready(function () {
         table = $('#logsTableId').DataTable({
             ajax: {
-                url: '/api/mynt/logs/',
+                url: '/api/logging/logs/',
                 dataSrc: ''
             },
             responsive: true,
@@ -219,7 +219,7 @@
                 connection.on('Send', function (msg) {
                     console.log("Msg from signalR: " + msg);
 
-                    table.ajax.url('/api/mynt/logs').load();
+                    table.ajax.url('/api/logging/logs').load();
                     //self.updateData();
                 });
 
@@ -239,7 +239,7 @@
 
             fetchData: function () {
                 var self = this;
-                $.get("/api/mynt/logs", function (data) {
+                $.get("/api/logging/logs", function (data) {
                     self.myntLogsData = data;
                     self.$nextTick(function () {
                         pagefunction();
@@ -247,7 +247,7 @@
                 });
             },
             updateData: function () {
-                $.get("/api/mynt/logs", function (data) {
+                $.get("/api/logging/logs", function (data) {
                     self.myntLogsData = data;
                 });
             },

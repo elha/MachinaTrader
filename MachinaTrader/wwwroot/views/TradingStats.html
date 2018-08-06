@@ -185,7 +185,7 @@
 
             fetchData: function () {
                 var self = this;
-                $.get("/api/mynt/trading/statistics/", function (data) {
+                $.get("/api/trading/statistics/", function (data) {
                     self.myntStatisticsData = data;
                     self.$nextTick(function () {
                         pagefunction();
@@ -194,7 +194,7 @@
             },
             updateData: function () {
                 var self = this;
-                $.get("/api/mynt/trading/statistics/", function (data) {
+                $.get("/api/trading/statistics/", function (data) {
                     self.myntStatisticsData = data;
                 });
             },

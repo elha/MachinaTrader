@@ -193,7 +193,7 @@
     function sellPosition(tradeId) {
         bootbox.confirm("Sell this position now ?", function (result) {
             if (result === true) {
-                $.get("/api/mynt/trading/SellNow/" + tradeId, function () {
+                $.get("/api/trading/sellNow/" + tradeId, function () {
                 });
             };
         });
@@ -202,7 +202,7 @@
     function cancelPosition(tradeId) {
         bootbox.confirm("Cancel this position now ?", function (result) {
             if (result === true) {
-                $.get("/api/mynt/trading/CancelOrder/" + tradeId, function () {
+                $.get("/api/trading/cancelOrder/" + tradeId, function () {
                 });
             };
         });
@@ -211,7 +211,7 @@
     $(document).ready(function () {
         tableOpenTrades = $('#openTradesTableId').DataTable({
             ajax: {
-                url: '/api/mynt/trading/OpenTrades',
+                url: '/api/trading/openTrades',
                 dataSrc: ''
             },
             responsive: true,
@@ -334,7 +334,7 @@
 
         table = $('#activeTradesTableId').DataTable({
             ajax: {
-                url: '/api/mynt/trading/ActiveTrades',
+                url: '/api/trading/activeTrades',
                 dataSrc: ''
             },
             responsive: true,
@@ -448,7 +448,7 @@
 
         tableClosedTrades = $('#closedTradesTableId').DataTable({
             ajax: {
-                url: '/api/mynt/trading/ClosedTrades',
+                url: '/api/trading/closedTrades',
                 dataSrc: ''
             },
             responsive: true,
@@ -644,8 +644,8 @@
                 connection.on('Send', function (msg) {
                     console.log("Msg from signalR: " + msg);
 
-                    table.ajax.url('/api/mynt/trading/ActiveTrades').load();
-                    tableClosedTrades.ajax.url('/api/mynt/trading/ClosedTrades').load();
+                    table.ajax.url('/api/trading/activeTrades').load();
+                    tableClosedTrades.ajax.url('/api/trading/closedTrades').load();
                     //self.updateData();
                 });
 
@@ -665,9 +665,9 @@
 
             fetchData: function () {
                 var self = this;
-                $.get("/api/mynt/trading/ActiveTrades", function (activeTradeData) {
+                $.get("/api/trading/activeTrades", function (activeTradeData) {
                     self.activeTradesData = activeTradeData;
-                    $.get("/api/mynt/trading/ClosedTrades", function (closedTradeData) {
+                    $.get("/api/trading/closedTrades", function (closedTradeData) {
                         self.closedTradesData = closedTradeData;
                         self.$nextTick(function () {
                             pagefunction();
@@ -676,9 +676,9 @@
                 });
             },
             updateData: function () {
-                $.get("/api/mynt/trading/ActiveTrades", function (activeTradeData) {
+                $.get("/api/trading/activeTrades", function (activeTradeData) {
                     self.activeTradesData = activeTradeData;
-                    $.get("/api/mynt/trading/ClosedTrades", function (closedTradeData) {
+                    $.get("/api/trading/closedTrades", function (closedTradeData) {
                         self.closedTradesData = closedTradeData;
                     });
                 });

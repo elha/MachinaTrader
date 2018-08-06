@@ -303,20 +303,20 @@
             sellPosition(tradeId) {
                 bootbox.confirm("Sell this position now ?", function (result) {
                     if (result === true) {
-                        $.get("/api/mynt/trading/SellNow/" + tradeId, function () {
+                        $.get("/api/trading/sellNow/" + tradeId, function () {
                         });
                     };
                 });
             },
             setPercentagePosition(tradeId) {
-                $.get("/api/mynt/trading/SellOnProfit/" + tradeId + "/" + $('#percentage_profit').val(), function () {
+                $.get("/api/trading/sellOnProfit/" + tradeId + "/" + $('#percentage_profit').val(), function () {
                 });
             },
             setHoldPosition(tradeId) {
                 if ($('#hold_position').is(':checked')) {
-                    $.get("/api/mynt/trading/Hold/" + tradeId + "/true", function () { });
+                    $.get("/api/trading/hold/" + tradeId + "/true", function () { });
                 } else {
-                    $.get("/api/mynt/trading/Hold/" + tradeId + "/false", function () { });
+                    $.get("/api/trading/hold/" + tradeId + "/false", function () { });
                 }
 
             },
@@ -333,7 +333,7 @@
             },
             fetchData: function () {
                 var self = this;
-                $.get('/api/mynt/trading/Trade/' + tradeId, function (data) {
+                $.get('/api/trading/trade/' + tradeId, function (data) {
                     self.trade = data;
                     self.sellOnPercentage = data.sellOnPercentage;
                     self.$nextTick(function () {

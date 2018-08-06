@@ -19,17 +19,18 @@ using Newtonsoft.Json.Linq;
 
 namespace MachinaTrader.Controllers
 {
-    [Route("api/backtest/refresh")]
-    public class BacktestRefresh : Controller
+    [Authorize, Route("api/backtester/")]
+    public class ApiBacktester : Controller
     {
         [HttpGet]
-        public async Task<string> Get(string exchange, string coinsToBuy, string candleSize = "5")
+        [Route("refresh")]
+        public async Task<string> Refresh(string exchange, string coinsToBuy, string candleSize = "5")
         {
             BacktestOptions backtestOptions = new BacktestOptions
             {
                 DataFolder = Global.DataPath,
-                Exchange = (Exchange) Enum.Parse(typeof(Exchange), exchange, true),
-                Coins = new List<string>(new[] {coinsToBuy}),
+                Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true),
+                Coins = new List<string>(new[] { coinsToBuy }),
                 CandlePeriod = Int32.Parse(candleSize)
             };
 
@@ -37,20 +38,13 @@ namespace MachinaTrader.Controllers
 
             return "Refresh Done";
         }
-    }
 
-    /// <summary>
-    /// Get the candle ages of selected coins
-    /// Return value JObject
-    /// </summary>
-    [Authorize, Route("api/trading/candlesAge")]
-    public class ApiTradingBacktesterCandlesAge : Controller
-    {
         [HttpGet]
-        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string baseCurrency, string candleSize = "5")
+        [Route("candlesAge")]
+        public async Task<ActionResult> CandlesAge(string exchange, string coinsToBuy, string baseCurrency, string candleSize = "5")
         {
             List<string> coins = new List<string>();
-           
+
             if (String.IsNullOrEmpty(coinsToBuy))
             {
                 IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
@@ -73,7 +67,7 @@ namespace MachinaTrader.Controllers
             BacktestOptions backtestOptions = new BacktestOptions
             {
                 DataFolder = Global.DataPath,
-                Exchange = (Exchange) Enum.Parse(typeof(Exchange), exchange, true),
+                Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true),
                 Coins = coins,
                 CandlePeriod = Int32.Parse(candleSize)
             };
@@ -84,21 +78,17 @@ namespace MachinaTrader.Controllers
             };
             return new JsonResult(result);
         }
-    }
-
-    [Authorize, Route("api/trading/refreshCandles")]
-    public class ApiTradingBacktesterRefreshCandles : Controller
-    {
 
         [HttpGet]
-        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string baseCurrency, string candleSize = "5")
+        [Route("refreshCandles")]
+        public async Task<ActionResult> RefreshCandles(string exchange, string coinsToBuy, string baseCurrency, string candleSize = "5")
         {
             List<string> coins = new List<string>();
 
             if (String.IsNullOrEmpty(coinsToBuy))
             {
                 IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
-                var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m=>m.BaseCurrency == baseCurrency);
+                var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
                 foreach (var coin in exchangeCoins)
                 {
                     coins.Add(api.ExchangeSymbolToGlobalSymbol(coin.MarketName));
@@ -117,7 +107,7 @@ namespace MachinaTrader.Controllers
             BacktestOptions backtestOptions = new BacktestOptions
             {
                 DataFolder = Global.DataPath,
-                Exchange = (Exchange) Enum.Parse(typeof(Exchange), exchange, true),
+                Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true),
                 Coins = coins,
                 CandlePeriod = Int32.Parse(candleSize)
             };
@@ -129,13 +119,10 @@ namespace MachinaTrader.Controllers
             };
             return new JsonResult(result);
         }
-    }
 
-    [Authorize, Route("api/trading/backtesterStrategy")]
-    public class ApiTradingBacktesterStrategy : Controller
-    {
         [HttpGet]
-        public ActionResult Get()
+        [Route("backtesterStrategy")]
+        public ActionResult BacktesterStrategy()
         {
 
             JObject strategies = new JObject();
@@ -151,13 +138,10 @@ namespace MachinaTrader.Controllers
             }
             return new JsonResult(strategies);
         }
-    }
 
-    [Authorize, Route("api/trading/getExchangePairs")]
-    public class ApiTradingGetExchangePairs : Controller
-    {
         [HttpGet]
-        public ActionResult Get(string exchange, string baseCurrency)
+        [Route("exchangePairs")]
+        public ActionResult ExchangePairs(string exchange, string baseCurrency)
         {
             var result = new JArray();
 
@@ -177,7 +161,7 @@ namespace MachinaTrader.Controllers
             }
 
             var baseCurrencyArray = new JArray();
-            var exchangeBaseCurrencies = api.GetSymbolsMetadataAsync().Result.Select(m=>m.BaseCurrency).Distinct();
+            var exchangeBaseCurrencies = api.GetSymbolsMetadataAsync().Result.Select(m => m.BaseCurrency).Distinct();
             foreach (var currency in exchangeBaseCurrencies)
             {
                 baseCurrencyArray.Add(currency);
@@ -188,13 +172,10 @@ namespace MachinaTrader.Controllers
 
             return new JsonResult(result);
         }
-    }
 
-    [Authorize, Route("api/trading/backtester")]
-    public class ApiBacktesterDisplay : Controller
-    {
         [HttpGet]
-        public ActionResult Get(string exchange, string coinsToBuy, string baseCurrency, string candleSize = "5", string strategy = "all")
+        [Route("backtesterResults")]
+        public ActionResult BacktesterResults(string exchange, string coinsToBuy, string baseCurrency, string candleSize = "5", string strategy = "all")
         {
             JObject strategies = new JObject();
 
@@ -221,7 +202,7 @@ namespace MachinaTrader.Controllers
             BacktestOptions backtestOptions = new BacktestOptions
             {
                 DataFolder = Global.DataPath,
-                Exchange = (Exchange) Enum.Parse(typeof(Exchange), exchange, true),
+                Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true),
                 Coins = coins,
                 CandlePeriod = Int32.Parse(candleSize)
             };
@@ -235,7 +216,7 @@ namespace MachinaTrader.Controllers
             };
             Parallel.ForEach(BacktestFunctions.GetTradingStrategies(), parallelOptions, async tradingStrategy =>
             {
-               if (strategy != "all")
+                if (strategy != "all")
                 {
                     var base64EncodedBytes = Convert.FromBase64String(strategy);
                     if (tradingStrategy.Name != Encoding.UTF8.GetString(base64EncodedBytes))
@@ -252,14 +233,11 @@ namespace MachinaTrader.Controllers
 
             return new JsonResult(strategies);
         }
-    }
 
 
-    [Route("api/trading/backtest/gettickers")]
-    public class ApiTradingBacktestGettickers : Controller
-    {
         [HttpGet]
-        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string strategy, string candleSize)
+        [Route("getTickers")]
+        public async Task<ActionResult> GetTickers(string exchange, string coinsToBuy, string strategy, string candleSize)
         {
             List<string> coins = new List<string>();
             Char delimiter = ',';
@@ -283,15 +261,12 @@ namespace MachinaTrader.Controllers
 
             return new JsonResult(items);
         }
-    }
 
-    [Route("api/trading/backtest/getsignals")]
-    public class ApiTradingBacktestGetsignals : Controller
-    {
         [HttpGet]
-        public async Task<ActionResult> Get(string exchange, string coinsToBuy, string strategy, string candleSize = "5")
+        [Route("getSignals")]
+        public async Task<ActionResult> GetSignals(string exchange, string coinsToBuy, string strategy, string candleSize = "5")
         {
-           var strategyName = WebUtility.HtmlDecode(strategy);
+            var strategyName = WebUtility.HtmlDecode(strategy);
 
             List<string> coins = new List<string>();
             Char delimiter = ',';
@@ -304,7 +279,7 @@ namespace MachinaTrader.Controllers
             var backtestOptions = new BacktestOptions
             {
                 DataFolder = Global.DataPath,
-                Exchange = (Exchange) Enum.Parse(typeof(Exchange), exchange, true),
+                Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true),
                 Coins = coins,
                 Coin = coinsToBuy,
                 CandlePeriod = Int32.Parse(candleSize)
@@ -315,14 +290,12 @@ namespace MachinaTrader.Controllers
 
             return new JsonResult(items);
         }
-    }
 
-    [Route("api/trading/backtest/simulation")]
-    public class ApiTradingBacktestSimulation : Controller
-    {
+        [HttpGet]
+        [Route("simulation")]
         //string exchange, string coinsToBuy, string strategy, string candleSize, string date
         [HttpGet]
-        public async Task<bool> Get(string coinsToBuy, string date)
+        public async Task<bool> Simulation(string coinsToBuy, string date)
         {
             var currenDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(date, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
 
@@ -348,6 +321,7 @@ namespace MachinaTrader.Controllers
 
             return true;
         }
+
     }
 
 }

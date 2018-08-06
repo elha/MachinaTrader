@@ -32,7 +32,7 @@
         exchange = getParam('exchange');
 
         //fast fix for coinbase
-        if (exchange == 'GDAX')
+        if (exchange === 'GDAX')
             exchange = 'COINBASE';
 
         if (exchange.localeCompare('GDAX') || exchange.localeCompare('ExchangeGdaxSimulationApi'))
@@ -91,8 +91,7 @@
         methods: {
             fetchData: function () {
                 var self = this;
-            },
-
-        },
+            }
+        }
     });
 </script>
