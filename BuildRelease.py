@@ -138,4 +138,8 @@ if BuildCreateInstaller:
     # Make sure data folder is deleted for release
     shutil.rmtree(GlobalReleasePath + "/App/Data", ignore_errors=True)
 
+    # Create 7-zip
+    os.system('7z.exe a -r -t7z -mx=9 '+ fileName +'_'+ fileVersion +'.7z ' + GlobalReleasePath.replace("/","\\") + '\\*')
+
+    # Create Installer
     os.system(GlobalSourceFolder + '/BuildRelease/AppInstaller/PortableApps.comInstaller.exe "'+ GlobalReleasePath.replace("/","\\") + '"')
