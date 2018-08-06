@@ -48,7 +48,7 @@ namespace Mynt.Core.Models
         public Ticker TickerLast { get; set; }
 
         //Add Options for this trade
-        public decimal SellOnPercentage { get; set; } = (decimal)1.0;
+        public decimal SellOnPercentage { get; set; } = (decimal)0.0;
         public bool HoldPosition { get; set; } = false;
         public bool SellNow { get; set; } = false;
         public string GlobalSymbol { get; set; }

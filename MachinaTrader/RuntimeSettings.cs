@@ -57,7 +57,7 @@ namespace MachinaTrader
     {
         public async static void Init()
         {
-            Runtime.GlobalOrderBehavior = OrderBehavior.AlwaysFill;
+            Runtime.GlobalOrderBehavior = OrderBehavior.CheckMarket;
 
             Runtime.NotificationManagers = new List<INotificationManager>()
             {
@@ -150,7 +150,7 @@ namespace MachinaTrader
 
             {
 
-                Runtime.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), "MainConfig.json").ToObject<MainConfig>();
+                Runtime.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), Global.DataPath + "/MainConfig.json").ToObject<MainConfig>();
             }
 
             var exchangeOption = Runtime.Configuration.ExchangeOptions.FirstOrDefault();

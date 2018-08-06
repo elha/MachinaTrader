@@ -136,7 +136,7 @@ namespace Mynt.Core.Exchanges
 
         public async Task<List<Models.MarketSummary>> GetMarketSummaries(string quoteCurrency)
         {
-            if (_exchange == Exchange.Huobi || _exchange == Exchange.Okex || _exchange == Exchange.Gdax)
+            if (_exchange == Exchange.Huobi || _exchange == Exchange.Okex || _exchange == Exchange.Gdax || _exchange == Exchange.GdaxSimulation)
                 return await GetExtendedMarketSummaries(quoteCurrency);
 
             var summaries = _api.GetTickersAsync().Result;
@@ -257,6 +257,7 @@ namespace Mynt.Core.Exchanges
 
             while (ticker.Count() <= 0 && k < 20)
             {
+                k++;
                 try
                 {
                     ticker = await _api.GetCandlesAsync(market, period.ToMinutesEquivalent() * 60, startDate, endDate);
@@ -307,7 +308,11 @@ namespace Mynt.Core.Exchanges
 
             //gdax needs a small granularity
             if (_exchange == Exchange.Gdax)
+            {
                 hh = 24;
+                if (period == Period.Minute)
+                    hh = 1;
+            }
 
             var cendDate = endDate;
             if (endDate > startDate.AddHours(hh))
@@ -329,7 +334,7 @@ namespace Mynt.Core.Exchanges
                     catch (Exception ex)
                     {
                         Console.WriteLine("ERROR GetCandlesAsync:" + market + " / " + startDate + " / " + cendDate + " / " + ex);
-                        Thread.Sleep(3000);
+                        Thread.Sleep(2000);
                     }
                 }
 
@@ -471,7 +476,14 @@ namespace Mynt.Core.Exchanges
         private async Task<List<Models.MarketSummary>> GetExtendedMarketSummaries(string quoteCurrency)
         {
             var summaries = new List<Models.MarketSummary>();
+
+#warning TODO: cache GetSymbolsMetadataAsync is unuseful call
+            //var symbols = Runtime.AppCache.GetOrAdd("markets", async (a) => await _api.GetSymbolsMetadataAsync());
+            //if (symbols.Result.Count() == 0)
+            //    throw new Exception();
+
             var symbols = await _api.GetSymbolsMetadataAsync();
+
             var list = await _api.GetSymbolsAsync();
             var filteredList = list.Where(x => x.ToLower().EndsWith(quoteCurrency.ToLower(), StringComparison.Ordinal));
 
