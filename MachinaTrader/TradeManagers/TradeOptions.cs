@@ -12,7 +12,7 @@ namespace MachinaTrader.TradeManagers
 
     public class TradeOptions
     {
-        decimal stopLossPercentage = -0.07m;
+        decimal _stopLossPercentage = -0.07m;
 
         public string BuyTimer { get; set; } = "0 0/5 * * * ?";
         public string SellTimer { get; set; } = "0 0/5 * * * ?";
@@ -28,14 +28,14 @@ namespace MachinaTrader.TradeManagers
         // If we go below this profit percentage, we sell immediately.
         public decimal StopLossPercentage
         {
-            get { return stopLossPercentage; }
+            get { return _stopLossPercentage; }
             set
             {
                 // Ensure it's a negative number.
                 if (value > 0)
                     value = value * -1;
 
-                stopLossPercentage = value;
+                _stopLossPercentage = value;
             }
         }
 

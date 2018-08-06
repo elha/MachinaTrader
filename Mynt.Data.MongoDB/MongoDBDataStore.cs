@@ -6,21 +6,21 @@ using System.Threading.Tasks;
 
 namespace Mynt.Data.MongoDB
 {
-    public class MongoDBDataStore : IDataStore
+    public class MongoDbDataStore : IDataStore
     {
-        private MongoClient client;
-        private IMongoDatabase database;
-        public static MongoDBOptions mongoDbOptions;
-        private IMongoCollection<TraderAdapter> traderAdapter;
-        private IMongoCollection<TradeAdapter> ordersAdapter;
+        private MongoClient _client;
+        private IMongoDatabase _database;
+        public static MongoDbOptions MongoDbOptions;
+        private IMongoCollection<TraderAdapter> _traderAdapter;
+        private IMongoCollection<TradeAdapter> _ordersAdapter;
 
-        public MongoDBDataStore(MongoDBOptions options)
+        public MongoDbDataStore(MongoDbOptions options)
         {
-            mongoDbOptions = options;
-            client = new MongoClient(options.MongoUrl);
-            database = client.GetDatabase("Mynt");
-            ordersAdapter = database.GetCollection<TradeAdapter>("Orders");
-            traderAdapter = database.GetCollection<TraderAdapter>("Traders");
+            MongoDbOptions = options;
+            _client = new MongoClient(options.MongoUrl);
+            _database = _client.GetDatabase("Mynt");
+            _ordersAdapter = _database.GetCollection<TradeAdapter>("Orders");
+            _traderAdapter = _database.GetCollection<TraderAdapter>("Traders");
         }
 
         public async Task InitializeAsync()
@@ -29,7 +29,7 @@ namespace Mynt.Data.MongoDB
 
         public async Task<List<Trade>> GetClosedTradesAsync()
         {
-            var trades = await ordersAdapter.Find(x => !x.IsOpen).ToListAsync();
+            var trades = await _ordersAdapter.Find(x => !x.IsOpen).ToListAsync();
             var items = Mapping.Mapper.Map<List<Trade>>(trades);
 
             return items;
@@ -37,7 +37,7 @@ namespace Mynt.Data.MongoDB
 
         public async Task<List<Trade>> GetActiveTradesAsync()
         {
-            var trades = await ordersAdapter.Find(x => x.IsOpen).ToListAsync();
+            var trades = await _ordersAdapter.Find(x => x.IsOpen).ToListAsync();
             var items = Mapping.Mapper.Map<List<Trade>>(trades);
 
             return items;
@@ -45,7 +45,7 @@ namespace Mynt.Data.MongoDB
 
         public async Task<List<Trader>> GetAvailableTradersAsync()
         {
-            var traders = await traderAdapter.Find(x => !x.IsBusy && !x.IsArchived).ToListAsync();
+            var traders = await _traderAdapter.Find(x => !x.IsBusy && !x.IsArchived).ToListAsync();
             var items = Mapping.Mapper.Map<List<Trader>>(traders);
 
             return items;
@@ -53,7 +53,7 @@ namespace Mynt.Data.MongoDB
 
         public async Task<List<Trader>> GetBusyTradersAsync()
         {
-            var traders = await traderAdapter.Find(x => x.IsBusy && !x.IsArchived).ToListAsync();
+            var traders = await _traderAdapter.Find(x => x.IsBusy && !x.IsArchived).ToListAsync();
             var items = Mapping.Mapper.Map<List<Trader>>(traders);
 
             return items;
@@ -62,27 +62,27 @@ namespace Mynt.Data.MongoDB
         public async Task SaveTradeAsync(Trade trade)
         {
             var item = Mapping.Mapper.Map<TradeAdapter>(trade);
-            TradeAdapter checkExist = await ordersAdapter.Find(x => x.TradeId.Equals(item.TradeId)).FirstOrDefaultAsync();
+            TradeAdapter checkExist = await _ordersAdapter.Find(x => x.TradeId.Equals(item.TradeId)).FirstOrDefaultAsync();
             if (checkExist != null)
             {
-                await ordersAdapter.ReplaceOneAsync(x => x.TradeId.Equals(item.TradeId), item);
+                await _ordersAdapter.ReplaceOneAsync(x => x.TradeId.Equals(item.TradeId), item);
             } else
             {
-                await ordersAdapter.InsertOneAsync(item);
+                await _ordersAdapter.InsertOneAsync(item);
             }
         }
 
         public async Task SaveTraderAsync(Trader trader)
         {
             var item = Mapping.Mapper.Map<TraderAdapter>(trader);
-            TraderAdapter checkExist = await traderAdapter.Find(x => x.Identifier.Equals(item.Identifier)).FirstOrDefaultAsync();
+            TraderAdapter checkExist = await _traderAdapter.Find(x => x.Identifier.Equals(item.Identifier)).FirstOrDefaultAsync();
             if (checkExist != null)
             {
-                await traderAdapter.ReplaceOneAsync(x => x.Identifier.Equals(item.Identifier), item);
+                await _traderAdapter.ReplaceOneAsync(x => x.Identifier.Equals(item.Identifier), item);
             }
             else
             {
-                await traderAdapter.InsertOneAsync(item);
+                await _traderAdapter.InsertOneAsync(item);
             }
         }
 
@@ -92,14 +92,14 @@ namespace Mynt.Data.MongoDB
 
             foreach (var item in items)
             {
-                TraderAdapter checkExist = await traderAdapter.Find(x => x.Identifier.Equals(item.Identifier)).FirstOrDefaultAsync();
+                TraderAdapter checkExist = await _traderAdapter.Find(x => x.Identifier.Equals(item.Identifier)).FirstOrDefaultAsync();
                 if (checkExist != null)
                 {
-                    await traderAdapter.ReplaceOneAsync(x => x.Identifier.Equals(item.Identifier), item);
+                    await _traderAdapter.ReplaceOneAsync(x => x.Identifier.Equals(item.Identifier), item);
                 }
                 else
                 {
-                    await traderAdapter.InsertOneAsync(item);
+                    await _traderAdapter.InsertOneAsync(item);
                 }
             }
         }
@@ -110,21 +110,21 @@ namespace Mynt.Data.MongoDB
 
             foreach (var item in items)
             {
-                TradeAdapter checkExist = await ordersAdapter.Find(x => x.TradeId.Equals(item.TradeId)).FirstOrDefaultAsync();
+                TradeAdapter checkExist = await _ordersAdapter.Find(x => x.TradeId.Equals(item.TradeId)).FirstOrDefaultAsync();
                 if (checkExist != null)
                 {
-                    await ordersAdapter.ReplaceOneAsync(x => x.TradeId.Equals(item.TradeId), item);
+                    await _ordersAdapter.ReplaceOneAsync(x => x.TradeId.Equals(item.TradeId), item);
                 }
                 else
                 {
-                    await ordersAdapter.InsertOneAsync(item);
+                    await _ordersAdapter.InsertOneAsync(item);
                 }
             }
         }
 
         public async Task<List<Trader>> GetTradersAsync()
         {
-            var traders = await traderAdapter.Find(_ => true).ToListAsync();
+            var traders = await _traderAdapter.Find(_ => true).ToListAsync();
             var items = Mapping.Mapper.Map<List<Trader>>(traders);
 
             return items;

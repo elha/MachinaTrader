@@ -18,14 +18,14 @@ namespace Mynt.Core.Strategies
         {
             var result = new List<TradeAdvice>();
 
-            var _macd = candles.Macd(24, 52, 18);
-            var _rsi = candles.Rsi(14);
+            var macd = candles.Macd(24, 52, 18);
+            var rsi = candles.Rsi(14);
 
             for (int i = 0; i < candles.Count; i++)
             {
-                if (_rsi[i] > 70 && (_macd.Macd[i] - _macd.Signal[i]) < 0)
+                if (rsi[i] > 70 && (macd.Macd[i] - macd.Signal[i]) < 0)
                     result.Add(TradeAdvice.Sell);
-                else if (_rsi[i] < 30 && (_macd.Macd[i] - _macd.Signal[i]) > 0)
+                else if (rsi[i] < 30 && (macd.Macd[i] - macd.Signal[i]) > 0)
                     result.Add(TradeAdvice.Buy);
                 else
                     result.Add(TradeAdvice.Hold);

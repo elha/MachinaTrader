@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Logging;
+using MachinaTrader.Globals;
 using Mynt.Core.Enums;
 using Mynt.Core.Indicators;
 using Mynt.Core.Models;
+using Serilog;
 
 namespace Mynt.Core.Strategies
 {
@@ -25,8 +26,8 @@ namespace Mynt.Core.Strategies
             var bb = candles.Bbands(20);
 
             var adx = candles.Adx(14);
-            var plusDi = candles.PlusDI(14);
-            var minusDi = candles.MinusDI(14);
+            var plusDi = candles.PlusDi(14);
+            var minusDi = candles.MinusDi(14);
 
             for (int i = 0; i < candles.Count; i++)
             {
@@ -53,7 +54,7 @@ namespace Mynt.Core.Strategies
             {
                 try
                 {
-                    _logger.LogInformation("{Name} " +
+                    _logger.Information("{Name} " +
                                            "rsi:{rsi} ," +
                                            "fast.D:{f} ," +
                                            "adx:{a} ," +
@@ -67,7 +68,7 @@ namespace Mynt.Core.Strategies
                 }
                 catch (Exception ex)
                 {
-
+                    Global.Logger.Error(ex.ToString());
                 }
             }
 

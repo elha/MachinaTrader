@@ -13,11 +13,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace MachinaTrader.Pages.Account
 {
     [AllowAnonymous]
-    public class LoginWith2faModel : PageModel
+    public class LoginWith2FaModel : PageModel
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public LoginWith2faModel(SignInManager<ApplicationUser> signInManager)
+        public LoginWith2FaModel(SignInManager<ApplicationUser> signInManager)
         {
             _signInManager = signInManager;
         }

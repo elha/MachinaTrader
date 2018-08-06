@@ -17,34 +17,34 @@ namespace Mynt.Core.Exchanges
     {
         public BaseExchange BaseExchange(string exchange)
         {
-            IExchangeAPI _api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
+            IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
             var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json", optional: true);
-            IConfiguration Configuration = builder.Build();
+            IConfiguration configuration = builder.Build();
 
-            ExchangeOptions ExchangeOptions = new ExchangeOptions();
-            ExchangeOptions.Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true);
+            ExchangeOptions exchangeOptions = new ExchangeOptions();
+            exchangeOptions.Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true);
 
             string apiKey;
             string apiSecret;
 
             //Check if there are multiple exchanges in config, else Fallback to single mode
-            if (Configuration.GetSection("Exchanges").GetSection(exchange) != null)
+            if (configuration.GetSection("Exchanges").GetSection(exchange) != null)
             {
-                apiKey = Configuration.GetSection("Exchanges").GetSection(exchange).GetValue<string>("ApiKey");
-                apiSecret = Configuration.GetSection("Exchanges").GetSection(exchange).GetValue<string>("ApiSecret");
+                apiKey = configuration.GetSection("Exchanges").GetSection(exchange).GetValue<string>("ApiKey");
+                apiSecret = configuration.GetSection("Exchanges").GetSection(exchange).GetValue<string>("ApiSecret");
 
             }
             else
             {
-                apiKey = Configuration.GetValue<string>("ApiKey");
-                apiSecret = Configuration.GetValue<string>("ApiSecret");
+                apiKey = configuration.GetValue<string>("ApiKey");
+                apiSecret = configuration.GetValue<string>("ApiSecret");
             }
 
-            ExchangeOptions.Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true);
-            ExchangeOptions.ApiKey = apiKey;
-            ExchangeOptions.ApiSecret = apiSecret;
+            exchangeOptions.Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true);
+            exchangeOptions.ApiKey = apiKey;
+            exchangeOptions.ApiSecret = apiSecret;
 
-            return new BaseExchange(ExchangeOptions);
+            return new BaseExchange(exchangeOptions);
         }
     }
 
@@ -95,10 +95,10 @@ namespace Mynt.Core.Exchanges
             _api.LoadAPIKeysUnsecure(options.ApiKey, options.ApiSecret, options.PassPhrase);
         }
 
-        public BaseExchange(ExchangeOptions options, ExchangeAPI exchangeAPI)
+        public BaseExchange(ExchangeOptions options, ExchangeAPI exchangeApi)
         {
             _exchange = options.Exchange;
-            _api = exchangeAPI;
+            _api = exchangeApi;
         }
 
         #region default implementations

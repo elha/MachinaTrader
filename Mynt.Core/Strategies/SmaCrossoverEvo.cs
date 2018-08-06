@@ -8,7 +8,7 @@ using Mynt.Core.Models;
 
 namespace Mynt.Core.Strategies
 {
-    public class SmaCrossoverEVO : BaseStrategy
+    public class SmaCrossoverEvo : BaseStrategy
     {
         public override string Name => "SMA Crossover EVO";
         public override int MinimumAmountOfCandles => 60;

@@ -68,18 +68,18 @@ namespace MachinaTrader
             if (Runtime.Configuration.SystemOptions.Database == "MongoDB")
             {
                 Global.Logger.Information("Database set to MongoDB");
-                MongoDBOptions databaseOptions = new MongoDBOptions();
-                Runtime.GlobalDataStore = new MongoDBDataStore(databaseOptions);
-                MongoDBOptions backtestDatabaseOptions = new MongoDBOptions();
-                Runtime.GlobalDataStoreBacktest = new MongoDBDataStoreBacktest(backtestDatabaseOptions);
+                MongoDbOptions databaseOptions = new MongoDbOptions();
+                Runtime.GlobalDataStore = new MongoDbDataStore(databaseOptions);
+                MongoDbOptions backtestDatabaseOptions = new MongoDbOptions();
+                Runtime.GlobalDataStoreBacktest = new MongoDbDataStoreBacktest(backtestDatabaseOptions);
             }
             else
             {
                 Global.Logger.Information("Database set to LiteDB");
-                LiteDBOptions databaseOptions = new LiteDBOptions { LiteDBName = Global.DataPath + "/MachinaTrader.db" };
-                Runtime.GlobalDataStore = new LiteDBDataStore(databaseOptions);
-                LiteDBOptions backtestDatabaseOptions = new LiteDBOptions { LiteDBName = Global.DataPath + "/MachinaTrader.db" };
-                Runtime.GlobalDataStoreBacktest = new LiteDBDataStoreBacktest(backtestDatabaseOptions);
+                LiteDbOptions databaseOptions = new LiteDbOptions { LiteDbName = Global.DataPath + "/MachinaTrader.db" };
+                Runtime.GlobalDataStore = new LiteDbDataStore(databaseOptions);
+                LiteDbOptions backtestDatabaseOptions = new LiteDbOptions { LiteDbName = Global.DataPath + "/MachinaTrader.db" };
+                Runtime.GlobalDataStoreBacktest = new LiteDbDataStoreBacktest(backtestDatabaseOptions);
             }
 
             // Global Hubs

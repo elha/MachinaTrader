@@ -2,8 +2,6 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Mynt.Core.Enums;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Mynt.Core.Models;
 
 namespace Mynt.Data.MongoDB

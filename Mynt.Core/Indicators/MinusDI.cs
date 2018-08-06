@@ -7,7 +7,7 @@ namespace Mynt.Core.Indicators
 {
     public static partial class Extensions
     {
-        public static List<decimal?> MinusDI(this List<Candle> source, int period = 14)
+        public static List<decimal?> MinusDi(this List<Candle> source, int period = 14)
         {
             int outBegIdx, outNbElement;
             double[] diValues = new double[source.Count];

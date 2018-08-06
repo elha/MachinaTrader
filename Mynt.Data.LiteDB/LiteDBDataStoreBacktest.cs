@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using MachinaTrader.Globals;
 using LiteDB;
 using Mynt.Core.Backtester;
 using Mynt.Core.Interfaces;
@@ -13,13 +14,13 @@ using Mynt.Core.Models;
 namespace Mynt.Data.LiteDB
 {
 
-    public class LiteDBDataStoreBacktest : IDataStoreBacktest
+    public class LiteDbDataStoreBacktest : IDataStoreBacktest
     {
-        private LiteDatabase database;
+        private LiteDatabase _database;
 
-        public LiteDBDataStoreBacktest(LiteDBOptions options)
+        public LiteDbDataStoreBacktest(LiteDbOptions options)
         {
-            database = new LiteDatabase(options.LiteDBName);
+            _database = new LiteDatabase(options.LiteDbName);
             GetDatabase(new BacktestOptions());
         }
 
@@ -89,7 +90,7 @@ namespace Mynt.Data.LiteDB
             }
             catch (Exception ex)
             {
-
+                Global.Logger.Error(ex.ToString());
                 throw;
             }
 

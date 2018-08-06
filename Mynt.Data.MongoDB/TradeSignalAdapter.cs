@@ -1,11 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 using Mynt.Core.Enums;
-using Mynt.Core.Interfaces;
-using Mynt.Core.Models;
 
 namespace Mynt.Data.MongoDB
 {

@@ -1,7 +1,7 @@
-using Microsoft.Extensions.Logging;
 using Mynt.Core.Enums;
 using Mynt.Core.Interfaces;
 using Mynt.Core.Models;
+using Serilog;
 using System;
 using System.Collections.Generic;
 

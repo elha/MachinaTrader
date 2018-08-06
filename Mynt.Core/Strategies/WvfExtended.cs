@@ -38,8 +38,8 @@ namespace Mynt.Core.Strategies
             var lb = 50; // Look Back Period Percentile High
             var ph = .85m; // Highest Percentile - 0.90=90%, 0.95=95%, 0.99=99%
             var pl = 1.01m; // Lowest Percentile - 1.10=90%, 1.05=95%, 1.01=99%
-            var ltLB = 40; // Long-Term Look Back Current Bar Has To Close Below This Value OR Medium Term")
-            var mtLB = 14; // Medium-Term Look Back Current Bar Has To Close Below This Value OR Long Term")
+            var ltLb = 40; // Long-Term Look Back Current Bar Has To Close Below This Value OR Medium Term")
+            var mtLb = 14; // Medium-Term Look Back Current Bar Has To Close Below This Value OR Long Term")
             var str = 3; // Entry Price Action Strength--Close > X Bars Back")
 
             for (int i = 0; i < candles.Count; i++)
@@ -87,7 +87,7 @@ namespace Mynt.Core.Strategies
 
             for (int i = 0; i < candles.Count; i++)
             {
-                if (i < ltLB)
+                if (i < ltLb)
                     result.Add(TradeAdvice.Hold);
                 else
                 {
@@ -102,9 +102,9 @@ namespace Mynt.Core.Strategies
                                        !(wvfs[i] < upperRanges[i] && wvfs[i] < rangeHighs[i]);
 
                     var filteredAlert = upRange && close[i] > close[i - str] &&
-                                        (close[i] < close[i - ltLB] || close[i] < close[i - mtLB]) && filtered;
+                                        (close[i] < close[i - ltLb] || close[i] < close[i - mtLb]) && filtered;
                     var aggressiveAlert = upRangeAggr && close[i] > close[i - str] &&
-                                          (close[i] < close[i - ltLB] || close[i] < close[i - mtLB]) && filteredAggr;
+                                          (close[i] < close[i - ltLb] || close[i] < close[i - mtLb]) && filteredAggr;
 
                     if ((filteredAlert || aggressiveAlert) && rsi[i] > ema[i] && rsi[i - 1] < ema[i - 1])
                         result.Add(TradeAdvice.Buy);

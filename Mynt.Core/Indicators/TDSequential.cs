@@ -8,9 +8,9 @@ namespace Mynt.Core.Indicators
 
     public static partial class Extensions
 	{
-		public static List<TDSeq> TDSequential(this List<Candle> source)
+		public static List<TdSeq> TdSequential(this List<Candle> source)
         {
-			var result = new List<TDSeq>();
+			var result = new List<TdSeq>();
 			var close = source.Close();
 			var td = new List<int>();
 			var ts = new List<int>();
@@ -39,11 +39,11 @@ namespace Mynt.Core.Indicators
 				tdDowns.Add(tdDown);
 
 				if (tdUp > 0 && tdUp <= 9)
-					result.Add(new TDSeq{ Value = tdUp , IsGreen = true});
+					result.Add(new TdSeq{ Value = tdUp , IsGreen = true});
 				else if (tdDown > 0 && tdDown <= 9)
-					result.Add(new TDSeq { Value = tdDown, IsGreen = false });
+					result.Add(new TdSeq { Value = tdDown, IsGreen = false });
 				else
-					result.Add(new TDSeq { Value = null, IsGreen = true });
+					result.Add(new TdSeq { Value = null, IsGreen = true });
 			}
 
 			return result;
@@ -68,7 +68,7 @@ namespace Mynt.Core.Indicators
 		}
 	}
 
-    public class TDSeq
+    public class TdSeq
     {
         public int? Value { get; set; }
         public bool IsGreen { get; set; }

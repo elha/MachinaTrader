@@ -19,7 +19,7 @@ namespace Mynt.Core.Notifications
         {
             try
             {
-                var payload = new Payload() { content = message };
+                var payload = new Payload() { Content = message };
                 var payloadJson = JsonConvert.SerializeObject(payload);
 
                 var httpClient = new HttpClient();
@@ -42,7 +42,7 @@ namespace Mynt.Core.Notifications
 
         public class Payload
         {
-            public string content { get; set; }
+            public string Content { get; set; }
         }
     }
 }

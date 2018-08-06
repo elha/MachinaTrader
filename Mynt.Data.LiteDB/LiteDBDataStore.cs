@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using LiteDB;
@@ -8,17 +8,17 @@ using Mynt.Core.Models;
 namespace Mynt.Data.LiteDB
 {
 
-    public class LiteDBDataStore : IDataStore
+    public class LiteDbDataStore : IDataStore
     {
-        private LiteDatabase database;
-        private LiteCollection<TraderAdapter> traderAdapter;
-        private LiteCollection<TradeAdapter> ordersAdapter;
+        private readonly LiteDatabase _database;
+        private readonly LiteCollection<TraderAdapter> _traderAdapter;
+        private readonly LiteCollection<TradeAdapter> _ordersAdapter;
 
-        public LiteDBDataStore(LiteDBOptions options)
+        public LiteDbDataStore(LiteDbOptions options)
         {
-            database = new LiteDatabase(options.LiteDBName);
-            ordersAdapter = database.GetCollection<TradeAdapter>("Orders");
-            traderAdapter = database.GetCollection<TraderAdapter>("Traders");
+            _database = new LiteDatabase(options.LiteDbName);
+            _ordersAdapter = _database.GetCollection<TradeAdapter>("Orders");
+            _traderAdapter = _database.GetCollection<TraderAdapter>("Traders");
         }
 
         public async Task InitializeAsync()
@@ -27,7 +27,7 @@ namespace Mynt.Data.LiteDB
 
         public async Task<List<Trade>> GetClosedTradesAsync()
         {
-            var trades = ordersAdapter.Find(x => !x.IsOpen).ToList();
+            var trades = _ordersAdapter.Find(x => !x.IsOpen).ToList();
             var items = Mapping.Mapper.Map<List<Trade>>(trades);
 
             return items;
@@ -35,7 +35,7 @@ namespace Mynt.Data.LiteDB
 
         public async Task<List<Trade>> GetActiveTradesAsync()
         {
-            var trades = ordersAdapter.Find(x => x.IsOpen).ToList();
+            var trades = _ordersAdapter.Find(x => x.IsOpen).ToList();
             var items = Mapping.Mapper.Map<List<Trade>>(trades);
 
             return items;
@@ -43,7 +43,7 @@ namespace Mynt.Data.LiteDB
 
         public async Task<List<Trader>> GetAvailableTradersAsync()
         {
-            var traders = traderAdapter.Find(x => !x.IsBusy && !x.IsArchived).ToList();
+            var traders = _traderAdapter.Find(x => !x.IsBusy && !x.IsArchived).ToList();
             var items = Mapping.Mapper.Map<List<Trader>>(traders);
 
             return items;
@@ -51,7 +51,7 @@ namespace Mynt.Data.LiteDB
 
         public async Task<List<Trader>> GetBusyTradersAsync()
         {
-            var traders = traderAdapter.Find(x => x.IsBusy && !x.IsArchived).ToList();
+            var traders = _traderAdapter.Find(x => x.IsBusy && !x.IsArchived).ToList();
             var items = Mapping.Mapper.Map<List<Trader>>(traders);
 
             return items;
@@ -60,15 +60,15 @@ namespace Mynt.Data.LiteDB
         public async Task SaveTradeAsync(Trade trade)
         {
             var item = Mapping.Mapper.Map<TradeAdapter>(trade);
-            TradeAdapter checkExist = ordersAdapter.Find(x => x.TradeId.Equals(item.TradeId)).FirstOrDefault();
-            ordersAdapter.Upsert(item);
+            TradeAdapter checkExist = _ordersAdapter.Find(x => x.TradeId.Equals(item.TradeId)).FirstOrDefault();
+            _ordersAdapter.Upsert(item);
         }
 
         public async Task SaveTraderAsync(Trader trader)
         {
             var item = Mapping.Mapper.Map<TraderAdapter>(trader);
-            TraderAdapter checkExist = traderAdapter.Find(x => x.Identifier.Equals(item.Identifier)).FirstOrDefault();
-            traderAdapter.Upsert(item);
+            TraderAdapter checkExist = _traderAdapter.Find(x => x.Identifier.Equals(item.Identifier)).FirstOrDefault();
+            _traderAdapter.Upsert(item);
         }
 
         public async Task SaveTradersAsync(List<Trader> traders)
@@ -77,8 +77,8 @@ namespace Mynt.Data.LiteDB
 
             foreach (var item in items)
             {
-                TraderAdapter checkExist = traderAdapter.Find(x => x.Identifier.Equals(item.Identifier)).FirstOrDefault();
-                traderAdapter.Upsert(item);
+                TraderAdapter checkExist = _traderAdapter.Find(x => x.Identifier.Equals(item.Identifier)).FirstOrDefault();
+                _traderAdapter.Upsert(item);
             }
         }
 
@@ -88,14 +88,14 @@ namespace Mynt.Data.LiteDB
 
             foreach (var item in items)
             {
-                TradeAdapter checkExist = ordersAdapter.Find(x => x.TradeId.Equals(item.TradeId)).FirstOrDefault();
-                ordersAdapter.Upsert(item);
+                TradeAdapter checkExist = _ordersAdapter.Find(x => x.TradeId.Equals(item.TradeId)).FirstOrDefault();
+                _ordersAdapter.Upsert(item);
             }
         }
 
         public async Task<List<Trader>> GetTradersAsync()
         {
-            var traders = traderAdapter.FindAll().ToList();
+            var traders = _traderAdapter.FindAll().ToList();
             var items = Mapping.Mapper.Map<List<Trader>>(traders);
 
             return items;

@@ -18,8 +18,8 @@ namespace Mynt.Core.Strategies
             var result = new List<TradeAdvice>();
 
             var adx = candles.Adx(14);
-            var diPlus = candles.PlusDI(25);
-            var diMinus = candles.MinusDI(25);
+            var diPlus = candles.PlusDi(25);
+            var diMinus = candles.MinusDi(25);
             var sar = candles.Sar();
             var mom = candles.Mom(14);
 

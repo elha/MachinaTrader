@@ -19,8 +19,8 @@ namespace Mynt.Core.Strategies
 
             var ema4 = candles.Ema(4);
             var ema10 = candles.Ema(10);
-            var plusDi = candles.PlusDI(28);
-            var minusDi = candles.MinusDI(28);
+            var plusDi = candles.PlusDi(28);
+            var minusDi = candles.MinusDi(28);
             var macd = candles.Macd(5, 10, 4);
 
             for (int i = 0; i < candles.Count; i++)

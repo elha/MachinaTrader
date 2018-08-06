@@ -23,16 +23,16 @@ namespace Mynt.Core.Strategies
             var closes = candles.Select(x => x.Close).ToList();
             var ema9 = candles.Ema(9);
             var adx = candles.Adx(14);
-            var minusDI = candles.MinusDI(14);
-            var plusDI = candles.PlusDI(14);
+            var minusDi = candles.MinusDi(14);
+            var plusDi = candles.PlusDi(14);
 
             for (int i = 0; i < candles.Count; i++)
             {
                 if (i == 0)
                     result.Add(TradeAdvice.Hold);
-                else if (ema9[i] < closes[i] && plusDI[i] > 20 && plusDI[i] > minusDI[i])
+                else if (ema9[i] < closes[i] && plusDi[i] > 20 && plusDi[i] > minusDi[i])
                     result.Add(TradeAdvice.Buy);
-                else if (ema9[i] > closes[i] && minusDI[i] > 20 && plusDI[i] < minusDI[i])
+                else if (ema9[i] > closes[i] && minusDi[i] > 20 && plusDi[i] < minusDi[i])
                     result.Add(TradeAdvice.Sell);
                 else
                     result.Add(TradeAdvice.Hold);

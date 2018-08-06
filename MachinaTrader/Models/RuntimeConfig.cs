@@ -7,7 +7,7 @@ namespace MachinaTrader.Models
 {
     public class RuntimeConfig
     {
-        public string OS { get; set; } = GetOs();
+        public string Os { get; set; } = GetOs();
 
         private static string GetOs()
         {

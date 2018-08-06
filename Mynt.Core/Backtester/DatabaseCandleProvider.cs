@@ -10,9 +10,11 @@ namespace Mynt.Core.Backtester
     {
         public async Task<List<Candle>> GetCandles(BacktestOptions backtestOptions, IDataStoreBacktest dataStore)
         {
-            if (backtestOptions.EndDate == DateTime.MinValue)
+            backtestOptions.EndDate = DateTime.UtcNow;
+
+            if (backtestOptions.EndDate != DateTime.MinValue)
             {
-                backtestOptions.EndDate = DateTime.UtcNow;
+                backtestOptions.EndDate = backtestOptions.EndDate;
             }
 
             List<Candle> candles = await dataStore.GetBacktestCandlesBetweenTime(backtestOptions);

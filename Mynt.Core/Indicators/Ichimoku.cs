@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using MachinaTrader.Globals;
 using Mynt.Core.Models;
 
 namespace Mynt.Core.Indicators
@@ -15,14 +16,16 @@ namespace Mynt.Core.Indicators
                 var lows = source.Select(x => x.Low).ToList();
                 var closes = source.Select(x => x.Close).ToList();
 
-                var ichi = new IchimokuItem();
+                var ichi = new IchimokuItem
+                {
+                    TenkanSen = Donchian(source, conversionLinePeriod, highs, lows),
+                    KijunSen = Donchian(source, baseLinePeriod, highs, lows),
+                    SenkouSpanB = Donchian(source, laggingSpanPeriods, highs, lows),
+                    SenkouSpanA = new List<decimal?>()
+                };
 
-                ichi.TenkanSen = Donchian(source, conversionLinePeriod, highs, lows);
-                ichi.KijunSen = Donchian(source, baseLinePeriod, highs, lows);
-                ichi.SenkouSpanB = Donchian(source, laggingSpanPeriods, highs, lows);
 
                 // SenkouSpanA is calculated...
-                ichi.SenkouSpanA = new List<decimal?>();
 
                 for (int i = 0; i < ichi.TenkanSen.Count; i++)
                 {
@@ -61,6 +64,7 @@ namespace Mynt.Core.Indicators
             }
             catch (Exception ex)
             {
+                Global.Logger.Error(ex.ToString());
                 throw new Exception("Could not calculate ichimoku cloud!");
             }
         }

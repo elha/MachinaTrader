@@ -8,25 +8,25 @@ namespace Mynt.Core.Models
 {
     public class AccountBalance
     {
-        private readonly string currency;
+        private readonly string _currency;
 
-        private readonly decimal available;
+        private readonly decimal _available;
 
-        private readonly decimal pending;
+        private readonly decimal _pending;
 
         public AccountBalance(string currency, decimal available, decimal pending)
         {
-            this.currency = currency;
-            this.available = available;
-            this.pending = pending;
+            this._currency = currency;
+            this._available = available;
+            this._pending = pending;
         }
 
-        public string Currency => currency;
+        public string Currency => _currency;
 
-        public decimal Balance => available + pending;
+        public decimal Balance => _available + _pending;
 
-        public decimal Available => available;
+        public decimal Available => _available;
 
-        public decimal Pending => pending;
+        public decimal Pending => _pending;
     }
 }

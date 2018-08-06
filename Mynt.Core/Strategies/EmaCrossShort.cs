@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using MachinaTrader.Globals;
 using Mynt.Core.Enums;
 using Mynt.Core.Indicators;
 using Mynt.Core.Models;
@@ -41,6 +42,7 @@ namespace Mynt.Core.Strategies
             }
             catch (System.Exception ex)
             {
+                Global.Logger.Error(ex.ToString());
             }
 
             return result;

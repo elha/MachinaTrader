@@ -24,7 +24,7 @@ namespace MachinaTrader.Controllers
         [HttpGet]
         public FileContentResult Get()
         {
-            if (Runtime.RuntimeSettings.OS == "Windows")
+            if (Runtime.RuntimeSettings.Os == "Windows")
             {
                 using (var ms = new MemoryStream())
                 {
