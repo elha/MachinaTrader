@@ -1,23 +1,31 @@
-# MyntUI - Ui for Mynt Trading Bot
+MachinaTrader
+==============
 
-This is a WIP - Dont use productive !
+[![Build status](https://ci.appveyor.com/api/projects/status/2jcpp7x1waux011r?svg=true)](https://ci.appveyor.com/project/MachinaCore/machinatrader)
+
+
+[Download current working branches as .paf.exe installer or .7z from appveyor](https://ci.appveyor.com/project/MachinaCore/machinatrader/build/artifacts)
 
 # Getting Started:
  * Clone repo:
-   * `git clone https://github.com/LORDofDOOM/MyntUI.git`
- * Fetch Submodule:
-   * `cd MyntUI`
-   * `git submodule update --init --recursive`
- * Install node_modules (if you get node-sass error run `npm rebuild node-sass --force`):
-   * `npm install`   
- * Build node_modules:
-   * `npm run build`      
- * Restore MyntUI nuget packages:
+   * `git clone https://github.com/MachinaCore/MachinaTrader.git`
+ * Restore MachinaTrader nuget packages:
    * `dotnet restore`
- * Run MyntUI:
+ * Run MachinaTrader:
    * `dotnet run`       
  * Open UI:
    * Open http://127.0.0.1:5000 in browser     
+   
+# If you need to rebuild assets (if you have e.g. changed SASS/JS files):
+ * Make sure Visual Studio is closed
+ * If you use Windows (if you get node-sass error run `npm rebuild node-sass --force`):
+   * `MachinaTraderUIStyles.bat`   
+ *  or install manually:
+   * `npm install` 
+   * `npm run build`  
+   * `npm run build-vendors`    
+   * `npm run css-compile`  
+   * `npm run css-compile-vendors`   
 
 # Recommended plugin for debugging VueJS
 
