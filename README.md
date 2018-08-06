@@ -5,7 +5,7 @@ MachinaTrader
 
 Join the Discord support Server for more up-to-date info:
 
-[![Discord](https://discordapp.com/api/guilds/476120274459426831/widget.png)](https://discord.gg/476120274459426831)
+[![Discord](https://discordapp.com/api/guilds/476120274459426831/widget.png)](https://discord.gg/NC5cRVp)
 
 
 [Download current working branches as .paf.exe installer or .7z from appveyor](https://ci.appveyor.com/project/MachinaCore/machinatrader/build/artifacts)
