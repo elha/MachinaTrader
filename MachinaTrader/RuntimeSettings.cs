@@ -35,7 +35,6 @@ namespace MachinaTrader
         public static CancellationToken GlobalTimerCancellationToken = new CancellationToken();
         public static IHubContext<HubTraders> GlobalHubMyntTraders;
         public static IHubContext<HubStatistics> GlobalHubMyntStatistics;
-        public static IHubContext<HubLogs> GlobalHubMyntLogs;
         public static IHubContext<HubBacktest> GlobalHubMyntBacktest;
         public static RuntimeConfig RuntimeSettings = new RuntimeConfig();
         public static IScheduler QuartzTimer = new StdSchedulerFactory().GetScheduler().Result;
@@ -84,7 +83,6 @@ namespace MachinaTrader
             // Global Hubs
             Runtime.GlobalHubMyntTraders = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubTraders>>();
             Runtime.GlobalHubMyntStatistics = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubStatistics>>();
-            Runtime.GlobalHubMyntLogs = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubLogs>>();
             Runtime.GlobalHubMyntBacktest = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubBacktest>>();
 
             //Run Cron

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace MachinaTrader.Hubs
+namespace MachinaTrader.Globals.Hubs
 {
     public class HubLogs : Hub
     {

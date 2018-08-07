@@ -1,11 +1,13 @@
 using System;
+using MachinaTrader.Globals.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Serilog;
 using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace MachinaTrader.Helpers
+namespace MachinaTrader.Globals.Helpers
 {
     public class SignalRLogEventSink : ILogEventSink
     {
@@ -26,15 +28,19 @@ namespace MachinaTrader.Helpers
                 if (dd.ToString().StartsWith("\"/signalr/"))
                     return;
 
-                if (dd.ToString().StartsWith("\"/api/mynt/logs"))
+                if (dd.ToString().StartsWith("\"/api/logging/logs"))
                     return;
             }
 
             var message = logEvent.RenderMessage(_formatProvider);
             //Console.WriteLine("FROM MySink " + DateTimeOffset.Now.ToString() + " " + message);
 
-            if (Runtime.GlobalHubMyntLogs != null)
-                Runtime.GlobalHubMyntLogs.Clients.All.SendAsync("Send", message);
+            if (Global.GlobalHubLogs == null)
+            {
+                Global.GlobalHubLogs = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubLogs>>();
+            }
+            
+            Global.GlobalHubLogs.Clients.All.SendAsync("Send", message);
         }
     }
 

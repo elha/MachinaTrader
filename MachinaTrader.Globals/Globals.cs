@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using LazyCache;
+using MachinaTrader.Globals.Hubs;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -121,5 +123,6 @@ namespace MachinaTrader.Globals
         public static IServiceScope ServiceScope { get; set; }
         public static Serilog.ILogger Logger { get; set; }
         public static IAppCache AppCache { get; set; }
+        public static IHubContext<HubLogs> GlobalHubLogs;
     }
 }

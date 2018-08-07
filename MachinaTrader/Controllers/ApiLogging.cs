@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using MachinaTrader.Globals;
 using MachinaTrader.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +17,7 @@ namespace MachinaTrader.Controllers
         [Route("logs")]
         public IActionResult Logs()
         {
-            var log = Log.ReadTail("Logs/Mynt-" + DateTime.Now.ToString("yyyyMMdd") + ".log", 500);
+            var log = Log.ReadTail(Global.DataPath + "/Logs/MachinaTrader-" + DateTime.Now.ToString("yyyyMMdd") + ".log", 500);
             return new JsonResult(log);
         }
     }

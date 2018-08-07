@@ -27,6 +27,7 @@ using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Newtonsoft.Json.Linq;
 using LazyCache.Providers;
+using MachinaTrader.Globals.Hubs;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -58,8 +59,9 @@ namespace MachinaTrader
             hubRouteBuilder.MapHub<HubMainIndex>("/signalr/HubMainIndex");
             hubRouteBuilder.MapHub<HubTraders>("/signalr/HubTraders");
             hubRouteBuilder.MapHub<HubStatistics>("/signalr/HubStatistics");
-            hubRouteBuilder.MapHub<HubLogs>("/signalr/HubLogs");
             hubRouteBuilder.MapHub<HubBacktest>("/signalr/HubBacktest");
+            //Hub Log is located in Globals because we need to wire up with serilog
+            hubRouteBuilder.MapHub<HubLogs>("/signalr/HubLogs");
             return hubRouteBuilder;
         }
     }

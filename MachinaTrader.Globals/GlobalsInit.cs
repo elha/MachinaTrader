@@ -46,6 +46,7 @@ namespace MachinaTrader.Globals
                 writeToObject["Args"] = new JObject();
                 writeToObject["Args"]["configure"] = new JArray();
 
+                /*
                 JObject rollingFile = new JObject();
                 rollingFile["Name"] = "RollingFile";
                 rollingFile["Args"] = new JObject();
@@ -54,10 +55,12 @@ namespace MachinaTrader.Globals
                 JObject rollingFileArgs = new JObject();
                 rollingFileArgs["Name"] = "RollingFile";
                 rollingFileArgs["Args"] = new JObject();
-                rollingFileArgs["Args"]["pathFormat"] = Global.DataPath + "/Logs/MachinaTrader-{Date}.log";
+                rollingFileArgs["Args"]["pathFormat"] = "Logs\\MachinaTrader-{Date}.log";
 
                 ((JArray)rollingFile["Args"]["configure"]).Add(rollingFileArgs);
                 ((JArray)writeToObject["Args"]["configure"]).Add(rollingFile);
+                */
+
                 ((JArray)loggingConfig["Serilog"]["WriteTo"]).Add(writeToObject);
 
                 loggingConfig["Serilog"]["Enrich"] = new JArray();
@@ -74,6 +77,8 @@ namespace MachinaTrader.Globals
             Global.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(configuration)
                 .WriteTo.Console(theme: AnsiConsoleTheme.Code)
+                .WriteTo.RollingFile(Global.DataPath + "/Logs/MachinaTrader-{Date}.log")
+                .WriteTo.SignalRLogEventSink()
                 .CreateLogger();
 
             Global.Logger.Information("Starting");
