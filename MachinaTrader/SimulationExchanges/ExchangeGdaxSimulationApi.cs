@@ -1,4 +1,5 @@
 using ExchangeSharp;
+using MachinaTrader.Globals;
 using Mynt.Core.Backtester;
 using Mynt.Core.Enums;
 using System;
@@ -98,6 +99,7 @@ namespace MachinaTrader.SimulationExchanges
             var candles = new List<MarketCandle>();
 
             var backtestOptions = new BacktestOptions();
+            backtestOptions.DataFolder = Global.DataPath;
             backtestOptions.Exchange = Exchange.Gdax;
             backtestOptions.Coin = symbol;
             backtestOptions.CandlePeriod = Int32.Parse(Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCandleSize);
@@ -158,24 +160,7 @@ namespace MachinaTrader.SimulationExchanges
 
         protected override async Task<IEnumerable<ExchangeMarket>> OnGetSymbolsMetadataAsync()
         {
-            //var markets = new List<ExchangeMarket>()
-            //{
-            //  new ExchangeMarket()
-            //  {
-            //       MarketName = "",
-            //    IsActive = true,
-            //    BaseCurrency = "",
-            //    MarketCurrency = "",
-            //    MinTradeSize = 0,
-            //    MaxTradeSize = 0,
-            //    MinPrice = 0,
-            //    MaxPrice = 0,
-            //    PriceStepSize = 0,
-            //    QuantityStepSize = 0
-            //  }
-            //};
-
-            var markets =  Runtime.AppCache.GetOrAdd("markets", async (a) => await _realApi.GetSymbolsMetadataAsync());
+            var markets =  Global.AppCache.GetOrAdd("gdaxMarkets", async (a) => await _realApi.GetSymbolsMetadataAsync());
             if (markets.Result.Count() == 0)
                 throw new Exception();
 
@@ -195,9 +180,10 @@ namespace MachinaTrader.SimulationExchanges
         private ExchangeTicker GetExchangeTicker(string symbol)
         {
             var backtestOptions = new BacktestOptions();
+            backtestOptions.DataFolder = Global.DataPath;
             backtestOptions.Exchange = Exchange.Gdax;
             backtestOptions.Coin = symbol;
-            backtestOptions.CandlePeriod = Int32.Parse(Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCandleSize);
+            backtestOptions.CandlePeriod = 1; //we need 1min database candles to best simulation of ticker
             backtestOptions.StartDate = Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate.AddMinutes(-30);
             backtestOptions.EndDate = Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
 
@@ -210,7 +196,7 @@ namespace MachinaTrader.SimulationExchanges
 
             var ticker = new ExchangeTicker()
             {
-                //weak assumptions...
+                //weak assumptions with 1min database...
                 Ask = lastCandle.Close,
                 Last = lastCandle.Close,
                 Bid = lastCandle.Close,
@@ -226,12 +212,6 @@ namespace MachinaTrader.SimulationExchanges
 
             return ticker;
         }
-
-
-        //public override string GlobalSymbolToExchangeSymbol(string symbol)
-        //{
-        //    return string.Empty;
-        //}
 
         public override string ExchangeSymbolToGlobalSymbol(string symbol)
         {

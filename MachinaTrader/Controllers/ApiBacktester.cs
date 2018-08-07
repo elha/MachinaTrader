@@ -290,33 +290,38 @@ namespace MachinaTrader.Controllers
 
             return new JsonResult(items);
         }
+        //string exchange, string coinsToBuy, string strategy, string candleSize, string date
 
         [HttpGet]
         [Route("simulation")]
-        //string exchange, string coinsToBuy, string strategy, string candleSize, string date
-        [HttpGet]
-        public async Task<bool> Simulation(string coinsToBuy, string date)
+        public async Task<bool> Simulation(string coinsToBuy, string strategy, string date)
         {
+            var currentExchangeOption = Runtime.Configuration.ExchangeOptions.FirstOrDefault();
+
             var currenDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(date, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
 
-            var backtestOptions = new BacktestOptions();
-            backtestOptions.Exchange = Exchange.Gdax;
-            backtestOptions.Coin = coinsToBuy;
-            backtestOptions.CandlePeriod = Int32.Parse(Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCandleSize);
+            var backtestOptions = new BacktestOptions()
+            {
+                DataFolder = Global.DataPath,
+                Exchange = Exchange.Gdax,
+                Coin = coinsToBuy,
+                CandlePeriod = Int32.Parse(currentExchangeOption.SimulationCandleSize)
+            };
+
             Candle databaseFirstCandle = await Runtime.GlobalDataStoreBacktest.GetBacktestFirstCandle(backtestOptions);
             Candle databaseLastCandle = await Runtime.GlobalDataStoreBacktest.GetBacktestLastCandle(backtestOptions);
 
             var tradeManager = new TradeManager();
 
-            Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate = currenDate > databaseFirstCandle.Timestamp ? currenDate : databaseFirstCandle.Timestamp;
-            while (Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate <= databaseLastCandle.Timestamp)
+            currentExchangeOption.SimulationCurrentDate = currenDate > databaseFirstCandle.Timestamp ? currenDate : databaseFirstCandle.Timestamp;
+            while (currentExchangeOption.SimulationCurrentDate <= databaseLastCandle.Timestamp)
             {
-                await tradeManager.LookForNewTrades();
+                await tradeManager.LookForNewTrades(strategy);
                 await tradeManager.UpdateExistingTrades();
 
-                Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate = Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate.AddMinutes(10);
+                currentExchangeOption.SimulationCurrentDate = currentExchangeOption.SimulationCurrentDate.AddMinutes(10);
 
-                Console.WriteLine(Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate);
+                Global.Logger.Information($"SimulationCurrentDate: {currentExchangeOption.SimulationCurrentDate}");
             }
 
             return true;

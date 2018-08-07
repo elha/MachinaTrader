@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using LazyCache;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -131,5 +132,6 @@ namespace MachinaTrader.Globals
         public static IApplicationBuilder ApplicationBuilder { get; set; }
         public static IServiceScope ServiceScope { get; set; }
         public static Serilog.ILogger Logger { get; set; }
+        public static IAppCache AppCache { get; set; }
     }
 }

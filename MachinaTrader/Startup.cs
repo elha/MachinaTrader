@@ -26,6 +26,9 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Newtonsoft.Json.Linq;
+using LazyCache.Providers;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace MachinaTrader
 {
@@ -91,8 +94,8 @@ namespace MachinaTrader
                 });
             });
 
-            services.AddLazyCache();
-
+            //services.AddLazyCache();
+            
             // Add Database Initializer
             services.AddTransient<IDatabaseInitializer, DatabaseInitializer>();
 
@@ -161,6 +164,8 @@ namespace MachinaTrader
                 }
             }
 
+            containerBuilder.RegisterModule(new AppCacheModule());
+
             containerBuilder.Populate(services);
             ApplicationContainer = containerBuilder.Build();
             return ApplicationContainer.Resolve<IServiceProvider>();
@@ -168,10 +173,11 @@ namespace MachinaTrader
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment hostingEnvironment, IDatabaseInitializer databaseInitializer)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment hostingEnvironment, IDatabaseInitializer databaseInitializer, IAppCache cache)
         {
             Global.ServiceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
             Global.ApplicationBuilder = app;
+            Global.AppCache = cache;
 
             app.UseStaticFiles();
 
@@ -234,6 +240,16 @@ namespace MachinaTrader
 
             IWebHost webHost = webHostBuilder.Build();
             webHost.Run();
+        }
+    }
+
+    public class AppCacheModule : Autofac.Module
+    {
+       protected override void Load(ContainerBuilder builder)
+        {
+            builder.Register(c => new CachingService(new MemoryCacheProvider(new MemoryCache(new MemoryCacheOptions()))))
+               .As<IAppCache>()
+               .InstancePerLifetimeScope();
         }
     }
 }
