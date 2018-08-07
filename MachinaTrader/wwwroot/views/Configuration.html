@@ -1,3 +1,18 @@
+<script src="/js/jquery-cron.js"></script>
+
+<style>
+    .cron-period > select {
+        display: inline;
+        width: initial;
+    }
+
+    .cron-block > select {
+        display: inline;
+        width: initial;
+    }
+</style>
+
+
 <div class="row animated fadeIn" id="apiMainConfig" v-if="apiMainConfigData && allStrategiesData && exchangeCoinsData">
 
 
@@ -172,7 +187,14 @@
                             </div>
                         </td>
                         <td>
-                            <input type="text" class="form-control string" name="TradeOptions.BuyTimer" v-bind:value="apiMainConfigData['tradeOptions']['buyTimer']" />
+                            <div class='row'>
+                                <div class="col-6">
+                                    <div id='buyTimerCron'></div>
+                                </div>
+                                <div class="col-6">
+                                    <input type="text" readonly class="form-control string" id="buyTimerCronInput" name="TradeOptions.BuyTimer" />
+                                </div>
+                            </div>
                         </td>
                     </tr>
 
@@ -184,7 +206,14 @@
                             </div>
                         </td>
                         <td>
-                            <input type="text" class="form-control string" name="TradeOptions.SellTimer" v-bind:value="apiMainConfigData['tradeOptions']['sellTimer']" />
+                            <div class='row'>
+                                <div class="col-6">
+                                    <div id='sellTimerCron'></div>
+                                </div>
+                                <div class="col-6">
+                                    <input type="text" readonly class="form-control" id="sellTimerCronInput" name="TradeOptions.SellTimer" />
+                                </div>
+                            </div>
                         </td>
                     </tr>
 
@@ -467,6 +496,8 @@
 </div>
 
 <script type="text/javascript">
+    var initialBuyTimerCron = null;
+    var initialSellTimerCron = null;
 
     var pagefunction = function () {
 
@@ -487,6 +518,23 @@
                 postFormData("apiMainConfig", "/api/config/mainConfig", false);
             });
         });*/
+
+        
+        $('#buyTimerCron').cron({
+            initial: initialBuyTimerCron,
+            onChange: function () {
+                $('#buyTimerCronInput').val($(this).cron("value"));
+
+            }
+        });
+
+        $('#sellTimerCron').cron({
+            initial: initialSellTimerCron,
+            onChange: function () {
+                $('#sellTimerCronInput').val($(this).cron("value"));
+
+            }
+        });
 
         $(".selectpicker").select2({
             theme: "bootstrap",
@@ -553,6 +601,8 @@
                         $.get('/api/trading/exchangePairsExchangeSymbols?exchange=Binance', function (data) {
                             self.exchangeCoinsData = data;
                             self.$nextTick(function () {
+                                initialBuyTimerCron = self.apiMainConfigData['tradeOptions']['buyTimer'];
+                                initialSellTimerCron = self.apiMainConfigData['tradeOptions']['sellTimer'];
                                 pagefunction();
                                 //self.updateSymbols();
                             });
