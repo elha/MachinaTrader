@@ -3,12 +3,84 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using MachinaTrader.Globals.Helpers;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace MachinaTrader.Globals
 {
     public class GlobalSettings
     {
+
+        public void LogConfiguration()
+        {
+            //Create Logging Config if not exist
+            if (!File.Exists(Global.DataPath + "/Logging.json"))
+            {
+                JObject loggingConfig = new JObject();
+                loggingConfig["Logging"] = new JObject();
+                loggingConfig["Logging"]["IncludeScopes"] = false;
+                loggingConfig["Logging"]["Debug"] = new JObject();
+                loggingConfig["Logging"]["Debug"]["LogLevel"] = new JObject();
+                loggingConfig["Logging"]["Debug"]["LogLevel"]["Default"] = "Information";
+                loggingConfig["Logging"]["Debug"]["LogLevel"]["Microsoft"] = "Error";
+                loggingConfig["Logging"]["Console"] = new JObject();
+                loggingConfig["Logging"]["Console"]["LogLevel"] = new JObject();
+                loggingConfig["Logging"]["Console"]["LogLevel"]["Default"] = "Information";
+                loggingConfig["Logging"]["Console"]["LogLevel"]["Microsoft"] = "Error";
+
+                loggingConfig["Serilog"] = new JObject();
+                loggingConfig["Serilog"]["Using"] = new JArray();
+                ((JArray)loggingConfig["Serilog"]["Using"]).Add("Serilog.Sinks.RollingFile");
+                loggingConfig["Serilog"]["MinimumLevel"] = new JObject();
+                loggingConfig["Serilog"]["MinimumLevel"]["Default"] = "Information"; //Debug ?!
+                loggingConfig["Serilog"]["MinimumLevel"]["Override"] = new JObject();
+                loggingConfig["Serilog"]["MinimumLevel"]["Override"]["Microsoft"] = "Error"; //Dont log ASP msg -> Set to Information if needed
+                loggingConfig["Serilog"]["MinimumLevel"]["Override"]["System"] = "Warning";
+                loggingConfig["Serilog"]["WriteTo"] = new JArray();
+
+                JObject writeToObject = new JObject();
+                writeToObject["Name"] = "Async";
+                writeToObject["Args"] = new JObject();
+                writeToObject["Args"]["configure"] = new JArray();
+
+                JObject rollingFile = new JObject();
+                rollingFile["Name"] = "RollingFile";
+                rollingFile["Args"] = new JObject();
+                rollingFile["Args"]["configure"] = new JArray();
+
+                JObject rollingFileArgs = new JObject();
+                rollingFileArgs["Name"] = "RollingFile";
+                rollingFileArgs["Args"] = new JObject();
+                rollingFileArgs["Args"]["pathFormat"] = Global.DataPath + "/Logs/MachinaTrader-{Date}.log";
+
+                ((JArray)rollingFile["Args"]["configure"]).Add(rollingFileArgs);
+                ((JArray)writeToObject["Args"]["configure"]).Add(rollingFile);
+                ((JArray)loggingConfig["Serilog"]["WriteTo"]).Add(writeToObject);
+
+                loggingConfig["Serilog"]["Enrich"] = new JArray();
+                ((JArray)loggingConfig["Serilog"]["Enrich"]).Add("FromLogContext");
+
+                string jsonToFile = JsonConvert.SerializeObject(loggingConfig, Formatting.Indented);
+                File.WriteAllText(Global.DataPath + "/Logging.json", jsonToFile);
+            }
+
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile(Global.DataPath + "/Logging.json")
+                .Build();
+
+            Global.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .WriteTo.Console(theme: AnsiConsoleTheme.Code)
+                .CreateLogger();
+
+            Global.Logger.Information("Starting");
+            Global.Logger.Information("BasePath: " + Global.AppPath);
+            Global.Logger.Information("DataFolder: " + Global.DataPath.Replace("\\", "/"));
+        }
+
         public void Folders()
         {
             Global.AppPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)?.Replace("\\", "/");
@@ -17,10 +89,8 @@ namespace MachinaTrader.Globals
                 //We are in development mode -> Loop though parent folders to find wwwroot Folder
                 if (Directory.Exists(Global.AppPath + "/wwwroot"))
                 {
-                    Global.Logger.Information("Found BasePath: " + Global.AppPath);
                     break;
                 }
-                Global.Logger.Information("Try to get wwwroot in BasePath: " + Global.AppPath);
                 Global.AppPath = Directory.GetParent(Global.AppPath).FullName.Replace("\\", "/");
             }
 
@@ -30,7 +100,6 @@ namespace MachinaTrader.Globals
             if (Directory.Exists(Directory.GetParent(Global.AppPath).FullName + "/Data"))
             {
                 Global.DataPath = Directory.GetParent(Global.AppPath).FullName.Replace("\\", "/") + "/Data";
-                Global.Logger.Information("DataFolder Exists - Set Data Folder to " + Global.DataPath.Replace("\\", "/"));
             } else
             {
                 Global.DataPath = (Global.AppPath + "/Data").Replace("\\", "/");

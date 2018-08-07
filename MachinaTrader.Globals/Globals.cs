@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Quartz;
 using Quartz.Impl;
@@ -22,23 +23,10 @@ namespace MachinaTrader.Globals
     {
         public static void InitGlobals()
         {
-
-            //Init Logger First
-            Console.WriteLine(Directory.GetCurrentDirectory() + "/appsettings.json");
-            var configuration = new ConfigurationBuilder()
-                .AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json")
-                .Build();
-
-            Logger = new LoggerConfiguration()
-                 .ReadFrom.Configuration(configuration)
-                 .WriteTo.Console(theme: AnsiConsoleTheme.Code)
-                 .CreateLogger();
-
-            Logger.Information("Starting");
-
             //Read Default MainSettings
             var settings = new GlobalSettings();
             settings.Folders();
+            settings.LogConfiguration();
             settings.DefaultCoreSettings();
             settings.DefaultCoreRuntimeSettings();
             settings.CommonFiles();

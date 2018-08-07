@@ -127,15 +127,6 @@ namespace MachinaTrader
                 options.ValidationInterval = TimeSpan.FromHours(24);
             });
 
-
-            // Configure serilog from appsettings.json
-            var serilogger = new LoggerConfiguration()
-                .ReadFrom.Configuration(Configuration)
-                .WriteTo.SignalRLogEventSink()
-                .CreateLogger();
-
-            services.AddLogging(b => { b.AddSerilog(serilogger); });
-
             services.AddLogging(b => { b.AddSerilog(Globals.Global.Logger); });
 
             var mvcBuilder = services.AddMvc().AddRazorPagesOptions(options =>
@@ -236,7 +227,7 @@ namespace MachinaTrader
                 .UseKestrel(options => { options.Listen(IPAddress.Any, Runtime.Configuration.SystemOptions.WebPort); })
                 .UseStartup<Startup>()
                 .UseContentRoot(Global.AppPath)
-                .ConfigureAppConfiguration(i => i.AddJsonFile("appsettings.overrides.json", true));
+                .ConfigureAppConfiguration(i => i.AddJsonFile(Global.DataPath + "/Logging.json", true));
 
             IWebHost webHost = webHostBuilder.Build();
             webHost.Run();

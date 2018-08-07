@@ -121,14 +121,6 @@ namespace MachinaTrader
 
         public static void LoadSettings()
         {
-            // Check if Overrides exists
-            var settingsStr = "appsettings.json";
-            if (File.Exists("appsettings.overrides.json"))
-                settingsStr = "appsettings.overrides.json";
-
-            var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(Globals.Global.AppPath + "/" + settingsStr, optional: true);
-            Runtime.GlobalConfiguration = builder.Build();
-
             if (!File.Exists(Global.DataPath + "/MainConfig.json"))
             {
                 //Init Global Config with default currency array
