@@ -1,5 +1,12 @@
 <script src="/js/jquery-cron.js"></script>
 
+
+
+<!-- qTip2 -->
+<link href="/vendors/qtip2/css/jquery.qtip.min.css" rel="stylesheet">
+<script src="/vendors/qtip2/js/jquery.qtip.min.js"></script>
+
+
 <style>
     .cron-period > select {
         display: inline;
@@ -29,9 +36,9 @@
                 <table class="table table-hover table-striped">
                     <tr>
                         <td width="300px">
-                            <span class="qTip" title="">WebPort <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Web Port to use for MachinaTrader">Web Port <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                <strong>Default:</strong> 5000
                             </div>
                         </td>
                         <td>
@@ -40,9 +47,11 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">Database <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Database for MachinaTrader">Database <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                LiteDB have no dependencies (running database server)
+                                <br />MongoDB is faster but need a server
+                                <br /><br /><strong>Default:</strong> LiteDB
                             </div>
                         </td>
                         <td>
@@ -66,9 +75,10 @@
                 <table class="table table-hover table-striped">
                     <tr>
                         <td width="300px">
-                            <span class="qTip" title="">TelegramChatId <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Telegram ChatId">Telegram ChatId <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                <strong>Sample:</strong> 493867000
+                                <br /><br /><strong>Default:</strong> <i>none</i>
                             </div>
                         </td>
                         <td>
@@ -77,9 +87,11 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">TelegramBotToken <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Telegram Bot Token">Telegram Bot Token <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Please enter here your telegram chat id
+                                <br /><strong>Sample:</strong> 608444444:AAAA1XsvQOYO-uE3l8GX8TdyShP-lodFIyo
+                                <br /><br /><strong>Default:</strong> <i>none</i>
                             </div>
                         </td>
                         <td>
@@ -104,9 +116,11 @@
                 <table class="table table-hover table-striped">
                     <tr>
                         <td width="300px">
-                            <span class="qTip" title="">Exchange <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Exchange Id">Exchange <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Please enter ExchangeId your want to use
+                                <br />0 - Binance
+                                <br /><br /><strong>Default:</strong> <i>0</i>
                             </div>
                         </td>
                         <td>
@@ -115,9 +129,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">ApiKey <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="ApiKey">ApiKey <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Please enter your Api Key
+                                <br /><br /><strong>Default:</strong> <i>none</i>
                             </div>
                         </td>
                         <td>
@@ -126,9 +141,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">ApiSecret <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="ApiSecret">ApiSecret <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Please enter your Api Secret
+                                <br /><br /><strong>Default:</strong> <i>none</i>
                             </div>
                         </td>
                         <td>
@@ -137,9 +153,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">PassPhrase <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="PassPhrase">PassPhrase <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Please enter your PassPhrase (if needed for your exchange)
+                                <br /><br /><strong>Default:</strong> <i>none</i>
                             </div>
                         </td>
                         <td>
@@ -166,9 +183,10 @@
 
                     <tr>
                         <td width="300px">
-                            <span class="qTip" title="">OnlySellOnStrategySignals <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Only sell on strategy signals">OnlySellOnStrategySignals <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Set this if you want MachinaTrading <strong>only</strong> sell if Strategy advice to sell.
+                                <br /><br /><strong>Default:</strong> <i>false</i>
                             </div>
                         </td>
                         <td>
@@ -181,9 +199,11 @@
 
                     <tr>
                         <td>
-                            <span class="qTip" title="">BuyTimer <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Buy Timer">BuyTimer <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Select interval to check for new buys
+                                <br/> You can also choose custom option to directly change cron (Quartz)
+                                <br /><br /><strong>Default:</strong> <i>0 0/5 * * * ?</i>
                             </div>
                         </td>
                         <td>
@@ -200,9 +220,11 @@
 
                     <tr>
                         <td>
-                            <span class="qTip" title="">SellTimer <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Sell Timer">SellTimer <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Select interval to check for sell
+                                <br /> You can also choose custom option to directly change cron (Quartz)
+                                <br /><br /><strong>Default:</strong> <i>0 0/5 * * * ?</i>
                             </div>
                         </td>
                         <td>
@@ -219,9 +241,11 @@
 
                     <tr>
                         <td>
-                            <span class="qTip" title="">PaperTrade <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Paper Trade">PaperTrade <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Set to true to simulate trades.
+                                <br /> While PaperTrade is true no real trades will get executed
+                                <br /><br /><strong>Default:</strong> <i>true</i>
                             </div>
                         </td>
                         <td>
@@ -233,9 +257,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">MaxNumberOfConcurrentTrades <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Max number of concurrent trades">MaxNumberOfConcurrentTrades <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                How many buy/sell trades should be open at same time
+                                <br /><br /><strong>Default:</strong> <i>10</i>
                             </div>
                         </td>
                         <td>
@@ -245,9 +270,10 @@
 
                     <tr>
                         <td>
-                            <span class="qTip" title="">AmountToInvestPerTrader <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Amount to invest per trade">AmountToInvestPerTrader <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                How many base currency (usually BTC) will be used per trade
+                                <br /><br /><strong>Default:</strong> <i>0.005</i>
                             </div>
                         </td>
                         <td>
@@ -256,9 +282,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">ProfitStrategy <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="ProfitStrategy">ProfitStrategy <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                ToDo
+                                <br /><br /><strong>Default:</strong> <i>0</i>
                             </div>
                         </td>
                         <td>
@@ -267,9 +294,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">StopLossPercentage <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="StopLoss percentage">StopLossPercentage <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Set stop loss for trades (0.01 = 10%)
+                                <br /><br /><strong>Default:</strong> <i>-0.07</i>
                             </div>
                         </td>
                         <td>
@@ -278,9 +306,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">ImmediatelyPlaceSellOrder <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Immediately place sell order">ImmediatelyPlaceSellOrder <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Sell position immediately after successful buy with value from ImmediatelyPlaceSellOrderAtProfit
+                                <br /><br /><strong>Default:</strong> <i>false</i>
                             </div>
                         </td>
                         <td>
@@ -292,9 +321,11 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">ImmediatelyPlaceSellOrderAtProfit <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Immediately place sell order with profit">ImmediatelyPlaceSellOrderAtProfit <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                If ImmediatelyPlaceSellOrder is true, sell with this percentage
+                                <br/>0.02 = 2%
+                                <br /><br /><strong>Default:</strong> <i>0.02</i>
                             </div>
                         </td>
                         <td>
@@ -303,9 +334,9 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">EnableTrailingStop <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Enable trailing stoploss">EnableTrailingStop <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                <br /><br /><strong>Default:</strong> <i>true</i>
                             </div>
                         </td>
                         <td>
@@ -317,9 +348,11 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">TrailingStopStartingPercentage <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Trailing stoploss starting percentage">TrailingStopStartingPercentage <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Arm Trailing stoploss at this percentage
+                                <br />0.05 = 5%
+                                <br /><br /><strong>Default:</strong> <i>0.05</i>
                             </div>
                         </td>
                         <td>
@@ -330,7 +363,9 @@
                         <td>
                             <span class="qTip" title="">TrailingStopPercentage <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Sell on this percentage
+                                <br />0.05 = 5%
+                                <br /><br /><strong>Default:</strong> <i>0.05</i>
                             </div>
                         </td>
                         <td>
@@ -339,9 +374,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">CancelUnboughtOrdersEachCycle <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Cancel unbought orders each cycle">CancelUnboughtOrdersEachCycle <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Cancel unbought orders each cycle. Depends on time of your cron (buy/sell timer)
+                                <br /><br /><strong>Default:</strong> <i>true</i>
                             </div>
                         </td>
                         <td>
@@ -353,9 +389,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">PlaceFirstStopAtSignalCandleLow <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Place first stop at SignalCandleLow">PlaceFirstStopAtSignalCandleLow <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                ToDo
+                                <br /><br /><strong>Default:</strong> <i>false</i>
                             </div>
                         </td>
                         <td>
@@ -367,9 +404,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">MinimumAmountOfVolume <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Minimum amount of volume">MinimumAmountOfVolume <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Set the minimum amount of volume to buy into a currency
+                                <br /><br /><strong>Default:</strong> <i>300</i>
                             </div>
                         </td>
                         <td>
@@ -378,9 +416,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">DefaultStrategy <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Default strategy">DefaultStrategy <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Select the strategy to use for buy/sell
+                                <br /><br /><strong>Default:</strong> <i>The Scalper</i>
                             </div>
                         </td>
                         <td>
@@ -391,9 +430,13 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">BuyInPriceStrategy <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="BuyInPriceStrategy">BuyInPriceStrategy <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                AskLastBalance = 0,
+                                <br />PercentageBelowBid = 1,
+                                <br />MatchCurrentBid = 2,
+                                <br />SignalCandleClose = 3
+                                <br /><br /><strong>Default:</strong> <i>3</i>
                             </div>
                         </td>
                         <td>
@@ -402,9 +445,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">AskLastBalance <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Ask last balance">AskLastBalance <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                ToDo:
+                                <br /><br /><strong>Default:</strong> <i>0.2</i>
                             </div>
                         </td>
                         <td>
@@ -413,9 +457,10 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">BuyInPricePercentage <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="BuyInPricePercentage">BuyInPricePercentage <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                ToDo:
+                                <br /><br /><strong>Default:</strong> <i>0.005</i>
                             </div>
                         </td>
                         <td>
@@ -435,9 +480,10 @@
                     </tr>-->
                     <tr>
                         <td>
-                            <span class="qTip" title="">QuoteCurrency <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="QuoteCurrency">QuoteCurrency <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Enter your Base Currency
+                                <br /><br /><strong>Default:</strong> <i>BTC</i>
                             </div>
                         </td>
                         <td>
@@ -446,9 +492,11 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">MarketBlackList <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Market blacklist">MarketBlackList <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Never trade this coins
+                                <br /> Depends on your current exchange.
+                                <br /><br /><strong>Default:</strong> <i>none</i>
                             </div>
                         </td>
                         <td>
@@ -459,9 +507,11 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">OnlyTradeList <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="Only Trade List">OnlyTradeList <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Only trade this coins
+                                <br/> Depends on your current exchange.
+                                <br /><br /><strong>Default:</strong> <i>ETHBTC</i>
                             </div>
                         </td>
                         <td>
@@ -473,9 +523,11 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="">AlwaysTradeList <i class="help-icon fas fa-question-circle"></i></span>
+                            <span class="qTip" title="AlwaysTradeList">AlwaysTradeList <i class="help-icon fas fa-question-circle"></i></span>
                             <div style="display: none;">
-                                <p></p>
+                                Always trade this coins
+                                <br /> Depends on your current exchange.
+                                <br /><br /><strong>Default:</strong> <i>ETHBTC</i>
                             </div>
                         </td>
                         <td>
@@ -519,7 +571,45 @@
             });
         });*/
 
-        
+        $('.qTip').on('mouseover', function (event) {
+            $(this).qtip({
+                content: {
+                    title: $(this).attr('title'),
+                    text: $(this).next('div').clone() // Use the "div" element next to this for the content
+                },
+                position: {
+                    my: 'top center',  // Position my top left...
+                    at: 'bottom center', // at the bottom right of...
+                },
+                style: {
+                    classes: 'qtip-shadow qtip-bootstrap',
+                    tip: {
+                        corner: true, // Use position.my by default
+                        //mimic: false, // Don't mimic a particular corner
+                        width: 25,
+                        height: 10,
+                        //border: true, // Detect border from tooltip style
+                        offset: 10 // Do not apply an offset from corner
+                    }
+                },
+                prerender: false,
+                overwrite: true,
+                show: {
+                    event: event.type,
+                    ready: true
+                },
+                hide: {
+                    event: 'mouseout'
+                },
+                events: {
+                    hidden: function (event, api) {
+                        $(this).qtip('destroy', true);
+                    }
+                }
+            }, event);
+        });
+
+
         $('#buyTimerCron').cron({
             initial: initialBuyTimerCron,
             onChange: function () {
