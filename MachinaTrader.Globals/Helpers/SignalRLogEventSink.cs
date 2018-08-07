@@ -35,12 +35,15 @@ namespace MachinaTrader.Globals.Helpers
             var message = logEvent.RenderMessage(_formatProvider);
             //Console.WriteLine("FROM MySink " + DateTimeOffset.Now.ToString() + " " + message);
 
-            if (Global.GlobalHubLogs == null)
+            if (Global.ServiceScope != null)
             {
-                Global.GlobalHubLogs = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubLogs>>();
+                if (Global.GlobalHubLogs == null)
+                {
+                    Global.GlobalHubLogs = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubLogs>>();
+                }
+
+                Global.GlobalHubLogs.Clients.All.SendAsync("Send", message);
             }
-            
-            Global.GlobalHubLogs.Clients.All.SendAsync("Send", message);
         }
     }
 

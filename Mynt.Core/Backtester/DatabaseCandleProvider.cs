@@ -10,9 +10,9 @@ namespace Mynt.Core.Backtester
     {
         public async Task<List<Candle>> GetCandles(BacktestOptions backtestOptions, IDataStoreBacktest dataStore)
         {
-            if (backtestOptions.EndDate != DateTime.MinValue)
+            if (backtestOptions.EndDate == DateTime.MinValue)
             {
-                backtestOptions.EndDate = backtestOptions.EndDate;
+                backtestOptions.EndDate = DateTime.UtcNow;
             }
 
             List<Candle> candles = await dataStore.GetBacktestCandlesBetweenTime(backtestOptions);
@@ -22,11 +22,9 @@ namespace Mynt.Core.Backtester
 
         public async Task SaveTradeSignals(BacktestOptions backtestOptions, IDataStoreBacktest dataStore, List<TradeSignal> signals)
         {
-            backtestOptions.EndDate = DateTime.UtcNow;
-
-            if (backtestOptions.EndDate != DateTime.MinValue)
+            if (backtestOptions.EndDate == DateTime.MinValue)
             {
-                backtestOptions.EndDate = backtestOptions.EndDate;
+                backtestOptions.EndDate = DateTime.UtcNow;
             }
 
             await dataStore.SaveBacktestTradeSignalsBulk(signals, backtestOptions);
@@ -34,11 +32,9 @@ namespace Mynt.Core.Backtester
 
         public async Task<List<TradeSignal>> GetSignals(BacktestOptions backtestOptions, IDataStoreBacktest dataStore, string strategy)
         {
-            backtestOptions.EndDate = DateTime.UtcNow;
-
-            if (backtestOptions.EndDate != DateTime.MinValue)
+            if (backtestOptions.EndDate == DateTime.MinValue)
             {
-                backtestOptions.EndDate = backtestOptions.EndDate;
+                backtestOptions.EndDate = DateTime.UtcNow;
             }
 
             List<TradeSignal> items = await dataStore.GetBacktestSignalsByStrategy(backtestOptions, strategy);
