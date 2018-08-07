@@ -211,7 +211,6 @@
 
             data: {
                 runtimeSettings: null,
-                navigationItems: null,
                 serverOnline: false
             },
 
@@ -225,10 +224,6 @@
                     $.get('/api/config/runtime', function (data) {
                         self.runtimeSettings = data;
                         console.log("ready");
-                    });
-                    $.get('/api/core/navigation', function (data) {
-                        self.navigationItems = data;
-                        //Trigger active menu item after DOM is ready
                         self.$nextTick(function () {
                             $('#ui-view').ajaxLoad();
                         });
