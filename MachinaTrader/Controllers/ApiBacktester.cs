@@ -290,15 +290,15 @@ namespace MachinaTrader.Controllers
 
             return new JsonResult(items);
         }
-        //string exchange, string coinsToBuy, string strategy, string candleSize, string date
 
         [HttpGet]
         [Route("simulation")]
-        public async Task<bool> Simulation(string coinsToBuy, string strategy, string date)
+        public async Task<bool> Simulation(string coinsToBuy, string strategy, string fromDate, string toDate)
         {
             var currentExchangeOption = Runtime.Configuration.ExchangeOptions.FirstOrDefault();
 
-            var currenDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(date, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
+            var simulationStartingDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(fromDate, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
+            var simulationEndingDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(toDate, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
 
             var backtestOptions = new BacktestOptions()
             {
@@ -313,15 +313,17 @@ namespace MachinaTrader.Controllers
 
             var tradeManager = new TradeManager();
 
-            currentExchangeOption.SimulationCurrentDate = currenDate > databaseFirstCandle.Timestamp ? currenDate : databaseFirstCandle.Timestamp;
-            while (currentExchangeOption.SimulationCurrentDate <= databaseLastCandle.Timestamp)
+            currentExchangeOption.SimulationCurrentDate = simulationStartingDate > databaseFirstCandle.Timestamp ? simulationStartingDate : databaseFirstCandle.Timestamp;
+            simulationEndingDate = simulationEndingDate < databaseLastCandle.Timestamp ? simulationEndingDate : databaseLastCandle.Timestamp;
+
+            while (currentExchangeOption.SimulationCurrentDate <= simulationEndingDate)
             {
+                Global.Logger.Information($"SimulationCurrentDate: {currentExchangeOption.SimulationCurrentDate}");
+
                 await tradeManager.LookForNewTrades(strategy);
                 await tradeManager.UpdateExistingTrades();
 
                 currentExchangeOption.SimulationCurrentDate = currentExchangeOption.SimulationCurrentDate.AddMinutes(10);
-
-                Global.Logger.Information($"SimulationCurrentDate: {currentExchangeOption.SimulationCurrentDate}");
             }
 
             return true;

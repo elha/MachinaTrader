@@ -103,8 +103,11 @@ namespace MachinaTrader.SimulationExchanges
             backtestOptions.Exchange = Exchange.Gdax;
             backtestOptions.Coin = symbol;
             backtestOptions.CandlePeriod = Int32.Parse(Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCandleSize);
-            backtestOptions.StartDate = startDate.Value;
-            backtestOptions.EndDate = endDate.Value;
+
+            if (startDate.HasValue)
+                backtestOptions.StartDate = startDate.Value;
+            if (endDate.HasValue)
+                backtestOptions.EndDate = endDate.Value;
 
             var candleProvider = new DatabaseCandleProvider();
             var items = await candleProvider.GetCandles(backtestOptions, Runtime.GlobalDataStoreBacktest);
@@ -160,7 +163,7 @@ namespace MachinaTrader.SimulationExchanges
 
         protected override async Task<IEnumerable<ExchangeMarket>> OnGetSymbolsMetadataAsync()
         {
-            var markets =  Global.AppCache.GetOrAdd("gdaxMarkets", async (a) => await _realApi.GetSymbolsMetadataAsync());
+            var markets = Global.AppCache.GetOrAdd("gdaxMarkets", async (a) => await _realApi.GetSymbolsMetadataAsync());
             if (markets.Result.Count() == 0)
                 throw new Exception();
 

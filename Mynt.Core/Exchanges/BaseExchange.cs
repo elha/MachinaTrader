@@ -264,8 +264,9 @@ namespace Mynt.Core.Exchanges
                 {
                     ticker = await _api.GetCandlesAsync(market, period.ToMinutesEquivalent() * 60, startDate, endDate);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Console.WriteLine(ex.ToString());
                     Thread.Sleep(5000);
                 }
             }
@@ -286,7 +287,23 @@ namespace Mynt.Core.Exchanges
 
         public async Task<List<Candle>> GetTickerHistory(string market, Period period, int length)
         {
-            var ticker = await _api.GetCandlesAsync(market, period.ToMinutesEquivalent() * 60, null, null, length);
+            IEnumerable<MarketCandle> ticker = new List<MarketCandle>();
+
+            int k = 1;
+
+            while (ticker.Count() <= 0 && k < 20)
+            {
+                k++;
+                try
+                {
+                    ticker = await _api.GetCandlesAsync(market, period.ToMinutesEquivalent() * 60, null, null, length);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    Thread.Sleep(5000);
+                }
+            }
 
             if (ticker.Any())
                 return ticker.Select(x => new Candle
