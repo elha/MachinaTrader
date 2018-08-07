@@ -10,6 +10,7 @@ using MachinaTrader.Globals;
 using Microsoft.AspNetCore.Authorization;
 using System.Runtime.InteropServices;
 using System.Text;
+using MachinaTrader.Models;
 
 namespace MachinaTrader.Controllers
 {
@@ -217,6 +218,13 @@ namespace MachinaTrader.Controllers
             );
 
             return new JsonResult(pluginMenuSorted);
+        }
+
+        [HttpGet]
+        [Route("plugins")]
+        public ActionResult Plugins()
+        {
+            return new JsonResult(Global.CoreRuntime["Plugins"]);
         }
 
         [HttpGet]
