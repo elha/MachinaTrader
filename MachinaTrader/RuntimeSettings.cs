@@ -127,7 +127,7 @@ namespace MachinaTrader
             if (File.Exists("appsettings.overrides.json"))
                 settingsStr = "appsettings.overrides.json";
 
-            var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(settingsStr, optional: true);
+            var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(Globals.Global.AppPath + "/" + settingsStr, optional: true);
             Runtime.GlobalConfiguration = builder.Build();
 
             if (!File.Exists(Global.DataPath + "/MainConfig.json"))
@@ -150,7 +150,7 @@ namespace MachinaTrader
 
             {
 
-                Runtime.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), "MainConfig.json").ToObject<MainConfig>();
+                Runtime.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), Global.DataPath + "/MainConfig.json").ToObject<MainConfig>();
             }
 
             var exchangeOption = Runtime.Configuration.ExchangeOptions.FirstOrDefault();
