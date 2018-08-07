@@ -90,11 +90,11 @@ namespace MachinaTrader.TradeManagers
         /// <returns></returns>
         private async Task SellActiveTradesAgainstStrategies(ITradingStrategy strategy)
         {
-            Global.Logger.Information($"Starting SellActiveTradesAgainstStrategies");
+            var activeTrades = Runtime.GlobalDataStore.GetActiveTradesAsync().Result.Where(x => !x.IsSelling);  //so IsBuying (pending) and isOpen
 
-            var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            Global.Logger.Information($"Starting SellActiveTradesAgainstStrategies, check {activeTrades.Count()} orders");
 
-            foreach (var trade in activeTrades.Where(x => !x.IsSelling)) //so IsBuying (pending) and isOpen
+            foreach (var trade in activeTrades)
             {
                 var currentProfit = (trade.TickerLast.Bid - trade.OpenRate) / trade.OpenRate;
 
@@ -143,6 +143,8 @@ namespace MachinaTrader.TradeManagers
 
                     continue;
                 }
+
+                Global.Logger.Information($"Checking sell signal for {this.TradeToString(trade)}");
 
                 var signal = await GetStrategySignal(trade.Market, strategy);
 
@@ -303,7 +305,8 @@ namespace MachinaTrader.TradeManagers
 
                 int k = 1;
 
-                while (candles.Last().Timestamp < desiredLastCandleTime && k < 20)
+                //on simulation, if we dont have candles we have to re-check our DB data..
+                while (candles.Last().Timestamp < desiredLastCandleTime && k < 20 && !Runtime.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
                 {
                     k++;
                     Thread.Sleep(1000 * k);
