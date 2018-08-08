@@ -318,12 +318,12 @@ namespace MachinaTrader.Controllers
 
             while (currentExchangeOption.SimulationCurrentDate <= simulationEndingDate)
             {
-                Global.Logger.Information($"SimulationCurrentDate: {currentExchangeOption.SimulationCurrentDate}");
+                Global.Logger.Information($"------SimulationCurrentDate: {currentExchangeOption.SimulationCurrentDate}");
 
                 await tradeManager.LookForNewTrades(strategy);
                 await tradeManager.UpdateExistingTrades();
 
-                currentExchangeOption.SimulationCurrentDate = currentExchangeOption.SimulationCurrentDate.AddMinutes(10);
+                currentExchangeOption.SimulationCurrentDate = currentExchangeOption.SimulationCurrentDate.AddMinutes(5);
             }
 
             return true;

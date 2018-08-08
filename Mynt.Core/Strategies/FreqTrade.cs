@@ -1,24 +1,23 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using MachinaTrader.Globals;
 using Mynt.Core.Enums;
 using Mynt.Core.Indicators;
 using Mynt.Core.Models;
-using Serilog;
 
 namespace Mynt.Core.Strategies
 {
     public class FreqTrade : BaseStrategy
     {
-		private ILogger _logger;
-
         public override string Name => "FreqTrade";
         public override int MinimumAmountOfCandles => 40;
         public override Period IdealPeriod => Period.QuarterOfAnHour;
 
         public override List<TradeAdvice> Prepare(List<Candle> candles)
         {
+            Global.Logger.Information($"Starting FreqTrade");
+            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+
             var result = new List<TradeAdvice>();
 
             var rsi = candles.Rsi(14);
@@ -48,27 +47,30 @@ namespace Mynt.Core.Strategies
                     result.Add(TradeAdvice.Hold);
             }
 
-            if (_logger != null)
-            {
-                try
-                {
-                    _logger.Information("{Name} " +
-                                           "rsi:{rsi} ," +
-                                           "fast.D:{f} ," +
-                                           "adx:{a} ," +
-                                           "plusDi:{p} ",
-                                           Name,
-                                           rsi[candles.Count - 1],
-                                           fast.D[candles.Count - 1],
-                                           adx[candles.Count - 1],
-                                           plusDi[candles.Count - 1]);
+            //if (_logger != null)
+            //{
+            //    try
+            //    {
+            //        _logger.Information("{Name} " +
+            //                               "rsi:{rsi} ," +
+            //                               "fast.D:{f} ," +
+            //                               "adx:{a} ," +
+            //                               "plusDi:{p} ",
+            //                               Name,
+            //                               rsi[candles.Count - 1],
+            //                               fast.D[candles.Count - 1],
+            //                               adx[candles.Count - 1],
+            //                               plusDi[candles.Count - 1]);
 
-                }
-                catch (Exception ex)
-                {
-                    Global.Logger.Error(ex.ToString());
-                }
-            }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Global.Logger.Error(ex.ToString());
+            //    }
+            //}
+
+            watch1.Stop();
+            Global.Logger.Warning($"Ended FreqTrade in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return result;
         }
@@ -78,9 +80,8 @@ namespace Mynt.Core.Strategies
             return candles.Last();
         }
 
-        public override TradeAdvice Forecast(List<Candle> candles, ILogger logger)
+        public override TradeAdvice Forecast(List<Candle> candles)
         {
-            _logger = logger;
             return Prepare(candles).LastOrDefault();
         }
     }

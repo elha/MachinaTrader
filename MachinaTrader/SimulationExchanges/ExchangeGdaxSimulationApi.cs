@@ -46,49 +46,6 @@ namespace MachinaTrader.SimulationExchanges
             return tickers;
         }
 
-        public async Task<IEnumerable<ExchangeOrderResult>> GetOpenOrderDetailsAsync(string symbol = null)
-        {
-            var orders = new List<ExchangeOrderResult>();
-
-            var o = new ExchangeOrderResult()
-            {
-
-            };
-
-            return orders;
-        }
-
-        public async Task<ExchangeOrderResult> GetOrderDetailsAsync(string orderId, string symbol = null)
-        {
-            var result = new ExchangeOrderResult()
-            {
-                OrderId = "",
-                Result = ExchangeAPIOrderResult.Filled,
-                Message = "",
-                Amount = 0m,
-                AmountFilled = 0m,
-                Price = 0m,
-                AveragePrice = 0m,
-                OrderDate = DateTime.Now,
-                Symbol = "XXXBTC",
-                IsBuy = true,
-                Fees = 0m,
-                FeesCurrency = ""
-            };
-
-            return result;
-        }
-
-        public async Task<ExchangeOrderBook> GetOrderBookAsync(string symbol, int maxCount = 100)
-        {
-            var result = new ExchangeOrderBook()
-            {
-
-            };
-
-            return result;
-        }
-
         protected override async Task<ExchangeTicker> OnGetTickerAsync(string symbol)
         {
             return GetExchangeTicker(symbol);
@@ -96,6 +53,9 @@ namespace MachinaTrader.SimulationExchanges
 
         protected override async Task<IEnumerable<MarketCandle>> OnGetCandlesAsync(string symbol, int periodSeconds, DateTime? startDate = null, DateTime? endDate = null, int? limit = null)
         {
+            Global.Logger.Information($"Starting OnGetCandlesAsync {symbol}");
+            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+
             var candles = new List<MarketCandle>();
 
             var backtestOptions = new BacktestOptions();
@@ -138,34 +98,23 @@ namespace MachinaTrader.SimulationExchanges
                 }
             }
 
-            return candles;
-        }
+            watch1.Stop();
+            Global.Logger.Warning($"Ended OnGetCandlesAsync {symbol} in #{watch1.Elapsed.TotalSeconds} seconds");
 
-        public async Task<ExchangeOrderResult> PlaceOrderAsync(ExchangeOrderRequest order)
-        {
-            var result = new ExchangeOrderResult()
-            {
-                OrderId = "",
-                Result = ExchangeAPIOrderResult.Filled,
-                Message = "",
-                Amount = 0m,
-                AmountFilled = 0m,
-                Price = 0m,
-                AveragePrice = 0m,
-                OrderDate = DateTime.Now,
-                Symbol = "XXXBTC",
-                IsBuy = true,
-                Fees = 0m,
-                FeesCurrency = "",
-            };
-            return result;
+            return candles;
         }
 
         protected override async Task<IEnumerable<ExchangeMarket>> OnGetSymbolsMetadataAsync()
         {
+            Global.Logger.Information($"Starting OnGetSymbolsMetadataAsync");
+            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+
             var markets = Global.AppCache.GetOrAdd("gdaxMarkets", async (a) => await _realApi.GetSymbolsMetadataAsync());
             if (markets.Result.Count() == 0)
                 throw new Exception();
+
+            watch1.Stop();
+            Global.Logger.Warning($"Ended OnGetSymbolsMetadataAsync in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return markets.Result;
         }
@@ -182,12 +131,15 @@ namespace MachinaTrader.SimulationExchanges
 
         private ExchangeTicker GetExchangeTicker(string symbol)
         {
+            Global.Logger.Information($"Starting GetExchangeTicker {symbol}");
+            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+
             var backtestOptions = new BacktestOptions();
             backtestOptions.DataFolder = Global.DataPath;
             backtestOptions.Exchange = Exchange.Gdax;
             backtestOptions.Coin = symbol;
             backtestOptions.CandlePeriod = 1; //we need 1min database candles to best simulation of ticker
-            backtestOptions.StartDate = Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate.AddMinutes(-30);
+            backtestOptions.StartDate = Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate.AddMinutes(-3);
             backtestOptions.EndDate = Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
 
             var candleProvider = new DatabaseCandleProvider();
@@ -213,6 +165,9 @@ namespace MachinaTrader.SimulationExchanges
                 }
             };
 
+            watch1.Stop();
+            Global.Logger.Warning($"Ended GetExchangeTicker {symbol} in #{watch1.Elapsed.TotalSeconds} seconds");
+
             return ticker;
         }
 
@@ -221,6 +176,71 @@ namespace MachinaTrader.SimulationExchanges
             string[] pieces = symbol.Split("-");
 
             return pieces.First() + pieces.Last();
+        }
+
+
+
+        public async Task<ExchangeOrderResult> PlaceOrderAsync(ExchangeOrderRequest order)
+        {
+            var result = new ExchangeOrderResult()
+            {
+                OrderId = "",
+                Result = ExchangeAPIOrderResult.Filled,
+                Message = "",
+                Amount = 0m,
+                AmountFilled = 0m,
+                Price = 0m,
+                AveragePrice = 0m,
+                OrderDate = DateTime.Now,
+                Symbol = "XXXBTC",
+                IsBuy = true,
+                Fees = 0m,
+                FeesCurrency = "",
+            };
+            return result;
+        }
+
+        public async Task<IEnumerable<ExchangeOrderResult>> GetOpenOrderDetailsAsync(string symbol = null)
+        {
+            var orders = new List<ExchangeOrderResult>();
+
+            var o = new ExchangeOrderResult()
+            {
+
+            };
+
+            return orders;
+        }
+
+        public async Task<ExchangeOrderResult> GetOrderDetailsAsync(string orderId, string symbol = null)
+        {
+            var result = new ExchangeOrderResult()
+            {
+                OrderId = "",
+                Result = ExchangeAPIOrderResult.Filled,
+                Message = "",
+                Amount = 0m,
+                AmountFilled = 0m,
+                Price = 0m,
+                AveragePrice = 0m,
+                OrderDate = DateTime.Now,
+                Symbol = "XXXBTC",
+                IsBuy = true,
+                Fees = 0m,
+                FeesCurrency = ""
+            };
+
+            return result;
+        }
+
+        public async Task<ExchangeOrderBook> GetOrderBookAsync(string symbol, int maxCount = 100)
+        {
+            var result = new ExchangeOrderBook()
+            {
+
+            };
+
+            return result;
         }
     }
 }
