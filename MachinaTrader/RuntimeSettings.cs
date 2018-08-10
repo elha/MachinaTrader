@@ -33,9 +33,10 @@ namespace MachinaTrader
         public static IDataStoreBacktest GlobalDataStoreBacktest { get; set; }
         public static IExchangeApi GlobalExchangeApi { get; set; }
         public static CancellationToken GlobalTimerCancellationToken = new CancellationToken();
-        public static IHubContext<HubTraders> GlobalHubMyntTraders;
-        public static IHubContext<HubStatistics> GlobalHubMyntStatistics;
-        public static IHubContext<HubBacktest> GlobalHubMyntBacktest;
+        public static IHubContext<HubTraders> GlobalHubTraders;
+        public static IHubContext<HubStatistics> GlobalHubStatistics;
+        public static IHubContext<HubBacktest> GlobalHubBacktest;
+        public static IHubContext<HubAccounts> GlobalHubAccounts;
         public static RuntimeConfig RuntimeSettings = new RuntimeConfig();
         public static IScheduler QuartzTimer = new StdSchedulerFactory().GetScheduler().Result;
         public static TelegramNotificationOptions GlobalTelegramNotificationOptions { get; set; }
@@ -81,9 +82,10 @@ namespace MachinaTrader
             }
 
             // Global Hubs
-            Runtime.GlobalHubMyntTraders = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubTraders>>();
-            Runtime.GlobalHubMyntStatistics = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubStatistics>>();
-            Runtime.GlobalHubMyntBacktest = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubBacktest>>();
+            Runtime.GlobalHubTraders = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubTraders>>();
+            Runtime.GlobalHubStatistics = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubStatistics>>();
+            Runtime.GlobalHubBacktest = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubBacktest>>();
+            Runtime.GlobalHubAccounts = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubAccounts>>();
 
             //Run Cron
             IScheduler scheduler = Runtime.QuartzTimer;

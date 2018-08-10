@@ -1,5 +1,5 @@
 {
   "menuTitle": "Accounts",
   "menuEnabled": true,
-  "menuIconClass": "fas fa-wallet"
+  "menuIconClass": "fal fa-wallet"
 }

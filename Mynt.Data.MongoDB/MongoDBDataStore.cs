@@ -18,7 +18,7 @@ namespace Mynt.Data.MongoDB
         {
             MongoDbOptions = options;
             _client = new MongoClient(options.MongoUrl);
-            _database = _client.GetDatabase("Mynt");
+            _database = _client.GetDatabase("MachinaTrader");
             _ordersAdapter = _database.GetCollection<TradeAdapter>("Orders");
             _traderAdapter = _database.GetCollection<TraderAdapter>("Traders");
         }

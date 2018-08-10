@@ -14,6 +14,9 @@ namespace MachinaTrader.TradeManagers
     {
         decimal _stopLossPercentage = -0.07m;
 
+        public bool BuyEnabled { get; set; } = true;
+        public bool SellEnabled { get; set; } = true;
+
         public string BuyTimer { get; set; } = "0 0/5 * * * ?";
         public string SellTimer { get; set; } = "0 0/5 * * * ?";
 

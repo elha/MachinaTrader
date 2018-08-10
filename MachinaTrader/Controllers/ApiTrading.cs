@@ -123,7 +123,7 @@ namespace MachinaTrader.Controllers
             trade.IsSelling = true;
 
             await Runtime.GlobalDataStore.SaveTradeAsync(trade);
-            await Runtime.GlobalHubMyntTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to SellNow");
+            await Runtime.GlobalHubTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to SellNow");
         }
 
         [HttpGet]
@@ -161,7 +161,7 @@ namespace MachinaTrader.Controllers
                 await Runtime.GlobalDataStore.SaveTradeAsync(trade);
             }
 
-            await Runtime.GlobalHubMyntTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to SellNow");
+            await Runtime.GlobalHubTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to SellNow");
         }
 
 
@@ -178,7 +178,7 @@ namespace MachinaTrader.Controllers
                 await Runtime.GlobalDataStore.SaveTradeAsync(tradeToUpdate);
             }
 
-            await Runtime.GlobalHubMyntTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to Hold");
+            await Runtime.GlobalHubTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to Hold");
         }
 
         [HttpGet]
@@ -196,7 +196,7 @@ namespace MachinaTrader.Controllers
                 await Runtime.GlobalDataStore.SaveTradeAsync(tradeToUpdate);
             }
 
-            await Runtime.GlobalHubMyntTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to Hold");
+            await Runtime.GlobalHubTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to Hold");
         }
 
         [HttpGet]
