@@ -44,7 +44,7 @@ namespace MachinaTrader.Utility
                         MenuEnabled = true,
                         MenuFolder = true,
                         MenuAutoOpen = false,
-                        MenuIconClass = "fas fa-folder",
+                        MenuIconClass = "fal fa-folder",
                         MenuOrder = 99
                     };
 

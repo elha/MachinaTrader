@@ -28,7 +28,7 @@
                 {
                     <li class="nav-item nav-dropdown">
                         <a class="nav-link nav-dropdown-toggle" href="#">
-                            <i class="fas fa-folder nav-icon"></i> @items.MenuTitle
+                            <i class="fal fa-folder nav-icon"></i> @items.MenuTitle
                         </a>
                         <ul class="nav-dropdown-items">
                             @foreach (var item in items.MenuChilds.OrderBy(obj => obj.MenuOrder).ThenBy(obj => obj.MenuTitle, StringComparer.OrdinalIgnoreCase))

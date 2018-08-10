@@ -1,5 +1,5 @@
 ﻿{
   "menuTitle": "Trades",
   "menuEnabled": true,
-  "menuIconClass": "fas fa-chart-line"
+  "menuIconClass": "fal fa-chart-line"
 }

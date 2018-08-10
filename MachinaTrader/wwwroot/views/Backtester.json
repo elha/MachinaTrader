@@ -1,5 +1,5 @@
 ﻿{
   "menuTitle": "Backtester",
   "menuEnabled": true,
-  "menuIconClass": "fas fa-list-ul"
+  "menuIconClass": "fal fa-list-ul"
 }
