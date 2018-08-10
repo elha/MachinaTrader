@@ -12914,6 +12914,14 @@ table td {
   border-radius: 50%;
 }
 
+.btn {
+  color: #ffffff;
+}
+
+.btn-warning {
+  color: #ffffff;
+}
+
 .btn-primary {
   color: #ffffff;
 }
