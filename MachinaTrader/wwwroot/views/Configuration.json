@@ -2,5 +2,5 @@
 	"menuTitle" : "Configuration",
     "menuEnabled": true,
 	"menuCustomFolder":"Configuration",	
-	"menuIconClass": "fas fa-wrench"
+	"menuIconClass": "fal fa-wrench"
 }

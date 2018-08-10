@@ -1,5 +1,5 @@
 ﻿{
   "menuTitle": "Trade Stats",
   "menuEnabled": true,
-  "menuIconClass": "fas fa-chart-pie"
+  "menuIconClass": "fal fa-chart-pie"
 }

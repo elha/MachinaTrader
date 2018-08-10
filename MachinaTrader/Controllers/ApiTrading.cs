@@ -49,6 +49,38 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
+        [Route("getTicker")]
+        public async Task<IActionResult> GetTicker(string symbol)
+        {
+            var ticker = await Runtime.GlobalExchangeApi.GetTicker(symbol);
+            return new JsonResult(ticker);
+        }
+
+        [HttpGet]
+        [Route("topVolumeCurrencies")]
+        public async Task<IActionResult> GetTopVoumeCurrencies(int limit = 20)
+        {
+            var fullApi = await Runtime.GlobalExchangeApi.GetFullApi();
+            var getCurrencies = fullApi.GetTickers();
+            var objListOrder = getCurrencies
+                .OrderByDescending(o => o.Value.Volume.ConvertedVolume)
+                .ToList();
+
+            JArray topCurrencies = new JArray();
+            int count = 0;
+            foreach (var currency in objListOrder)
+            {
+                topCurrencies.Add(currency.Key);
+                count = count + 1;
+                if (count > limit)
+                {
+                    break;
+                }
+            }
+            return new JsonResult(topCurrencies);
+        }
+
+        [HttpGet]
         [Route("trade/{tradeId}")]
         public async Task<IActionResult> TradingTrade(string tradeId)
         {

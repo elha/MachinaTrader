@@ -20,6 +20,7 @@ namespace MachinaTrader.Models
         public string DefaultUserName { get; set; } = "admin";
         public string DefaultUserEmail { get; set; } = "admin@localhost";
         public string DefaultUserPassword { get; set; } = "admin";
+        public string Theme { get; set; } = "light";
     }
 
 }

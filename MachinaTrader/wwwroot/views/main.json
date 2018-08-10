@@ -1,6 +1,6 @@
 {
 	"menuTitle" : "Dashboard",
     "menuEnabled": true,
-	"menuIconClass": "fas fa-tachometer-alt",
+	"menuIconClass": "fal fa-tachometer-alt",
 	"menuOrder": 0
 }

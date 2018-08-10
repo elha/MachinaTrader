@@ -20,8 +20,16 @@
     <link href="/css/fortawesome/css/fa-light.css" rel="stylesheet" asp-append-version="true">
     <link href="/css/fortawesome/css/fa-brands.css" rel="stylesheet" asp-append-version="true">
     <link href="/vendors/@@mdi/font/css/materialdesignicons.min.css" rel="stylesheet" asp-append-version="true">
-    <link href="/vendors/select2/css/select2.min.css" rel="stylesheet" asp-append-version="true">
-    <link href="/css/style.min.css" rel="stylesheet" asp-append-version="true">
+    @{
+        if (Runtime.Configuration.SystemOptions.Theme == "dark")
+        {
+            <link href="/css/styledark.min.css" rel="stylesheet" asp-append-version="true">
+        }
+        else
+        {
+            <link href="/css/style.min.css" rel="stylesheet" asp-append-version="true">
+        }
+    }
     <link href="/css/machinacore-font/style.css" rel="stylesheet" asp-append-version="true">
     <style>
         .navbar a, .btn, button {
@@ -37,20 +45,20 @@
         <div id="connectionError" style="display: none">
             <div id="connectionErrorInfo">
                 <div style="text-align: center;">
-                    <i class="far fa-refresh" style="font-size: 100px;"></i>
+                    <i class="far fa-sync" style="font-size: 100px;"></i>
                     <br>&nbsp;<h1>Server is offline<br> <span style="animation-duration: 2s" class="animated flash infinite">Reconnecting</span></h1>
                 </div>
             </div>
         </div>
 
         <header class="app-header navbar" style="-webkit-app-region: drag">
-            <button class="navbar-toggler sidebar-toggler d-lg-none mr-auto" type="button" data-toggle="sidebar-show">
+            <button class="navbar-toggler d-lg-none mr-auto" type="button" data-toggle="sidebar-show">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <a class="navbar-brand" href="#">
                 <i class="machinacore-icon-logo" style="color: #fff;font-size: 30px;"></i><span class="navbar-brand-full" style="margin-right: 5px; margin-left: 5px;color: #fff;font-size: 1.4rem;">&nbsp;<b>Machina</b>Trader</span>
             </a>
-            <button class="navbar-toggler sidebar-toggler d-md-down-none" type="button" data-toggle="sidebar-lg-show">
+            <button class="navbar-toggler d-md-down-none" type="button" data-toggle="sidebar-lg-show">
                 <i class="far fa-bars"></i>
             </button>
             <ul class="nav navbar-nav d-md-down-none">
@@ -67,10 +75,10 @@
             <ul class="nav navbar-nav ml-auto">
                 <partial name="_UserNavHeader" />
             </ul>
-            <button class="navbar-toggler aside-menu-toggler d-md-down-none" type="button" data-toggle="aside-menu-lg-show">
+            <button class="navbar-toggler d-md-down-none" type="button" data-toggle="aside-menu-lg-show">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <button class="navbar-toggler aside-menu-toggler d-lg-none" type="button" data-toggle="aside-menu-show">
+            <button class="navbar-toggler d-lg-none" type="button" data-toggle="aside-menu-show">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <button id="min-btn" type="button" class="navbar-toggler electronControl" style="display: none;" onclick="remote.getCurrentWindow().minimize();"><i class="mdi mdi-window-minimize" style="vertical-align: bottom;"></i></button>
@@ -93,13 +101,13 @@
                     <li class="breadcrumb-menu d-md-down-none">
                         <div class="btn-group" role="group" aria-label="Button group">
                             <a class="btn" href="#">
-                                <i class="icon-speech"></i>
+                                <i class="fal fa-comment"></i>
                             </a>
                             <a class="btn" href="./">
-                                <i class="icon-graph"></i> Dashboard
+                                <i class="fal fa-tachometer-alt"></i> Dashboard
                             </a>
                             <a class="btn" href="#">
-                                <i class="icon-settings"></i> Settings
+                                <i class="fal fa-cog"></i> Settings
                             </a>
                         </div>
                     </li>

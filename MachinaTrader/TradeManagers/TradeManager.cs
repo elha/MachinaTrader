@@ -619,20 +619,26 @@ namespace MachinaTrader.TradeManagers
 
                 if (Runtime.Configuration.TradeOptions.PaperTrade)
                 {
-                    DateTime startDate = DateTime.MinValue;
-                    DateTime? endDate = null;
+                    List<Candle> candles;
+
                     if (Runtime.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
                     {
                         //in simulation the date comes from external
                         var candleDate = Runtime.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
 
                         //TODO: improve to other timeframe
-                        startDate = candleDate.AddMinutes(-(30 * 40));
+                        DateTime startDate = candleDate.AddMinutes(-(30 * 40));
 
-                        endDate = candleDate;
+                        DateTime endDate = candleDate;
+
+                        candles = await Runtime.GlobalExchangeApi.GetTickerHistory(trade.Market, Period.Minute, startDate, endDate);
+                    }
+                    else
+                    {
+                        candles = await Runtime.GlobalExchangeApi.GetTickerHistory(trade.Market, Period.Minute, 1);
                     }
 
-                    var candles = await Runtime.GlobalExchangeApi.GetTickerHistory(trade.Market, Period.Minute, startDate, endDate);
+                    
                     var candle = candles.LastOrDefault();
 
                     //in simulation mode we always fill..
