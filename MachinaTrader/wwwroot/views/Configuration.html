@@ -533,7 +533,6 @@
                             <select name="TradeOptions.OnlyTradeList[]" id="OnlyTradeList" class="select2-multiple" data-live-search="true" data-size="10" data-width="auto" multiple="multiple">
                                 <option v-for="(value, key) in exchangeCoinsData" :selected="(apiMainConfigData['tradeOptions']['onlyTradeList']).includes(value)" v-bind:value="value" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{value}}</option>
                             </select>
-
                         </td>
                     </tr>
                     <tr>
@@ -550,6 +549,27 @@
                                 <option v-for="(value, key) in exchangeCoinsData" :selected="(apiMainConfigData['tradeOptions']['alwaysTradeList']).includes(value)" v-bind:value="value" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{value}}</option>
                             </select>
 
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="AlwaysTradeList">Add top Volume Currencies <i class="fal fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                Add # of Top Colume Currencies to
+                                <br /> OnlyTradeList and AlwaysTradeList
+                                <br /><br /><strong>Default:</strong> <i>20</i>
+                                <br /><br /><strong>Warning:</strong> <i>Override your current values</i>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="amountOfTopCurrenciesToAdd" placeholder="How many currencies you want to add ?">
+                                <div class="input-group-btn">
+                                    <button class="btn btn-success" v-on:click="getTopCurrencies()">
+                                        Add # of Top Currencies
+                                    </button>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 </table>
@@ -667,7 +687,6 @@
             }
         });
 
-
     };
 
     var apiMainConfig = new Vue({
@@ -700,6 +719,23 @@
                 //$.get('/api/trading/getExchangePairs?exchange=' + $("#exchangeSelect").val(), function (data) {
                 //    self.exchangeCoinsData = data;
                 //});
+            },
+            getTopCurrencies: function () {
+                var self = this;
+                $.get('/api/trading/topVolumeCurrencies?limit=' + $('#amountOfTopCurrenciesToAdd').val(), function (data) {
+                    self.apiMainConfigData['tradeOptions']['onlyTradeList'] = data;
+                    self.apiMainConfigData['tradeOptions']['alwaysTradeList'] = data;
+
+                    //Workaround to get new Items
+                    $("#OnlyTradeList").append(new Option("dummy", "dummy"));
+                    $("#OnlyTradeList").trigger("change");
+                    $("#OnlyTradeList option[value='dummy']").remove();
+
+                    $("#AlwaysTradeList").append(new Option("dummy", "dummy"));
+                    $("#AlwaysTradeList").trigger("change");
+                    $("#AlwaysTradeList option[value='dummy']").remove();
+                });
+
             },
             fetchData: function () {
                 var self = this;
