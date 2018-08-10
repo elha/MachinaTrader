@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ExchangeSharp;
 using MachinaTrader.Globals;
+using MachinaTrader.Globals.Helpers;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Mynt.Core.Enums;
@@ -138,33 +139,41 @@ namespace Mynt.Core.Exchanges
 
         public async Task<List<Models.MarketSummary>> GetMarketSummaries(string quoteCurrency)
         {
+            Global.Logger.Information($"Starting GetMarketSummaries {quoteCurrency}");
+            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+
+            var result = new List<Models.MarketSummary>();
+
             if (_exchange == Exchange.Huobi || _exchange == Exchange.Okex || _exchange == Exchange.Gdax || _exchange == Exchange.GdaxSimulation)
-                return await GetExtendedMarketSummaries(quoteCurrency);
-
-            var summaries = _api.GetTickersAsync().Result;
-
-            if (summaries.Any())
             {
-                var result = new List<Models.MarketSummary>();
+                result = await GetExtendedMarketSummaries(quoteCurrency);
+            }
+            else
+            {
+                var summaries = _api.GetTickersAsync().Result;
 
-                foreach (var summary in summaries)
+                if (summaries.Any())
                 {
-                    var info = await GetSymbolInfo(summary.Key);
-                    result.Add(new Models.MarketSummary()
+                    foreach (var summary in summaries)
                     {
-                        CurrencyPair = new CurrencyPair() { BaseCurrency = info.MarketCurrency, QuoteCurrency = info.BaseCurrency },
-                        MarketName = summary.Key,
-                        Ask = summary.Value.Ask,
-                        Bid = summary.Value.Bid,
-                        Last = summary.Value.Last,
-                        Volume = summary.Value.Volume.ConvertedVolume,
-                    });
+                        var info = await GetSymbolInfo(summary.Key);
+                        result.Add(new Models.MarketSummary()
+                        {
+                            CurrencyPair = new CurrencyPair() { BaseCurrency = info.MarketCurrency, QuoteCurrency = info.BaseCurrency },
+                            MarketName = summary.Key,
+                            Ask = summary.Value.Ask,
+                            Bid = summary.Value.Bid,
+                            Last = summary.Value.Last,
+                            Volume = summary.Value.Volume.ConvertedVolume,
+                        });
+                    }
                 }
-
-                return result;
             }
 
-            return new List<Models.MarketSummary>();
+            watch1.Stop();
+            Global.Logger.Warning($"Ended GetMarketSummaries {quoteCurrency} in #{watch1.Elapsed.TotalSeconds} seconds");
+
+            return result;
         }
 
         public async Task<List<OpenOrder>> GetOpenOrders(string market)
@@ -494,11 +503,14 @@ namespace Mynt.Core.Exchanges
 
         private async Task<List<Models.MarketSummary>> GetExtendedMarketSummaries(string quoteCurrency)
         {
+            Global.Logger.Information($"Starting GetExtendedMarketSummaries");
+            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+
             var summaries = new List<Models.MarketSummary>();
 
-            var symbolsCacheKey = this.GetFullApi().Result.Name + "Markets";
-            var symbols = await Global.AppCache.GetAsync<IEnumerable<ExchangeMarket>>("symbolsCacheKey");
-            if (symbols == null || symbols.Any())
+            var symbolsCacheKey = this._exchange + "Markets";
+            var symbols = await Global.AppCache.GetAsync<IEnumerable<ExchangeMarket>>(symbolsCacheKey);
+            if (symbols == null || !symbols.Any())
             {
                 symbols = await _api.GetSymbolsMetadataAsync();
                 Global.AppCache.Add(symbolsCacheKey, symbols, new MemoryCacheEntryOptions
@@ -509,16 +521,15 @@ namespace Mynt.Core.Exchanges
 
             if (symbols.Count() == 0)
                 throw new Exception();
-           
+
             var list = await _api.GetSymbolsAsync();
             var filteredList = list.Where(x => x.ToLower().EndsWith(quoteCurrency.ToLower(), StringComparison.Ordinal));
 
-            foreach (var item in filteredList)
-            {
+            await filteredList.ForEachAsync(async item => {
                 var ticker = await _api.GetTickerAsync(item);
 
                 if (ticker == null)
-                    continue;
+                    return;
 
                 var symbol = symbols.FirstOrDefault(x => x.MarketName == item);
 
@@ -534,7 +545,33 @@ namespace Mynt.Core.Exchanges
                         Volume = ticker.Volume.ConvertedVolume,
                     });
                 }
-            }
+            });
+
+            //foreach (var item in filteredList)
+            //{
+            //    var ticker = await _api.GetTickerAsync(item);
+
+            //    if (ticker == null)
+            //        continue;
+
+            //    var symbol = symbols.FirstOrDefault(x => x.MarketName == item);
+
+            //    if (symbol != null)
+            //    {
+            //        summaries.Add(new Models.MarketSummary()
+            //        {
+            //            CurrencyPair = new CurrencyPair() { BaseCurrency = symbol.MarketCurrency, QuoteCurrency = symbol.BaseCurrency },
+            //            MarketName = item,
+            //            Ask = ticker.Ask,
+            //            Bid = ticker.Bid,
+            //            Last = ticker.Last,
+            //            Volume = ticker.Volume.ConvertedVolume,
+            //        });
+            //    }
+            //}
+
+            watch1.Stop();
+            Global.Logger.Error($"Ended GetExtendedMarketSummaries in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return summaries;
         }

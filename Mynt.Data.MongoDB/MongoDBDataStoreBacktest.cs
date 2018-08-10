@@ -69,9 +69,16 @@ namespace Mynt.Data.MongoDB
         {
             try
             {
+                Global.Logger.Error($"  Starting MongoDB.GetBacktestCandlesBetweenTime");
+                var watch1 = System.Diagnostics.Stopwatch.StartNew();
+
                 IMongoCollection<CandleAdapter> candleCollection = DataStoreBacktest.GetInstance(MongoDbBaseName + backtestOptions.CandlePeriod).GetTable<CandleAdapter>(backtestOptions.Exchange + "_" + backtestOptions.Coin);
                 List<CandleAdapter> candles = await candleCollection.Find(entry => entry.Timestamp >= backtestOptions.StartDate && entry.Timestamp <= backtestOptions.EndDate).ToListAsync();
                 var items = Mapping.Mapper.Map<List<Candle>>(candles);
+
+                watch1.Stop();
+                Global.Logger.Error($"  Ended MongoDB.GetBacktestCandlesBetweenTime in #{watch1.Elapsed.TotalSeconds} seconds");
+
                 return items;
             }
             catch (Exception ex)

@@ -55,4 +55,12 @@ namespace MachinaTrader.Globals.Helpers
             return combinedDictJson;
         }
     }
+
+    public static class ParallelUtility
+    {
+        public static Task ForEachAsync<T>(this IEnumerable<T> sequence, Func<T, Task> action)
+        {
+            return Task.WhenAll(sequence.Select(action));
+        }
+    }
 }
