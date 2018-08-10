@@ -18,7 +18,7 @@
     "css": "node_modules/.bin/npm-run-all css-compile* --sequential css-prefix css-minify*",
     "css-compile": "node node_modules/node-sass/bin/node-sass --output-style expanded --source-map true --source-map-contents true --precision 6 wwwroot/scss/style.scss wwwroot/css/style.css",
     "css-compile-dark": "node node_modules/node-sass/bin/node-sass --output-style expanded --source-map true --source-map-contents true --precision 6 wwwroot/scss/styledark.scss wwwroot/css/styledark.css",
-    "css-compile-vendors": "node build/vendors-sass.js",
+    "_css-compile-vendors": "node build/vendors-sass.js",
     "css-lint": "stylelint --config build/.stylelintrc --syntax scss \"wwwroot/scss/**/*.scss\"",
     "css-minify": "node node_modules/clean-css-cli/bin/cleancss --level 1 --source-map --source-map-inline-sources --output wwwroot/css/style.min.css wwwroot/css/style.css",
     "css-minify-dark": "node node_modules/clean-css-cli/bin/cleancss --level 1 --source-map --source-map-inline-sources --output wwwroot/css/styledark.min.css wwwroot/css/styledark.css",

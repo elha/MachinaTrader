@@ -9,9 +9,9 @@ $caret-width: .3rem;
 $s2bs-border-radius-base: $border-radius !default;
 $s2bs-border-radius-large: $border-radius-lg !default;
 $s2bs-border-radius-small: $border-radius-sm !default;
-$s2bs-btn-default-bg: #fff !default;
+$s2bs-btn-default-bg: $input-bg !default;
 $s2bs-btn-default-border: theme-color("info") !default;
-$s2bs-btn-default-color: #fff !default;
+$s2bs-btn-default-color: $body-color !default;
 $s2bs-caret-width-base: $caret-width !default;
 $s2bs-caret-width-large: $caret-width !default;
 $s2bs-cursor-disabled: pointer !default;
@@ -101,20 +101,20 @@ $s2bs-form-control-transition: border-color ease-in-out .15s, box-shadow ease-in
 
   .select2-dropdown,
   .select2-selection {
-    border-color: $color;
+    border-color: $s2bs-input-border;
   }
 
   .select2-container--focus .select2-selection,
   .select2-container--open .select2-selection {
     @include box-shadow($shadow);
-    border-color: darken($color, 10%);
+    border-color: darken($s2bs-input-border, 10%);
   }
 
   &.select2-drop-active {
-    border-color: darken($color, 10%);
+    border-color: darken($s2bs-input-border, 10%);
 
     &.select2-drop.select2-drop-above {
-      border-top-color: darken($color, 10%);
+      border-top-color: darken($s2bs-input-border, 10%);
     }
   }
 }
@@ -386,6 +386,7 @@ $s2bs-form-control-transition: border-color ease-in-out .15s, box-shadow ease-in
    */
 
   .select2-dropdown {
+	@include bootstrap-input-defaults;
     @include box-shadow($s2bs-dropdown-box-shadow);
     border-color: $s2bs-input-border-focus;
     overflow-x: hidden;

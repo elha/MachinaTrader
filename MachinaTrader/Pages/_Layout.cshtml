@@ -20,8 +20,17 @@
     <link href="/css/fortawesome/css/fa-light.css" rel="stylesheet" asp-append-version="true">
     <link href="/css/fortawesome/css/fa-brands.css" rel="stylesheet" asp-append-version="true">
     <link href="/vendors/@@mdi/font/css/materialdesignicons.min.css" rel="stylesheet" asp-append-version="true">
-    <link href="/vendors/select2/css/select2.min.css" rel="stylesheet" asp-append-version="true">
-    <link href="/css/style.min.css" rel="stylesheet" asp-append-version="true">
+    @{
+        if (Runtime.Configuration.SystemOptions.Theme == "dark")
+        {
+            <link href="/css/styledark.min.css" rel="stylesheet" asp-append-version="true">
+        }
+        else
+        {
+            <link href="/css/style.min.css" rel="stylesheet" asp-append-version="true">
+        }
+    }
+
     <link href="/css/machinacore-font/style.css" rel="stylesheet" asp-append-version="true">
     <style>
         .navbar a, .btn, button {

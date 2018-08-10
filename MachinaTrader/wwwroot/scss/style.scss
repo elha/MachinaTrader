@@ -4,5 +4,9 @@
 // Import styles
 @import "node_modules/@machinacore/machinacoreui/scss/coreui";
 
+// Import Vendor Files
+@import "node_modules/bootstrap/scss/mixins";
+@import "vendors/vendors";
+
 // If you want to add something do it here
 @import "custom";
