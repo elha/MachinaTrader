@@ -308,3 +308,7 @@ CoreConfig.json
 !/BuildRelease/App/
 !/BuildRelease/AppAdditions/
 /MachinaTraderLauncher*.*
+Mynt.db
+Mynt/
+MyntUI/MyntUIAuth.db
+MyntUIAuth.db
