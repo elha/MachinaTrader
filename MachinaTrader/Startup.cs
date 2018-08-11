@@ -39,7 +39,7 @@ namespace MachinaTrader
 
         public static HubRouteBuilder MapSignalrRoutes(this HubRouteBuilder hubRouteBuilder)
         {
-            IEnumerable<Assembly> assembliesPlugins = Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, "MachinaCore.Plugin.*.dll", SearchOption.TopDirectoryOnly)
+            IEnumerable<Assembly> assembliesPlugins = Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, "MachinaTrader.Plugin.*.dll", SearchOption.TopDirectoryOnly)
                 .Select(Assembly.LoadFrom);
 
             foreach (var assembly in assembliesPlugins)
@@ -50,7 +50,7 @@ namespace MachinaTrader
                 {
                     //Console.WriteLine("Assembly Name: " + assembly.GetName().Name);
                     //Console.WriteLine("HubName: " + pluginHubType);
-                    string hubRoute = pluginHubType.ToString().Replace(assembly.GetName().Name, "").Replace(".Hubs.", "").Replace("MyntUI", "");
+                    string hubRoute = pluginHubType.ToString().Replace(assembly.GetName().Name, "").Replace(".Hubs.", "").Replace("MachinaTrader", "");
                     Global.Logger.Information(assembly.GetName().Name + " - Hub Route " + hubRoute);
                     MapHubMethod.MakeGenericMethod(pluginHubType).Invoke(hubRouteBuilder, new object[] { new PathString("/signalr/" + hubRoute) });
                 }

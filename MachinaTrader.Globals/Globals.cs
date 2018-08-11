@@ -125,6 +125,7 @@ namespace MachinaTrader.Globals
         public static IDataStoreBacktest DataStoreBacktest { get; set; }
         public static IExchangeApi ExchangeApi { get; set; }
         public static MainConfig Configuration { get; set; }
+        public static IScheduler QuartzTimer = new StdSchedulerFactory().GetScheduler().Result;
 
         public static RuntimeConfig RuntimeSettings = new RuntimeConfig();
         public static IApplicationBuilder ApplicationBuilder { get; set; }

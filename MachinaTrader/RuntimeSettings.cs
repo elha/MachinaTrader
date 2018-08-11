@@ -25,7 +25,6 @@ namespace MachinaTrader
         public static IHubContext<HubStatistics> GlobalHubStatistics;
         public static IHubContext<HubBacktest> GlobalHubBacktest;
         public static IHubContext<HubAccounts> GlobalHubAccounts;
-        public static IScheduler QuartzTimer = new StdSchedulerFactory().GetScheduler().Result;
         public static TelegramNotificationOptions GlobalTelegramNotificationOptions { get; set; }
         public static List<INotificationManager> NotificationManagers;
         public static OrderBehavior GlobalOrderBehavior;
@@ -74,7 +73,7 @@ namespace MachinaTrader
             Runtime.GlobalHubAccounts = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubAccounts>>();
 
             //Run Cron
-            IScheduler scheduler = Runtime.QuartzTimer;
+            IScheduler scheduler = Global.QuartzTimer;
 
             IJobDetail buyTimerJob = JobBuilder.Create<Timers.BuyTimer>()
                 .WithIdentity("buyTimerJobTrigger", "buyTimerJob")
