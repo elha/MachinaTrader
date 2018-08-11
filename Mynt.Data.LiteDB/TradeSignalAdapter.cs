@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using LiteDB;
-using Mynt.Core.Enums;
-using Mynt.Core.Interfaces;
-using Mynt.Core.Models;
+using MachinaTrader.Globals.Structure.Enums;
 
 namespace Mynt.Data.LiteDB
 {

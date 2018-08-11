@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Mynt.Core.Enums;
+using MachinaTrader.Globals.Structure.Enums;
 using Mynt.Core.Strategies;
 
 namespace MachinaTrader.TradeManagers
@@ -73,7 +73,7 @@ namespace MachinaTrader.TradeManagers
         // Sets the bidding price. A value of 0.0 will use the ask price, 1.0 will use the last price and values between 
         // those interpolate between ask and last price. Using the ask price will guarantee quick success in bid, but
         // the bot will also end up paying more then would probably have been necessary.
-        public BuyInPriceStrategy BuyInPriceStrategy { get; set; } = Mynt.Core.Enums.BuyInPriceStrategy.SignalCandleClose;
+        public BuyInPriceStrategy BuyInPriceStrategy { get; set; } = BuyInPriceStrategy.SignalCandleClose;
         public decimal AskLastBalance { get; set; } = 0.2m;
         public decimal BuyInPricePercentage { get; set; } = 0.005m;
 

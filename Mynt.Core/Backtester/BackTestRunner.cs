@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Mynt.Backtester.Models;
-using Mynt.Core.Enums;
+using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.Globals.Structure.Interfaces;
+using MachinaTrader.Globals.Structure.Models;
 using Mynt.Core.Exchanges;
-using Mynt.Core.Interfaces;
-using Mynt.Core.Models;
 using Mynt.Core.Utility;
 
 namespace Mynt.Core.Backtester

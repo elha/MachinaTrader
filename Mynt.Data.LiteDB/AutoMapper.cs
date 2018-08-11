@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using AutoMapper;
-using Mynt.Backtester.Models;
-using Mynt.Core.Models;
+using MachinaTrader.Globals.Structure.Models;
 
 
 namespace Mynt.Data.LiteDB

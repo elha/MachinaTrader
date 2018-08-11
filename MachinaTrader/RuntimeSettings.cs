@@ -9,10 +9,7 @@ using MachinaTrader.Globals;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Mynt.Core.Enums;
 using Mynt.Core.Exchanges;
-using Mynt.Core.Interfaces;
-using Mynt.Core.Models;
 using Mynt.Core.Notifications;
 using Mynt.Data.LiteDB;
 using Mynt.Data.MongoDB;
@@ -23,6 +20,9 @@ using Newtonsoft.Json.Linq;
 using Quartz;
 using Quartz.Impl;
 using MachinaTrader.Globals.Helpers;
+using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.Globals.Structure.Interfaces;
+using MachinaTrader.Globals.Structure.Models;
 
 namespace MachinaTrader
 {

@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 using ExchangeSharp;
 using MachinaTrader.Globals;
 using MachinaTrader.Globals.Helpers;
+using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.Globals.Structure.Interfaces;
+using MachinaTrader.Globals.Structure.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
-using Mynt.Core.Enums;
 using Mynt.Core.Extensions;
-using Mynt.Core.Interfaces;
-using Mynt.Core.Models;
+using MarketSummary = MachinaTrader.Globals.Structure.Models.MarketSummary;
 
 namespace Mynt.Core.Exchanges
 {
@@ -137,12 +138,12 @@ namespace Mynt.Core.Exchanges
                 return new AccountBalance(currency, 0, 0);
         }
 
-        public async Task<List<Models.MarketSummary>> GetMarketSummaries(string quoteCurrency)
+        public async Task<List<MarketSummary>> GetMarketSummaries(string quoteCurrency)
         {
             Global.Logger.Information($"Starting GetMarketSummaries {quoteCurrency}");
             var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
-            var result = new List<Models.MarketSummary>();
+            var result = new List<MarketSummary>();
 
             if (_exchange == Exchange.Huobi || _exchange == Exchange.Okex || _exchange == Exchange.Gdax || _exchange == Exchange.GdaxSimulation)
             {
@@ -157,7 +158,7 @@ namespace Mynt.Core.Exchanges
                     foreach (var summary in summaries)
                     {
                         var info = await GetSymbolInfo(summary.Key);
-                        result.Add(new Models.MarketSummary()
+                        result.Add(new MarketSummary()
                         {
                             CurrencyPair = new CurrencyPair() { BaseCurrency = info.MarketCurrency, QuoteCurrency = info.BaseCurrency },
                             MarketName = summary.Key,
@@ -501,12 +502,12 @@ namespace Mynt.Core.Exchanges
 
         #region non-default implementations
 
-        private async Task<List<Models.MarketSummary>> GetExtendedMarketSummaries(string quoteCurrency)
+        private async Task<List<MarketSummary>> GetExtendedMarketSummaries(string quoteCurrency)
         {
             Global.Logger.Information($"Starting GetExtendedMarketSummaries");
             var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
-            var summaries = new List<Models.MarketSummary>();
+            var summaries = new List<MarketSummary>();
 
             var symbolsCacheKey = this._exchange + "Markets";
             var symbols = await Global.AppCache.GetAsync<IEnumerable<ExchangeMarket>>(symbolsCacheKey);
@@ -535,7 +536,7 @@ namespace Mynt.Core.Exchanges
 
                 if (symbol != null)
                 {
-                    summaries.Add(new Models.MarketSummary()
+                    summaries.Add(new MarketSummary()
                     {
                         CurrencyPair = new CurrencyPair() { BaseCurrency = symbol.MarketCurrency, QuoteCurrency = symbol.BaseCurrency },
                         MarketName = item,

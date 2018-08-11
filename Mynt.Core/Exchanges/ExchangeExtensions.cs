@@ -1,25 +1,26 @@
-﻿using System;
+using System;
+using MachinaTrader.Globals.Structure.Enums;
 
 namespace Mynt.Core.Exchanges
 {
     public static class ExchangeExtensions
     {
-        public static Enums.OrderStatus ToOrderStatus(this ExchangeSharp.ExchangeAPIOrderResult input)
+        public static OrderStatus ToOrderStatus(this ExchangeSharp.ExchangeAPIOrderResult input)
         {
             switch (input)
             {
                 case ExchangeSharp.ExchangeAPIOrderResult.Canceled:
-                    return Enums.OrderStatus.Canceled;
+                    return OrderStatus.Canceled;
                 case ExchangeSharp.ExchangeAPIOrderResult.Error:
-                    return Enums.OrderStatus.Error;
+                    return OrderStatus.Error;
                 case ExchangeSharp.ExchangeAPIOrderResult.Filled:
-                    return Enums.OrderStatus.Filled;
+                    return OrderStatus.Filled;
                 case ExchangeSharp.ExchangeAPIOrderResult.FilledPartially:
-                    return Enums.OrderStatus.PartiallyFilled;
+                    return OrderStatus.PartiallyFilled;
                 case ExchangeSharp.ExchangeAPIOrderResult.Pending:
-                    return Enums.OrderStatus.New;
+                    return OrderStatus.New;
                 case ExchangeSharp.ExchangeAPIOrderResult.Unknown:
-                    return Enums.OrderStatus.Unknown;
+                    return OrderStatus.Unknown;
             }
 
             throw new ArgumentException($"{input} is an unknown OrderStatus");

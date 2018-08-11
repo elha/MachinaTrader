@@ -1,9 +1,9 @@
-using Mynt.Core.Enums;
-using Mynt.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.Globals.Structure.Models;
 
 namespace Mynt.Core.Strategies
 {

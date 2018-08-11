@@ -1,5 +1,5 @@
 using System;
-using Mynt.Core.Enums;
+using MachinaTrader.Globals.Structure.Enums;
 
 namespace Mynt.Data.MongoDB
 {

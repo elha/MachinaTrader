@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using LiteDB;
-using Mynt.Core.Interfaces;
-using Mynt.Core.Models;
+using MachinaTrader.Globals.Structure.Interfaces;
+using MachinaTrader.Globals.Structure.Models;
 
 namespace Mynt.Data.LiteDB
 {

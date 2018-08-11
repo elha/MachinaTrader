@@ -1,8 +1,8 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Mynt.Core.Enums;
 using System;
-using Mynt.Core.Models;
+using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.Globals.Structure.Models;
 
 namespace Mynt.Data.MongoDB
 {

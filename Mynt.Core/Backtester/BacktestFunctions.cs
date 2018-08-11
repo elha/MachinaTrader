@@ -1,5 +1,3 @@
-using Mynt.Backtester.Models;
-using Mynt.Core.Interfaces;
 using Mynt.Core.Strategies;
 using Mynt.Core.Utility;
 using Newtonsoft.Json.Linq;
@@ -8,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using MachinaTrader.Globals.Structure.Interfaces;
+using MachinaTrader.Globals.Structure.Models;
 
 namespace Mynt.Core.Backtester
 {

@@ -1,9 +1,9 @@
-using Mynt.Core.Enums;
-using Mynt.Core.Interfaces;
-using Mynt.Core.Models;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.Globals.Structure.Interfaces;
+using MachinaTrader.Globals.Structure.Models;
 
 namespace Mynt.Core.Strategies
 {

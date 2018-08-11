@@ -10,12 +10,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Indicators\" />
-    <Folder Include="Interfaces\" />
-    <Folder Include="Models\" />
-    <Folder Include="Enums\" />
     <Folder Include="Extensions\" />
     <Folder Include="Notifications\" />
-    <Folder Include="Configuration\" />
     <Folder Include="Strategies\Simple\" />
   </ItemGroup>
   <ItemGroup>
@@ -28,6 +24,7 @@
     <PackageReference Include="DigitalRuby.ExchangeSharp" Version="0.5.3" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MachinaTrader.Globals.Models\MachinaTrader.Globals.Structure.csproj" />
     <ProjectReference Include="..\MachinaTrader.Globals\MachinaTrader.Globals.csproj" />
   </ItemGroup>
 </Project>

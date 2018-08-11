@@ -4,10 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MachinaTrader.Globals;
-using Mynt.Core.Enums;
+using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.Globals.Structure.Interfaces;
+using MachinaTrader.Globals.Structure.Models;
 using Mynt.Core.Extensions;
-using Mynt.Core.Interfaces;
-using Mynt.Core.Models;
 using Mynt.Core.Strategies;
 
 namespace MachinaTrader.TradeManagers

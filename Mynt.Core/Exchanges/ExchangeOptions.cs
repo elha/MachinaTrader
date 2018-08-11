@@ -1,5 +1,5 @@
-using Mynt.Core.Enums;
 using System;
+using MachinaTrader.Globals.Structure.Enums;
 
 namespace Mynt.Core.Exchanges
 {

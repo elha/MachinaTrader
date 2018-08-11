@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Mynt.Core.Models;
+using MachinaTrader.Globals.Structure.Models;
 using TicTacTec.TA.Library;
 
 namespace Mynt.Core.Indicators

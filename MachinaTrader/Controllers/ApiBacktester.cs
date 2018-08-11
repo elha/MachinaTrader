@@ -7,13 +7,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using MachinaTrader.Globals;
 using ExchangeSharp;
+using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.Globals.Structure.Models;
 using MachinaTrader.TradeManagers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Mynt.Core.Backtester;
-using Mynt.Core.Enums;
-using Mynt.Core.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

@@ -1,11 +1,12 @@
 using ExchangeSharp;
 using MachinaTrader.Globals;
 using Mynt.Core.Backtester;
-using Mynt.Core.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.Globals.Structure.Models;
 
 namespace MachinaTrader.SimulationExchanges
 {
@@ -72,7 +73,7 @@ namespace MachinaTrader.SimulationExchanges
             var candleProvider = new DatabaseCandleProvider();
             var items = await candleProvider.GetCandles(backtestOptions, Runtime.GlobalDataStoreBacktest);
 
-            foreach (Mynt.Core.Models.Candle item in items)
+            foreach (Candle item in items)
             {
                 try
                 {

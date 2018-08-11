@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MachinaTrader.Globals.Structure.Interfaces;
+using MachinaTrader.Globals.Structure.Models;
 using Mynt.Core.Exchanges;
 using Mynt.Core.Extensions;
-using Mynt.Core.Interfaces;
-using Mynt.Core.Models;
 using Newtonsoft.Json.Linq;
 
 namespace Mynt.Core.Backtester

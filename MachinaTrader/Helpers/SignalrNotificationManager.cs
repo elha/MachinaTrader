@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
+using MachinaTrader.Globals.Structure.Interfaces;
 using Microsoft.AspNetCore.SignalR;
-using Mynt.Core.Interfaces;
 
 namespace MachinaTrader.Helpers
 {

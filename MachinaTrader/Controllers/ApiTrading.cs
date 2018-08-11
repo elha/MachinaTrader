@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using MachinaTrader.Models;
 using ExchangeSharp;
+using MachinaTrader.Globals.Structure.Enums;
 using Microsoft.AspNetCore.Authorization;
-using Mynt.Core.Enums;
 using Newtonsoft.Json.Linq;
 
 namespace MachinaTrader.Controllers

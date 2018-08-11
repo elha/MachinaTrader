@@ -1,5 +1,4 @@
 using System;
-using Mynt.Core.Models;
 
 namespace Mynt.Data.LiteDB
 {

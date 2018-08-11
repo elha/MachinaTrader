@@ -1,4 +1,3 @@
-﻿using Mynt.Core.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using MachinaTrader.Globals.Structure.Enums;
 
 namespace Mynt.Core.Extensions
 {

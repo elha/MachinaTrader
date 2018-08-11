@@ -1,8 +1,8 @@
 using MongoDB.Driver;
-using Mynt.Core.Interfaces;
-using Mynt.Core.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MachinaTrader.Globals.Structure.Interfaces;
+using MachinaTrader.Globals.Structure.Models;
 
 namespace Mynt.Data.MongoDB
 {

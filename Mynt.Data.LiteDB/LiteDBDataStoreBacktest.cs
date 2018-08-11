@@ -7,9 +7,8 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using MachinaTrader.Globals;
 using LiteDB;
-using Mynt.Core.Backtester;
-using Mynt.Core.Interfaces;
-using Mynt.Core.Models;
+using MachinaTrader.Globals.Structure.Interfaces;
+using MachinaTrader.Globals.Structure.Models;
 
 namespace Mynt.Data.LiteDB
 {

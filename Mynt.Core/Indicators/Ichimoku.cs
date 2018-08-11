@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MachinaTrader.Globals;
-using Mynt.Core.Models;
+using MachinaTrader.Globals.Structure.Models;
 
 namespace Mynt.Core.Indicators
 {

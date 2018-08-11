@@ -8,7 +8,6 @@ using MachinaTrader.Models;
 using ExchangeSharp;
 using MachinaTrader.Globals;
 using Microsoft.AspNetCore.Authorization;
-using Mynt.Core.Enums;
 using Newtonsoft.Json.Linq;
 
 namespace MachinaTrader.Controllers

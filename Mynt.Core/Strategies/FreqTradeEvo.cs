@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MachinaTrader.Globals;
-using Mynt.Core.Enums;
+using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.Globals.Structure.Models;
 using Mynt.Core.Indicators;
-using Mynt.Core.Models;
 using Serilog;
 
 namespace Mynt.Core.Strategies

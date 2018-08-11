@@ -1,9 +1,9 @@
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Mynt.Core.Interfaces;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using MachinaTrader.Globals.Structure.Interfaces;
 
 namespace Mynt.Core.Notifications
 {

@@ -2,10 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MachinaTrader.Globals;
+using MachinaTrader.Globals.Structure.Interfaces;
+using MachinaTrader.Globals.Structure.Models;
 using MongoDB.Driver;
-using Mynt.Core.Backtester;
-using Mynt.Core.Interfaces;
-using Mynt.Core.Models;
 
 namespace Mynt.Data.MongoDB
 {
