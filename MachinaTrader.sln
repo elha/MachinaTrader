@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mynt.Data.MongoDB", "Mynt.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Plugin.Sample", "MachinaTrader.Plugin.Sample\MachinaTrader.Plugin.Sample.csproj", "{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Globals.Structure", "MachinaTrader.Globals.Models\MachinaTrader.Globals.Structure.csproj", "{25E9CDA8-ED82-4E10-8C71-77F41F61CBB2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Globals.Structure", "MachinaTrader.Globals.Structure\MachinaTrader.Globals.Structure.csproj", "{25E9CDA8-ED82-4E10-8C71-77F41F61CBB2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
