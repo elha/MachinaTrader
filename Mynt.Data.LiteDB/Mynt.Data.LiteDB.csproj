@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MachinaTrader.Globals.Models\MachinaTrader.Globals.Structure.csproj" />
+    <ProjectReference Include="..\MachinaTrader.Globals.Structure\MachinaTrader.Globals.Structure.csproj" />
     <ProjectReference Include="..\Mynt.Core\Mynt.Core.csproj" />
   </ItemGroup>
 

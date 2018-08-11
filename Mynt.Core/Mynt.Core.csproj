@@ -24,7 +24,7 @@
     <PackageReference Include="DigitalRuby.ExchangeSharp" Version="0.5.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MachinaTrader.Globals.Models\MachinaTrader.Globals.Structure.csproj" />
+    <ProjectReference Include="..\MachinaTrader.Globals.Structure\MachinaTrader.Globals.Structure.csproj" />
     <ProjectReference Include="..\MachinaTrader.Globals\MachinaTrader.Globals.csproj" />
   </ItemGroup>
 </Project>
