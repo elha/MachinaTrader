@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using MachinaTrader.Globals.Structure.Enums;
-using Mynt.Core.Strategies;
 
-namespace MachinaTrader.TradeManagers
+namespace MachinaTrader.Globals.Structure.Models
 {
     public class Roi
     {
@@ -68,7 +67,7 @@ namespace MachinaTrader.TradeManagers
         public int MinimumAmountOfVolume { get; set; } = 300;
 
         // Default strategy to use with trade managers.
-        public string DefaultStrategy { get; set; } = nameof(TheScalper);
+        public string DefaultStrategy { get; set; } = "TheScalper";
 
         // Sets the bidding price. A value of 0.0 will use the ask price, 1.0 will use the last price and values between 
         // those interpolate between ask and last price. Using the ask price will guarantee quick success in bid, but

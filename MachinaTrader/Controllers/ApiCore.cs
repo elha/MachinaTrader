@@ -231,11 +231,11 @@ namespace MachinaTrader.Controllers
         [Route("avatar")]
         public FileContentResult Get()
         {
-            if (Runtime.RuntimeSettings.Os == "Windows")
+            if (Global.RuntimeSettings.Os == "Windows")
             {
                 using (var ms = new MemoryStream())
                 {
-                    Image userAvatarImage = GetUserAvatar.GetUserTile(Runtime.RuntimeSettings.UserName);
+                    Image userAvatarImage = GetUserAvatar.GetUserTile(Global.RuntimeSettings.UserName);
                     userAvatarImage.Save(ms, ImageFormat.Jpeg);
                     if (!ms.TryGetBuffer(out var buffer)) throw new ArgumentException();
                     return File(buffer.Array, "image/png");

@@ -227,7 +227,7 @@ namespace MachinaTrader
         public static void RunWebHost()
         {
             IWebHostBuilder webHostBuilder = WebHost.CreateDefaultBuilder()
-                .UseKestrel(options => { options.Listen(IPAddress.Any, Runtime.Configuration.SystemOptions.WebPort); })
+                .UseKestrel(options => { options.Listen(IPAddress.Any, Global.Configuration.SystemOptions.WebPort); })
                 .UseStartup<Startup>()
                 .UseContentRoot(Global.AppPath)
                 .ConfigureAppConfiguration(i => i.AddJsonFile(Global.DataPath + "/Logging.json", true));

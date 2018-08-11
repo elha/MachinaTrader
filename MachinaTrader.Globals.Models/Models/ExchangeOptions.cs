@@ -1,7 +1,7 @@
 using System;
 using MachinaTrader.Globals.Structure.Enums;
 
-namespace Mynt.Core.Exchanges
+namespace MachinaTrader.Globals.Structure.Models
 {
     public class ExchangeOptions
     {

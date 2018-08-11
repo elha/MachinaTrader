@@ -1,9 +1,7 @@
-using Mynt.Core.Exchanges;
 using System.Collections.Generic;
-using TradeOptions = MachinaTrader.TradeManagers.TradeOptions;
-using Mynt.Core.Notifications;
+using MachinaTrader.Globals.Structure.Models;
 
-namespace MachinaTrader.Models
+namespace MachinaTrader.Globals.Models
 {
     public class MainConfig
     {

@@ -4,6 +4,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using LazyCache;
 using MachinaTrader.Globals.Hubs;
+using MachinaTrader.Globals.Models;
+using MachinaTrader.Globals.Structure.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
@@ -119,6 +121,12 @@ namespace MachinaTrader.Globals
         public static JObject CoreConfig = new JObject();
         public static JObject CoreRuntime = new JObject();
 
+        public static IDataStore DataStore { get; set; }
+        public static IDataStoreBacktest DataStoreBacktest { get; set; }
+        public static IExchangeApi ExchangeApi { get; set; }
+        public static MainConfig Configuration { get; set; }
+
+        public static RuntimeConfig RuntimeSettings = new RuntimeConfig();
         public static IApplicationBuilder ApplicationBuilder { get; set; }
         public static IServiceScope ServiceScope { get; set; }
         public static Serilog.ILogger Logger { get; set; }

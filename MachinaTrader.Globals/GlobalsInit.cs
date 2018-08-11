@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using MachinaTrader.Globals.Helpers;
+using MachinaTrader.Globals.Models;
+using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.Globals.Structure.Models;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -135,6 +139,30 @@ namespace MachinaTrader.Globals
                 ["webDefaultUserEmail"] = "admin@localhost",
                 ["webDefaultPassword"] = "admin"
             };
+
+            //Read Settings file
+            if (!File.Exists(Global.DataPath + "/MainConfig.json"))
+            {
+                //Init Global Config with default currency array
+                Global.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), Global.DataPath + "/MainConfig.json").ToObject<MainConfig>();
+                Global.Configuration.TradeOptions.MarketBlackList = new List<string> { };
+                Global.Configuration.TradeOptions.OnlyTradeList = new List<string> { "ETHBTC", "LTCBTC" };
+                Global.Configuration.TradeOptions.AlwaysTradeList = new List<string> { "ETHBTC", "LTCBTC" };
+                var defaultExchangeOptions = new ExchangeOptions
+                {
+                    Exchange = Exchange.Binance,
+                    ApiKey = "",
+                    ApiSecret = ""
+                };
+                Global.Configuration.ExchangeOptions.Add(defaultExchangeOptions);
+                Global.Configuration = MergeObjects.MergeCsDictionaryAndSave(Global.Configuration, Global.DataPath + "/MainConfig.json", JObject.FromObject(Global.Configuration)).ToObject<MainConfig>();
+            }
+            else
+
+            {
+
+                Global.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), Global.DataPath + "/MainConfig.json").ToObject<MainConfig>();
+            }
         }
 
         public void CommonFiles()

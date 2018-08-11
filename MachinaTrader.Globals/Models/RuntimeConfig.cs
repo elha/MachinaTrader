@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Newtonsoft.Json.Linq;
 
-namespace MachinaTrader.Models
+namespace MachinaTrader.Globals.Models
 {
     public class RuntimeConfig
     {

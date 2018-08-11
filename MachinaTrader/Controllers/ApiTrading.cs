@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using MachinaTrader.Models;
 using ExchangeSharp;
+using MachinaTrader.Globals;
 using MachinaTrader.Globals.Structure.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json.Linq;
@@ -34,7 +35,7 @@ namespace MachinaTrader.Controllers
         [Route("balance")]
         public async Task<IActionResult> GetBalance()
         {
-            var fullApi = Runtime.GlobalExchangeApi.GetFullApi().Result;
+            var fullApi = Global.ExchangeApi.GetFullApi().Result;
             var balance = await fullApi.GetAmountsAvailableToTradeAsync();
             return new JsonResult(balance);
         }
@@ -43,7 +44,7 @@ namespace MachinaTrader.Controllers
         [Route("history")]
         public async Task<IActionResult> GetHistory()
         {
-            var fullApi = Runtime.GlobalExchangeApi.GetFullApi().Result;
+            var fullApi = Global.ExchangeApi.GetFullApi().Result;
             var balance = await fullApi.GetCompletedOrderDetailsAsync("ETHBTC");
             return new JsonResult(balance);
         }
@@ -52,7 +53,7 @@ namespace MachinaTrader.Controllers
         [Route("getTicker")]
         public async Task<IActionResult> GetTicker(string symbol)
         {
-            var ticker = await Runtime.GlobalExchangeApi.GetTicker(symbol);
+            var ticker = await Global.ExchangeApi.GetTicker(symbol);
             return new JsonResult(ticker);
         }
 
@@ -60,7 +61,7 @@ namespace MachinaTrader.Controllers
         [Route("topVolumeCurrencies")]
         public async Task<IActionResult> GetTopVoumeCurrencies(int limit = 20)
         {
-            var fullApi = await Runtime.GlobalExchangeApi.GetFullApi();
+            var fullApi = await Global.ExchangeApi.GetFullApi();
             var getCurrencies = fullApi.GetTickers();
             var objListOrder = getCurrencies
                 .OrderByDescending(o => o.Value.Volume.ConvertedVolume)
@@ -84,11 +85,11 @@ namespace MachinaTrader.Controllers
         [Route("trade/{tradeId}")]
         public async Task<IActionResult> TradingTrade(string tradeId)
         {
-            var activeTrade = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            var activeTrade = await Global.DataStore.GetActiveTradesAsync();
             var trade = activeTrade.FirstOrDefault(x => x.TradeId == tradeId);
             if (trade == null)
             {
-                var closedTrades = await Runtime.GlobalDataStore.GetClosedTradesAsync();
+                var closedTrades = await Global.DataStore.GetClosedTradesAsync();
                 trade = closedTrades.FirstOrDefault(x => x.TradeId == tradeId);
             }
 
@@ -107,7 +108,7 @@ namespace MachinaTrader.Controllers
         [Route("sellNow/{tradeId}")]
         public async Task TradingSellNow(string tradeId)
         {
-            var activeTrade = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            var activeTrade = await Global.DataStore.GetActiveTradesAsync();
             var trade = activeTrade.FirstOrDefault(x => x.TradeId == tradeId);
 
             if (trade == null)
@@ -115,14 +116,14 @@ namespace MachinaTrader.Controllers
                 return;
             }
 
-            var orderId = Runtime.Configuration.TradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Runtime.GlobalExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
+            var orderId = Global.Configuration.TradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Global.ExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
             trade.CloseRate = trade.TickerLast.Bid;
             trade.OpenOrderId = orderId;
             trade.SellOrderId = orderId;
             trade.SellType = SellType.Manually;
             trade.IsSelling = true;
 
-            await Runtime.GlobalDataStore.SaveTradeAsync(trade);
+            await Global.DataStore.SaveTradeAsync(trade);
             await Runtime.GlobalHubTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to SellNow");
         }
 
@@ -130,7 +131,7 @@ namespace MachinaTrader.Controllers
         [Route("cancelOrder/{tradeId}")]
         public async Task TradingCancelOrder(string tradeId)
         {
-            var activeTrade = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            var activeTrade = await Global.DataStore.GetActiveTradesAsync();
             var trade = activeTrade.FirstOrDefault(x => x.TradeId == tradeId);
 
             if (trade == null)
@@ -140,25 +141,25 @@ namespace MachinaTrader.Controllers
 
             if (trade.IsBuying)
             {
-                await Runtime.GlobalExchangeApi.CancelOrder(trade.BuyOrderId, trade.Market);
+                await Global.ExchangeApi.CancelOrder(trade.BuyOrderId, trade.Market);
                 trade.IsBuying = false;
                 trade.OpenOrderId = null;
                 trade.IsOpen = false;
                 trade.SellType = SellType.Cancelled;
                 trade.CloseDate = DateTime.UtcNow;
-                await Runtime.GlobalDataStore.SaveTradeAsync(trade);
+                await Global.DataStore.SaveTradeAsync(trade);
             }
 
             if (trade.IsSelling)
             {
                 //Reenable in active trades
-                await Runtime.GlobalExchangeApi.CancelOrder(trade.SellOrderId, trade.Market);
+                await Global.ExchangeApi.CancelOrder(trade.SellOrderId, trade.Market);
                 trade.IsSelling = false;
                 trade.OpenOrderId = null;
                 //trade.IsOpen = false;
                 //trade.SellType = SellType.Cancelled;
                 //trade.CloseDate = DateTime.UtcNow;
-                await Runtime.GlobalDataStore.SaveTradeAsync(trade);
+                await Global.DataStore.SaveTradeAsync(trade);
             }
 
             await Runtime.GlobalHubTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to SellNow");
@@ -169,13 +170,13 @@ namespace MachinaTrader.Controllers
         [Route("hold/{tradeId}/{holdBoolean}")]
         public async Task TradingHold(string tradeId, bool holdBoolean)
         {
-            var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            var activeTrades = await Global.DataStore.GetActiveTradesAsync();
             var tradeToUpdate = activeTrades.FirstOrDefault(x => x.TradeId == tradeId);
             if (tradeToUpdate != null)
             {
                 tradeToUpdate.SellNow = false;
                 tradeToUpdate.HoldPosition = holdBoolean;
-                await Runtime.GlobalDataStore.SaveTradeAsync(tradeToUpdate);
+                await Global.DataStore.SaveTradeAsync(tradeToUpdate);
             }
 
             await Runtime.GlobalHubTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to Hold");
@@ -185,7 +186,7 @@ namespace MachinaTrader.Controllers
         [Route("sellOnProfit/{tradeId}/{profitPercentage}")]
         public async Task TradingSellOnProfit(string tradeId, decimal profitPercentage)
         {
-            var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            var activeTrades = await Global.DataStore.GetActiveTradesAsync();
             var tradeToUpdate = activeTrades.FirstOrDefault(x => x.TradeId == tradeId);
             if (tradeToUpdate != null)
             {
@@ -193,7 +194,7 @@ namespace MachinaTrader.Controllers
                 tradeToUpdate.HoldPosition = false;
                 tradeToUpdate.SellOnPercentage = profitPercentage;
 
-                await Runtime.GlobalDataStore.SaveTradeAsync(tradeToUpdate);
+                await Global.DataStore.SaveTradeAsync(tradeToUpdate);
             }
 
             await Runtime.GlobalHubTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to Hold");
@@ -211,7 +212,7 @@ namespace MachinaTrader.Controllers
         [Route("traders")]
         public async Task<IActionResult> Traders()
         {
-            var traders = await Runtime.GlobalDataStore.GetTradersAsync();
+            var traders = await Global.DataStore.GetTradersAsync();
             return new JsonResult(traders);
         }
 
@@ -220,7 +221,7 @@ namespace MachinaTrader.Controllers
         public async Task<IActionResult> GetActiveTradesWithTrader()
         {
             // Get trades
-            var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            var activeTrades = await Global.DataStore.GetActiveTradesAsync();
 
             JObject activeTradesJson = new JObject();
 
@@ -238,7 +239,7 @@ namespace MachinaTrader.Controllers
         public async Task<IActionResult> GetActiveTrades()
         {
             // Get trades
-            var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            var activeTrades = await Global.DataStore.GetActiveTradesAsync();
             return new JsonResult(activeTrades);
         }
 
@@ -247,7 +248,7 @@ namespace MachinaTrader.Controllers
         public async Task<IActionResult> GetOpenTrades()
         {
             // Get trades
-            var activeTrades = await Runtime.GlobalDataStore.GetActiveTradesAsync();
+            var activeTrades = await Global.DataStore.GetActiveTradesAsync();
             return new JsonResult(activeTrades.Where(x => x.IsSelling || x.IsBuying));
         }
 
@@ -256,7 +257,7 @@ namespace MachinaTrader.Controllers
         public async Task<IActionResult> GetClosedTrades()
         {
             // Get trades
-            var closedTrades = await Runtime.GlobalDataStore.GetClosedTradesAsync();
+            var closedTrades = await Global.DataStore.GetClosedTradesAsync();
             return new JsonResult(closedTrades);
         }
 
@@ -269,7 +270,7 @@ namespace MachinaTrader.Controllers
 
             // Get winner/loser currencies
             var coins = new Dictionary<string, decimal?>();
-            foreach (var cT in await Runtime.GlobalDataStore.GetClosedTradesAsync())
+            foreach (var cT in await Global.DataStore.GetClosedTradesAsync())
             {
                 if (cT.SellOrderId != null)
                 {
@@ -291,7 +292,7 @@ namespace MachinaTrader.Controllers
             stat.CoinPerformance = coins.ToList().OrderByDescending(c => c.Value);
 
             // Create some viewbags
-            ViewBag.tradeOptions = Runtime.Configuration.TradeOptions;
+            ViewBag.tradeOptions = Global.Configuration.TradeOptions;
             ViewBag.stat = stat;
 
             return new JsonResult(ViewBag);

@@ -1,3 +1,4 @@
+@using Globals
 <!DOCTYPE html>
 
 <!--
@@ -21,7 +22,7 @@
     <link href="/css/fortawesome/css/fa-brands.css" rel="stylesheet" asp-append-version="true">
     <link href="/vendors/@@mdi/font/css/materialdesignicons.min.css" rel="stylesheet" asp-append-version="true">
     @{
-        if (Runtime.Configuration.SystemOptions.Theme == "dark")
+        if (Global.Configuration.SystemOptions.Theme == "dark")
         {
             <link href="/css/styledark.min.css" rel="stylesheet" asp-append-version="true">
         }

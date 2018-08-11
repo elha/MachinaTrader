@@ -1,4 +1,4 @@
-namespace Mynt.Core.Notifications
+namespace MachinaTrader.Globals.Structure.Models
 {
     public class TelegramNotificationOptions
     {

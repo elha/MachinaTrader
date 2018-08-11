@@ -28,10 +28,10 @@ namespace MachinaTrader.Controllers
             var account = new List<BalanceEntry>();
 
             // TradeOptions
-            var tradeOptions = Runtime.Configuration.TradeOptions;
+            var tradeOptions = Global.Configuration.TradeOptions;
 
             // Get Exchange account
-            var fullApi = Runtime.GlobalExchangeApi.GetFullApi().Result;
+            var fullApi = Global.ExchangeApi.GetFullApi().Result;
 
             // Get Tickers
             var tickers = await fullApi.GetTickersAsync();

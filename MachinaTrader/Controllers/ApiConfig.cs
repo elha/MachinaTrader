@@ -4,6 +4,7 @@ using System;
 using MachinaTrader.Globals.Helpers;
 using MachinaTrader.Models;
 using MachinaTrader.Globals;
+using MachinaTrader.Globals.Models;
 using Microsoft.AspNetCore.Authorization;
 
 namespace MachinaTrader.Controllers
@@ -15,7 +16,7 @@ namespace MachinaTrader.Controllers
         [Route("mainConfig")]
         public ActionResult GetMainConfig()
         {
-            return new JsonResult(Runtime.Configuration);
+            return new JsonResult(Global.Configuration);
         }
 
         [HttpPost]
@@ -24,7 +25,7 @@ namespace MachinaTrader.Controllers
         {
             try
             {
-                Runtime.Configuration = MergeObjects.MergeCsDictionaryAndSave(Runtime.Configuration, Global.DataPath + "/MainConfig.json", data).ToObject<MainConfig>();
+                Global.Configuration = MergeObjects.MergeCsDictionaryAndSave(Global.Configuration, Global.DataPath + "/MainConfig.json", data).ToObject<MainConfig>();
             }
             catch (Exception ex)
             {
@@ -36,7 +37,7 @@ namespace MachinaTrader.Controllers
         [Route("runtime")]
         public ActionResult GetRuntime()
         {
-            return new JsonResult(Runtime.RuntimeSettings);
+            return new JsonResult(Global.RuntimeSettings);
         }
     }
 }

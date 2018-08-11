@@ -34,7 +34,7 @@ namespace MachinaTrader.Controllers
                 CandlePeriod = Int32.Parse(candleSize)
             };
 
-            await DataRefresher.RefreshCandleData(x => Global.Logger.Information(x), backtestOptions, Runtime.GlobalDataStoreBacktest);
+            await DataRefresher.RefreshCandleData(x => Global.Logger.Information(x), backtestOptions, Global.DataStoreBacktest);
 
             return "Refresh Done";
         }
@@ -74,7 +74,7 @@ namespace MachinaTrader.Controllers
 
             JObject result = new JObject
             {
-                ["result"] = await DataRefresher.GetCacheAge(backtestOptions, Runtime.GlobalDataStoreBacktest)
+                ["result"] = await DataRefresher.GetCacheAge(backtestOptions, Global.DataStoreBacktest)
             };
             return new JsonResult(result);
         }
@@ -112,7 +112,7 @@ namespace MachinaTrader.Controllers
                 CandlePeriod = Int32.Parse(candleSize)
             };
 
-            await DataRefresher.RefreshCandleData(x => Global.Logger.Information(x), backtestOptions, Runtime.GlobalDataStoreBacktest);
+            await DataRefresher.RefreshCandleData(x => Global.Logger.Information(x), backtestOptions, Global.DataStoreBacktest);
             JObject result = new JObject
             {
                 ["result"] = "success"
@@ -224,7 +224,7 @@ namespace MachinaTrader.Controllers
                         return;
                     }
                 }
-                var result = await BacktestFunctions.BackTestJson(tradingStrategy, backtestOptions, Runtime.GlobalDataStoreBacktest);
+                var result = await BacktestFunctions.BackTestJson(tradingStrategy, backtestOptions, Global.DataStoreBacktest);
                 foreach (var item in result)
                 {
                     await Runtime.GlobalHubBacktest.Clients.All.SendAsync("Send", JsonConvert.SerializeObject(item));
@@ -257,7 +257,7 @@ namespace MachinaTrader.Controllers
             };
 
             var candleProvider = new DatabaseCandleProvider();
-            var items = await candleProvider.GetCandles(backtestOptions, Runtime.GlobalDataStoreBacktest);
+            var items = await candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest);
 
             return new JsonResult(items);
         }
@@ -286,7 +286,7 @@ namespace MachinaTrader.Controllers
             };
 
             var candleProvider = new DatabaseCandleProvider();
-            var items = await candleProvider.GetSignals(backtestOptions, Runtime.GlobalDataStoreBacktest, strategyName);
+            var items = await candleProvider.GetSignals(backtestOptions, Global.DataStoreBacktest, strategyName);
 
             return new JsonResult(items);
         }
@@ -295,7 +295,7 @@ namespace MachinaTrader.Controllers
         [Route("simulation")]
         public async Task<bool> Simulation(string coinsToBuy, string strategy, string fromDate, string toDate)
         {
-            var currentExchangeOption = Runtime.Configuration.ExchangeOptions.FirstOrDefault();
+            var currentExchangeOption = Global.Configuration.ExchangeOptions.FirstOrDefault();
 
             var simulationStartingDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(fromDate, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
             var simulationEndingDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(toDate, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
@@ -308,8 +308,8 @@ namespace MachinaTrader.Controllers
                 CandlePeriod = Int32.Parse(currentExchangeOption.SimulationCandleSize)
             };
 
-            Candle databaseFirstCandle = await Runtime.GlobalDataStoreBacktest.GetBacktestFirstCandle(backtestOptions);
-            Candle databaseLastCandle = await Runtime.GlobalDataStoreBacktest.GetBacktestLastCandle(backtestOptions);
+            Candle databaseFirstCandle = await Global.DataStoreBacktest.GetBacktestFirstCandle(backtestOptions);
+            Candle databaseLastCandle = await Global.DataStoreBacktest.GetBacktestLastCandle(backtestOptions);
 
             var tradeManager = new TradeManager();
 
