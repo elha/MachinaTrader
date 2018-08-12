@@ -31,6 +31,19 @@ Join the Discord support Server for more up-to-date info:
    * `npm run css-compile`  
    * `npm run css-compile-vendors`   
 
+# Docker support:
+
+```bash
+docker build --rm -f Dockerfile -t machinatrader:latest .
+docker run --rm -d machinatrader:latest
+```
+
+or
+
+```bash
+docker-compose up -d
+```
+
 # Recommended plugin for debugging VueJS
 
 - Get Chrome DevTools for VueJS [here](https://chrome.google.com/webstore/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
