@@ -32,56 +32,64 @@ namespace MachinaTrader.Controllers
 
             // Get Exchange account
             var fullApi = Global.ExchangeApi.GetFullApi().Result;
-
-            // Get Tickers
-            var tickers = await fullApi.GetTickersAsync();
-            if (tickers.Count() > 1)
+                
+            if (fullApi.PublicApiKey.Length > 0 && fullApi.PrivateApiKey.Length > 0)
             {
-                // Get USD-QuoteCurr ticker
-                var tickerUsdQuote = tickers.First(t => t.Key.ToUpper().Contains(tradeOptions.QuoteCurrency) && t.Key.ToUpper().Contains("USD") && t.Value.Last > 1);
-            
-                // Balances
-                var balances = await fullApi.GetAmountsAsync();
-                foreach (var balance in balances)
+                // Get Tickers
+                var tickers = await fullApi.GetTickersAsync();
+                if (tickers.Count() > 1)
                 {
-                    // Get Ticker
-                    var ticker = tickers.First(t => t.Key.Contains(tradeOptions.QuoteCurrency) && t.Key.Contains(balance.Key));
+                    // Get USD-QuoteCurr ticker
+                    var tickerUsdQuote = tickers.First(t => t.Key.ToUpper().Contains(tradeOptions.QuoteCurrency) && t.Key.ToUpper().Contains("USD") && t.Value.Last > 1);
+            
+                    // Balances
+                    var balances = await fullApi.GetAmountsAsync();
+                    foreach (var balance in balances)
+                    {
+                        // Get Ticker
+                        var ticker = tickers.First(t => t.Key.Contains(tradeOptions.QuoteCurrency) && t.Key.Contains(balance.Key));
 
-                    // Create balanceEntry
-                    var balanceEntry = new BalanceEntry()
-                    {
-                        QuoteCurrrency = tradeOptions.QuoteCurrency,
-                        Market = balance.Key,
-                        TotalCoins = balance.Value,
-                    };
+                        // Create balanceEntry
+                        var balanceEntry = new BalanceEntry()
+                        {
+                            QuoteCurrrency = tradeOptions.QuoteCurrency,
+                            Market = balance.Key,
+                            TotalCoins = balance.Value,
+                        };
 
-                    // Market same as quoteCurrency
-                    if (balanceEntry.Market.ToUpper() == tradeOptions.QuoteCurrency.ToUpper())
-                    {
-                        balanceEntry.BalanceValueQuoteCurrency = balance.Value;
-                        balanceEntry.BalanceValueUsd = tickerUsdQuote.Value.Last * balance.Value;
-                    }
-                    // Market same as USD
-                    else if (balanceEntry.Market.ToUpper().Contains("USD"))
-                    {
-                        balanceEntry.BalanceValueQuoteCurrency = balance.Value;
-                        balanceEntry.BalanceValueUsd = balance.Value;
-                    }
-                    // Anything else
-                    else
-                    {
-                        balanceEntry.BalanceValueQuoteCurrency = balance.Value * ticker.Value.Last;
-                        balanceEntry.BalanceValueUsd = tickerUsdQuote.Value.Last * (balance.Value * ticker.Value.Last);
-                    }
+                        // Market same as quoteCurrency
+                        if (balanceEntry.Market.ToUpper() == tradeOptions.QuoteCurrency.ToUpper())
+                        {
+                            balanceEntry.BalanceValueQuoteCurrency = balance.Value;
+                            balanceEntry.BalanceValueUsd = tickerUsdQuote.Value.Last * balance.Value;
+                        }
+                        // Market same as USD
+                        else if (balanceEntry.Market.ToUpper().Contains("USD"))
+                        {
+                            balanceEntry.BalanceValueQuoteCurrency = balance.Value;
+                            balanceEntry.BalanceValueUsd = balance.Value;
+                        }
+                        // Anything else
+                        else
+                        {
+                            balanceEntry.BalanceValueQuoteCurrency = balance.Value * ticker.Value.Last;
+                            balanceEntry.BalanceValueUsd = tickerUsdQuote.Value.Last * (balance.Value * ticker.Value.Last);
+                        }
 
-                    // Add to list
-                    account.Add(balanceEntry);
+                        // Add to list
+                        account.Add(balanceEntry);
+                    }
+                }
+                else
+                {
+                    Global.Logger.Information("Possible problem with API, cuz we got no tickers!");
                 }
             }
             else
             {
-                Global.Logger.Information("Possible problem with API");
+                Global.Logger.Information("No api under configuration");
             }
+
 
             return new JsonResult(account);
         }

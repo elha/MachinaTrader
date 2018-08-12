@@ -103,13 +103,15 @@
 <script type="text/javascript">
     var pagefunction = function () {
     };
-
-
+    
     $(document).ready(function () {
         table = $('#accountsTableId').DataTable({
             ajax: {
                 url: '/api/account/balance',
                 dataSrc: ''
+            },
+            "oLanguage": {
+                "sEmptyTable": "Check your API keys under configuration page."
             },
             responsive: true,
             "autoWidth": false,
