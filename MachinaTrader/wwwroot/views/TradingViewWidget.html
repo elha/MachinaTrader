@@ -43,9 +43,10 @@
         market = "BTCUSDT";
     }
 
-    //fast fix for coinbase
-    if (exchange.localeCompare('GDAX') || exchange.localeCompare('ExchangeGdaxSimulationApi'))
+    //fast fix for coinbase -> ToDo -> This function always return COINBASE even on valid exchanges
+    /*if (exchange.localeCompare('GDAX') || exchange.localeCompare('ExchangeGdaxSimulationApi'))
         exchange = 'COINBASE';
+    */
 
     market = market.replace('-', '');
 

@@ -82,6 +82,25 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
+        [Route("globalToExchangeSymbol")]
+        public string GlobalToExchangeSymbol(string exchange, string symbol)
+        {
+            IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
+            string exchangeSymbol = api.GlobalSymbolToExchangeSymbol(symbol);
+            return exchangeSymbol;
+        }
+
+        [HttpGet]
+        [Route("globalToTradingViewSymbol")]
+        public string GlobalToTradingViewSymbol(string exchange, string symbol)
+        {
+            //Trading view use same format as Binance -> BTC-ETH is ETHBTC
+            IExchangeAPI api = ExchangeAPI.GetExchangeAPI("binance");
+            string exchangeSymbol = api.GlobalSymbolToExchangeSymbol(symbol);
+            return exchangeSymbol;
+        }
+
+        [HttpGet]
         [Route("trade/{tradeId}")]
         public async Task<IActionResult> TradingTrade(string tradeId)
         {

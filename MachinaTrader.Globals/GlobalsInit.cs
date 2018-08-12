@@ -106,7 +106,7 @@ namespace MachinaTrader.Globals
             Global.AppParentPath = Directory.GetParent(Global.AppPath).FullName.Replace("\\", "/");
 
             //Check if we are in portable environment -> In this case Data Folder is in parent folder to prevent update errors
-            if (Directory.Exists(Directory.GetParent(Global.AppPath).FullName + "/Data"))
+            if (Directory.Exists(Directory.GetParent(Global.AppPath).FullName + "/App"))
             {
                 Global.DataPath = Directory.GetParent(Global.AppPath).FullName.Replace("\\", "/") + "/Data";
             } else
