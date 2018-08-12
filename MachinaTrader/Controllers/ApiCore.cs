@@ -241,7 +241,7 @@ namespace MachinaTrader.Controllers
                     return File(buffer.Array, "image/png");
                 }
             }
-            byte[] filedata = System.IO.File.ReadAllBytes("/wwwroot/img/user_avatar_default.png");
+            byte[] filedata = System.IO.File.ReadAllBytes(Global.AppPath + "/wwwroot/img/user_avatar_default.png");
             return File(filedata, "image/png");
         }
     }
