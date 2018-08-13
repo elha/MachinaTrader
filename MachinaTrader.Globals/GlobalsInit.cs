@@ -155,12 +155,15 @@ namespace MachinaTrader.Globals
                     ApiSecret = ""
                 };
                 Global.Configuration.ExchangeOptions.Add(defaultExchangeOptions);
+                var defaultDisplayOptions = new DisplayOptions()
+                {
+                    DisplayFiatCurrency = "USD"
+                };
+                Global.Configuration.DisplayOptions = defaultDisplayOptions; 
                 Global.Configuration = MergeObjects.MergeCsDictionaryAndSave(Global.Configuration, Global.DataPath + "/MainConfig.json", JObject.FromObject(Global.Configuration)).ToObject<MainConfig>();
             }
             else
-
             {
-
                 Global.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), Global.DataPath + "/MainConfig.json").ToObject<MainConfig>();
             }
         }

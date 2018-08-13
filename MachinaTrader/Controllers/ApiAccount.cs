@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using MachinaTrader.Models;
 using ExchangeSharp;
 using MachinaTrader.Globals;
 using Microsoft.AspNetCore.Authorization;
-using Newtonsoft.Json.Linq;
 
 namespace MachinaTrader.Controllers
 {
     [Authorize, Route("api/account/")]
-    public class ApiAccount : Controller
+    public class ApiAccounts : Controller
     {
         /// <summary>
         /// Gets the balance for 1 Exchange
@@ -27,70 +25,117 @@ namespace MachinaTrader.Controllers
             //Account
             var account = new List<BalanceEntry>();
 
-            // TradeOptions
-            var tradeOptions = Global.Configuration.TradeOptions;
+            // Some Options
+            var displayOptions = Global.Configuration.DisplayOptions;
 
             // Get Exchange account
             var fullApi = Global.ExchangeApi.GetFullApi().Result;
-                
-            if (fullApi.PublicApiKey.Length > 0 && fullApi.PrivateApiKey.Length > 0)
+
+            try
             {
-                // Get Tickers
-                var tickers = await fullApi.GetTickersAsync();
-                if (tickers.Count() > 1)
+                if (fullApi.PublicApiKey.Length > 0 && fullApi.PrivateApiKey.Length > 0)
                 {
-                    // Get USD-QuoteCurr ticker
-                    var tickerUsdQuote = tickers.First(t => t.Key.ToUpper().Contains(tradeOptions.QuoteCurrency) && t.Key.ToUpper().Contains("USD") && t.Value.Last > 1);
-            
-                    // Balances
+                    // Get Tickers & Balances
+                    var tickers = await fullApi.GetTickersAsync();
                     var balances = await fullApi.GetAmountsAsync();
-                    foreach (var balance in balances)
+                    
+                    if (tickers.Count() > 1)
                     {
-                        // Get Ticker
-                        var ticker = tickers.First(t => t.Key.Contains(tradeOptions.QuoteCurrency) && t.Key.Contains(balance.Key));
+                        var tickerUsd = tickers.Where(t => t.Key.ToUpper().Contains("USD") && t.Key.ToUpper().Contains("BTC")).ToList();
+                        var tickerDisplayCurrency = tickers.Where(t => t.Key.ToUpper().Contains(displayOptions.DisplayFiatCurrency) && t.Key.ToUpper().Contains("BTC")).ToList();
+                        var usdToBtcTicker = tickerUsd.First(t => t.Key.EndsWith("BTC"));
+                        var btcToUsdTicker = tickerUsd.First(t => t.Key.StartsWith("BTC"));
 
-                        // Create balanceEntry
-                        var balanceEntry = new BalanceEntry()
-                        {
-                            QuoteCurrrency = tradeOptions.QuoteCurrency,
-                            Market = balance.Key,
-                            TotalCoins = balance.Value,
-                        };
-
-                        // Market same as quoteCurrency
-                        if (balanceEntry.Market.ToUpper() == tradeOptions.QuoteCurrency.ToUpper())
-                        {
-                            balanceEntry.BalanceValueQuoteCurrency = balance.Value;
-                            balanceEntry.BalanceValueUsd = tickerUsdQuote.Value.Last * balance.Value;
-                        }
-                        // Market same as USD
-                        else if (balanceEntry.Market.ToUpper().Contains("USD"))
-                        {
-                            balanceEntry.BalanceValueQuoteCurrency = balance.Value;
-                            balanceEntry.BalanceValueUsd = balance.Value;
-                        }
-                        // Anything else
+                        var dcTicker = new KeyValuePair<string,ExchangeTicker>();
+                        if (tickerDisplayCurrency.Count == 0)
+                            Global.Logger.Information("Account: Display currency at this exchange not available!");
                         else
-                        {
-                            balanceEntry.BalanceValueQuoteCurrency = balance.Value * ticker.Value.Last;
-                            balanceEntry.BalanceValueUsd = tickerUsdQuote.Value.Last * (balance.Value * ticker.Value.Last);
-                        }
+                            dcTicker = tickerDisplayCurrency.First(t => t.Key.StartsWith("BTC"));
 
-                        // Add to list
-                        account.Add(balanceEntry);
+                        // Calculate stuff
+                        foreach (var balance in balances)
+                        {
+                            // Get selected tickers for Balances
+                            var ticker = new List<KeyValuePair<string, ExchangeTicker>>();
+
+                            // Create balanceEntry
+                            var balanceEntry = new BalanceEntry()
+                            {
+                                DisplayCurrency = displayOptions.DisplayFiatCurrency,
+                                Market = balance.Key,
+                                TotalCoins = balance.Value,
+                                BalanceInUsd = 0,
+                                BalanceInBtc = 0,
+                                BalanceInDisplayCurrency = 0
+                            };
+
+                            // Calculate to BTC or USD and check if crypto or not
+                            if (!balance.Key.ToUpper().Contains("USD") && !balance.Key.ToUpper().Contains("EUR"))
+                            {
+                                // Calculate to btc
+                                if (!balance.Key.ToUpper().Contains("BTC"))
+                                    ticker = tickers.Where(t =>
+                                            t.Key.ToUpper().StartsWith(balance.Key) &&
+                                            t.Key.ToUpper().Contains("BTC"))
+                                        .ToList();
+                            }
+                            // Calculate to btc
+                            else
+                                ticker = tickers.Where(t =>
+                                        t.Key.ToUpper().StartsWith(balance.Key) && t.Key.ToUpper().Contains("BTC"))
+                                    .ToList();
+
+                            // Calculate special market USD, EUR, BTC
+                            if (balanceEntry.Market.ToUpper().Contains("USD") ||
+                                balanceEntry.Market.ToUpper().Contains("EUR") ||
+                                balanceEntry.Market.ToUpper().Contains("BTC"))
+                            {
+                                if (balanceEntry.Market.ToUpper().Contains("USD"))
+                                {
+                                    balanceEntry.BalanceInUsd = balance.Value;
+                                    balanceEntry.BalanceInBtc = balanceEntry.BalanceInUsd * usdToBtcTicker.Value.Last;
+                                }
+
+                                if (balanceEntry.Market.ToUpper().Contains("EUR"))
+                                {
+                                    var t = "";
+                                }
+
+                                if (balanceEntry.Market.ToUpper().Contains("BTC"))
+                                {
+                                    balanceEntry.BalanceInBtc = balance.Value;
+                                    balanceEntry.BalanceInUsd = balanceEntry.BalanceInBtc * btcToUsdTicker.Value.Last;
+                                }
+
+                                if (tickerDisplayCurrency.Count >= 1)
+                                    balanceEntry.BalanceInDisplayCurrency =
+                                        balanceEntry.BalanceInBtc * dcTicker.Value.Last;
+                            }
+                            // Calculate cryptos without btc
+                            else
+                            {
+                                balanceEntry.BalanceInBtc = (balance.Value * ticker[0].Value.Last);
+                                balanceEntry.BalanceInUsd = balanceEntry.BalanceInBtc * btcToUsdTicker.Value.Last;
+                                if (tickerDisplayCurrency.Count >= 1)
+                                    balanceEntry.BalanceInDisplayCurrency =
+                                        balanceEntry.BalanceInBtc * dcTicker.Value.Last;
+                            }
+
+                            // Add to list
+                            account.Add(balanceEntry);
+                        }
                     }
+                    else
+                        Global.Logger.Information("Possible problem with API, cuz we got no tickers!");
                 }
                 else
-                {
-                    Global.Logger.Information("Possible problem with API, cuz we got no tickers!");
-                }
+                    Global.Logger.Information("No api under configuration");
             }
-            else
+            catch (Exception e)
             {
-                Global.Logger.Information("No api under configuration");
+                Global.Logger.Error(e.InnerException.Message);
             }
-
-
+            
             return new JsonResult(account);
         }
     }

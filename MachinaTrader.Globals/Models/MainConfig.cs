@@ -9,6 +9,7 @@ namespace MachinaTrader.Globals.Models
         public TradeOptions TradeOptions = new TradeOptions();
         public TelegramNotificationOptions TelegramOptions = new TelegramNotificationOptions();
         public List<ExchangeOptions> ExchangeOptions = new List<ExchangeOptions> { };
+        public DisplayOptions DisplayOptions = new DisplayOptions();
     }
 
     public class SystemOptions
