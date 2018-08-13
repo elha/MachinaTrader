@@ -31,6 +31,58 @@ Join the Discord support Server for more up-to-date info:
    * `npm run css-compile`  
    * `npm run css-compile-vendors`   
 
+# How to run locally with `docker` or `docker-compose`:
+
+```bash
+docker build --rm -f Dockerfile -t machinatrader:latest .
+docker run --rm -d machinatrader:latest
+```
+
+or
+
+```bash
+docker-compose up -d
+```
+
+# How to run on production with `docker-compose`:
+
+Modify `.env` environment variables:
+
+```
+# LetsEncrypt API url
+ACME_CA_URI=https://acme-v01.api.letsencrypt.org/directory
+
+# Server host name
+VIRTUAL_HOST=localhost
+
+# LetsEncrypt notifications email
+LETSENCRYPT_EMAIL=me@example.com
+
+# LetsEncrypt host name
+LETSENCRYPT_HOST=example.com
+
+# Mongo data files
+MONGO_FILES_PATH=./docker/mongo
+
+# Nginx data files
+NGINX_FILES_PATH=./docker/nginx
+
+# App data files
+MACHINATRADER_FILES_PATH=./docker/machinatrader
+```
+
+Start application: 
+
+```bash
+docker-compose -f docker-compose-production.yml up -d --build
+```
+
+Stop application:
+
+```bash
+docker-compose -f docker-compose-production.yml down
+```
+
 # Recommended plugin for debugging VueJS
 
 - Get Chrome DevTools for VueJS [here](https://chrome.google.com/webstore/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
