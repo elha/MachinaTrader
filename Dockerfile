@@ -12,7 +12,11 @@ COPY ./MachinaTrader/package.json .
 RUN npm install
 RUN npm install node-sass@latest
 
-COPY ./MachinaTrader .
+COPY ./MachinaTrader/build ./build
+COPY ./MachinaTrader/wwwroot ./wwwroot
+COPY ./MachinaTrader/.babelrc.js ./
+COPY ./MachinaTrader/.eslintignore ./
+COPY ./MachinaTrader/.eslintrc.json ./
 RUN npm run build
 RUN npm run build-vendors
 RUN npm run css-compile
@@ -20,7 +24,6 @@ RUN npm run css-compile
 FROM restore as publish
 WORKDIR /app/
 COPY . .
-COPY --from=restore /app/ .
 COPY --from=client-build /app/wwwroot ./wwwroot
 RUN dotnet publish MachinaTrader/MachinaTrader.csproj -o /app/out -c Release
 
