@@ -312,3 +312,5 @@ Mynt.db
 Mynt/
 MyntUI/MyntUIAuth.db
 MyntUIAuth.db
+
+docker/

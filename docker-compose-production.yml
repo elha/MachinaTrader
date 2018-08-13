@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 services:
   nginx-web:
     container_name: ${NGINX_WEB:-nginx-web}
@@ -57,9 +57,36 @@ services:
         max-size: ${NGINX_LETSENCRYPT_LOG_MAX_SIZE:-2m}
         max-file: ${NGINX_LETSENCRYPT_LOG_MAX_FILE:-10}
 
+  mongo:
+    container_name: mongo
+    image: mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    expose:
+      - "27017"
+    ports:
+      - 27017:27017
+    volumes:
+      - ${MONGO_FILES_PATH:-./mongo}:/data/db
+
+  mongoclient:
+    container_name: mongo-client
+    image: mongoclient/mongoclient
+    restart: unless-stopped
+    environment:
+      MONGO_URL: 'mongodb://root:example@mongo:27017'
+    ports:
+      - 3000:3000
+    # volumes:
+    #   - "/Users/dmytrofylyppov/Projects/Docker/Mongo/db-client:/data/db"
+    links:
+      - "mongo"
+
   nginx-app:
     container_name: ${NGINX_APP:-nginx-app}
-    image: machinatrader:latest
+    image: machinatrader
     restart: unless-stopped
     expose:
        - "5000"
@@ -72,3 +99,5 @@ services:
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-me@example.com}
     depends_on:
       - "nginx-web"
+    volumes:
+      - ${MACHINATRADER_FILES_PATH:-./data}:/app/Data
