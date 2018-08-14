@@ -2,23 +2,21 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using MachinaTrader.Hubs;
 using Serilog;
 using System.Net;
 using Microsoft.AspNetCore;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using MachinaTrader.Helpers;
+using AspNetCore.Identity.LiteDB;
+using AspNetCore.Identity.LiteDB.Data;
 using LazyCache;
 using MachinaTrader.Globals;
 using MachinaTrader.Globals.Data;
-using MachinaTrader.Globals.Models;
 using MachinaTrader.Globals.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
@@ -29,7 +27,6 @@ using Newtonsoft.Json.Linq;
 using LazyCache.Providers;
 using MachinaTrader.Globals.Hubs;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace MachinaTrader
 {
@@ -71,12 +68,14 @@ namespace MachinaTrader
     public class Startup
     {
         public static IServiceScope ServiceScope { get; private set; }
+        public IHostingEnvironment HostingEnvironment { get; set; }
         public static IConfiguration Configuration { get; set; }
         public IContainer ApplicationContainer { get; private set; }
 
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IHostingEnvironment hostingEnvironment)
         {
             Configuration = configuration;
+            HostingEnvironment = hostingEnvironment;
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -98,15 +97,15 @@ namespace MachinaTrader
             });
 
             //services.AddLazyCache();
-            
-            // Add Database Initializer
-            services.AddTransient<IDatabaseInitializer, DatabaseInitializer>();
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite("Filename=" + Global.DataPath + "/MachinaTraderAuth.db"));
 
-            services.AddIdentity<ApplicationUser, IdentityRole>(options => options.Stores.MaxLengthForKeys = 128)
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                // .AddDefaultUI()
+            // Add LiteDB Dependency
+            string authDbPath = Global.DataPath + "/AuthDb.db";
+            services.AddSingleton<ILiteDbContext, LiteDbContext>(serviceProvider => new LiteDbContext(HostingEnvironment, authDbPath));
+
+            services.AddIdentity<AspNetCore.Identity.LiteDB.Models.ApplicationUser, AspNetCore.Identity.LiteDB.IdentityRole>(options => options.Stores.MaxLengthForKeys = 128)
+                .AddUserStore<LiteDbUserStore<AspNetCore.Identity.LiteDB.Models.ApplicationUser>>()
+                .AddRoleStore<LiteDbRoleStore<AspNetCore.Identity.LiteDB.IdentityRole>>()
                 .AddDefaultTokenProviders();
 
             //Override Password Policy
@@ -122,6 +121,9 @@ namespace MachinaTrader
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
+
+            // Add Database Initializer
+            services.AddTransient<IDatabaseInitializer, DatabaseInitializer>();
 
             services.AddAuthorization();
 
@@ -167,7 +169,7 @@ namespace MachinaTrader
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment hostingEnvironment, IDatabaseInitializer databaseInitializer, IAppCache cache)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment hostingEnvironment, IAppCache cache, ILiteDbContext liteDbContext, IDatabaseInitializer databaseInitializer)
         {
             Global.ServiceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
             Global.ApplicationBuilder = app;

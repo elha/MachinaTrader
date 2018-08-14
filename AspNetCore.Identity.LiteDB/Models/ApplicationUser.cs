@@ -1,4 +1,4 @@
-﻿using LiteDB;
+using LiteDB;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -18,6 +18,11 @@ namespace AspNetCore.Identity.LiteDB.Models
             SerializableLogins = new List<SerializableUserLoginInfo>();
             Claims = new List<IdentityUserClaim>();
             Tokens = new List<UserToken<string>>();
+
+            // Custom Database Fields
+            FirstName = "";
+            LastName = "";
+            AccountEnabled = true;
         }
 
         [BsonId]
@@ -136,5 +141,11 @@ namespace AspNetCore.Identity.LiteDB.Models
                 .Except(Tokens.Where(t => t.LoginProvider == loginProvider && t.TokenName == name))
                 .ToList();
         }
+
+        // Custom Database Field:
+        public bool AccountEnabled { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+
     }
 }

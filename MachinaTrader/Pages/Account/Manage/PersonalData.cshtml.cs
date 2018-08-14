@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using MachinaTrader.Globals.Models;
+using AspNetCore.Identity.LiteDB.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
