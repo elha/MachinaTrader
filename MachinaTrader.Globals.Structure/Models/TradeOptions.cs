@@ -80,19 +80,25 @@ namespace MachinaTrader.Globals.Structure.Models
         // decimal containing a percentage. This list is used to define constraints such as
         // "Sell when 5 minutes have passed and profit is at 3%".
         // WARNING: This can't be used in combination with ImmediatelyPlaceSellOrder.
-        public List<Roi> ReturnOnInvestment { get; set; } = new List<Roi> {};
+        public List<Roi> ReturnOnInvestment { get; set; } = new List<Roi> { };
 
         // These are the markets we don't want to trade on
         public string QuoteCurrency { get; set; } = "BTC";
 
         // These are the markets we don't want to trade on
-        public List<string> MarketBlackList { get; set; } = new List<string> {};
+        public List<string> MarketBlackList { get; set; } = new List<string> { };
 
         // These are the markets we want to trade on regardless of volume
-        public List<string> OnlyTradeList { get; set; } = new List<string> {};
+        public List<string> OnlyTradeList { get; set; } = new List<string> { };
 
         // These are the markets we want to trade on regardless of volume
         public List<string> AlwaysTradeList { get; set; } = new List<string> { };
 
+    }
+
+    public class DisplayOptions
+    {
+        // Display currency
+        public string DisplayFiatCurrency { get; set; } = "USD";
     }
 }
