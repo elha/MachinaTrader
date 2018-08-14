@@ -100,7 +100,7 @@ namespace MachinaTrader
 
 
             // Add LiteDB Dependency
-            string authDbPath = Global.DataPath + "/AuthDb.db";
+            string authDbPath = Global.DataPath + "/MachinaTraderUsers.db";
             services.AddSingleton<ILiteDbContext, LiteDbContext>(serviceProvider => new LiteDbContext(HostingEnvironment, authDbPath));
 
             services.AddIdentity<AspNetCore.Identity.LiteDB.Models.ApplicationUser, AspNetCore.Identity.LiteDB.IdentityRole>(options => options.Stores.MaxLengthForKeys = 128)
