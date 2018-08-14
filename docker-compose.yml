@@ -24,12 +24,3 @@ services:
       - 27017:27017
     volumes:
       - ${MONGO_FILES_PATH:-./mongo}:/data/db
-
-  mongoclient:
-    container_name: mongoclient
-    image: mongoclient/mongoclient
-    restart: unless-stopped
-    environment:
-      MONGO_URL: 'mongodb://root:example@mongo:27017'
-    ports:
-      - 3000:3000
