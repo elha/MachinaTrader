@@ -314,3 +314,5 @@ MyntUI/MyntUIAuth.db
 MyntUIAuth.db
 
 docker/
+
+\.vscode/

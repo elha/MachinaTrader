@@ -71,21 +71,8 @@ services:
     volumes:
       - ${MONGO_FILES_PATH:-./mongo}:/data/db
 
-  mongoclient:
-    container_name: mongo-client
-    image: mongoclient/mongoclient
-    restart: unless-stopped
-    environment:
-      MONGO_URL: 'mongodb://root:example@mongo:27017'
-    ports:
-      - 3000:3000
-    # volumes:
-    #   - "/Users/dmytrofylyppov/Projects/Docker/Mongo/db-client:/data/db"
-    links:
-      - "mongo"
-
-  nginx-app:
-    container_name: ${NGINX_APP:-nginx-app}
+  machinatrader:
+    container_name: machinatrader
     image: machinatrader
     restart: unless-stopped
     expose:
