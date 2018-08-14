@@ -15,6 +15,7 @@ namespace MachinaTrader.Globals.Models
     public class SystemOptions
     {
         public int WebPort { get; set; } = 5000;
+        public string RsaPrivateKey { get; set; } = "";
         public string Database { get; set; } = "MongoDB";
         public string DefaultUserName { get; set; } = "admin";
         public string DefaultUserEmail { get; set; } = "admin@localhost";

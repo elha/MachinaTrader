@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using MachinaTrader.Globals.Helpers;
 using MachinaTrader.Globals.Models;
 using MachinaTrader.Globals.Structure.Enums;
@@ -165,6 +166,18 @@ namespace MachinaTrader.Globals
             else
             {
                 Global.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), Global.DataPath + "/MainConfig.json").ToObject<MainConfig>();
+            }
+
+            //Create RSA Key for TokenProvider
+            if (string.IsNullOrEmpty(Global.Configuration.SystemOptions.RsaPrivateKey))
+            {
+                using (RandomNumberGenerator rng = new RNGCryptoServiceProvider())
+                {
+                    byte[] tokenData = new byte[32];
+                    rng.GetBytes(tokenData);
+                    Global.Configuration.SystemOptions.RsaPrivateKey = Convert.ToBase64String(tokenData);
+                }
+                Global.Configuration = MergeObjects.MergeCsDictionaryAndSave(Global.Configuration, Global.DataPath + "/MainConfig.json", JObject.FromObject(Global.Configuration)).ToObject<MainConfig>();
             }
         }
 

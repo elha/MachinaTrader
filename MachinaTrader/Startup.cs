@@ -9,9 +9,14 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
 using AspNetCore.Identity.LiteDB;
 using AspNetCore.Identity.LiteDB.Data;
 using LazyCache;
@@ -26,7 +31,10 @@ using Microsoft.Extensions.FileProviders;
 using Newtonsoft.Json.Linq;
 using LazyCache.Providers;
 using MachinaTrader.Globals.Hubs;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.IdentityModel.Tokens;
 
 namespace MachinaTrader
 {
@@ -71,6 +79,8 @@ namespace MachinaTrader
         public IHostingEnvironment HostingEnvironment { get; set; }
         public static IConfiguration Configuration { get; set; }
         public IContainer ApplicationContainer { get; private set; }
+        public static readonly SymmetricSecurityKey SecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Global.Configuration.SystemOptions.RsaPrivateKey));
+        public static readonly JwtSecurityTokenHandler JwtTokenHandler = new JwtSecurityTokenHandler();
 
         public Startup(IConfiguration configuration, IHostingEnvironment hostingEnvironment)
         {
@@ -103,6 +113,8 @@ namespace MachinaTrader
             string authDbPath = Global.DataPath + "/MachinaTraderUsers.db";
             services.AddSingleton<ILiteDbContext, LiteDbContext>(serviceProvider => new LiteDbContext(HostingEnvironment, authDbPath));
 
+            services.Configure<GzipCompressionProviderOptions>(options => options.Level = System.IO.Compression.CompressionLevel.Optimal);
+
             services.AddIdentity<AspNetCore.Identity.LiteDB.Models.ApplicationUser, AspNetCore.Identity.LiteDB.IdentityRole>(options => options.Stores.MaxLengthForKeys = 128)
                 .AddUserStore<LiteDbUserStore<AspNetCore.Identity.LiteDB.Models.ApplicationUser>>()
                 .AddRoleStore<LiteDbRoleStore<AspNetCore.Identity.LiteDB.IdentityRole>>()
@@ -125,11 +137,59 @@ namespace MachinaTrader
             // Add Database Initializer
             services.AddTransient<IDatabaseInitializer, DatabaseInitializer>();
 
-            services.AddAuthorization();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(JwtBearerDefaults.AuthenticationScheme, policy =>
+                {
+                    policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+                    policy.RequireClaim(ClaimTypes.NameIdentifier);
+                });
+            });
 
             services.Configure<SecurityStampValidatorOptions>(options =>
             {
                 options.ValidationInterval = TimeSpan.FromHours(24);
+            });
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+            {
+                //options.RequireHttpsMetadata = false;
+                //options.SaveToken = false;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero,
+
+                    ValidIssuer = "MachinaTrader",
+                    ValidAudience = "MachinaTrader",
+                    IssuerSigningKey = SecurityKey
+                };
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        //Check for Tokenheader -> Needed if we call signalr from external program
+                        var signalRTokenHeader = context.Request.Query["signalrtoken"];
+
+                        if (!string.IsNullOrEmpty(signalRTokenHeader) &&
+                            (context.HttpContext.WebSockets.IsWebSocketRequest || context.Request.Headers["Accept"] == "text/event-stream"))
+                        {
+                            context.Token = context.Request.Query["signalrtoken"];
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+
+            services.ConfigureApplicationCookie(options => {
+                options.Cookie.Name = "MachinaTraderIdentity";
+            });
+
+            services.AddAntiforgery(options => {
+                options.Cookie.Name = "MachinaTraderAntiforgery";
             });
 
             services.AddLogging(b => { b.AddSerilog(Globals.Global.Logger); });
