@@ -93,7 +93,7 @@ namespace MachinaTrader.TradeManagers
             var activeTrades = Global.DataStore.GetActiveTradesAsync().Result.Where(x => !x.IsSelling);  //so IsBuying (pending) and isOpen
 
             Global.Logger.Information($"Starting SellActiveTradesAgainstStrategies, check {activeTrades.Count()} orders");
-            var watch1 = System.Diagnostics.Stopwatch.StartNew();           
+            var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
             foreach (var trade in activeTrades)
             {
@@ -287,98 +287,87 @@ namespace MachinaTrader.TradeManagers
         /// <returns></returns>
         private async Task<TradeSignal> GetStrategySignal(string market, ITradingStrategy strategy)
         {
-            Global.Logger.Information($"Starting GetStrategySignal");
+            Global.Logger.Information($"Starting GetStrategySignal {market}");
             var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
-            try
+            var minimumDate = strategy.GetMinimumDateTime();
+            var candleDate = strategy.GetCurrentCandleDateTime();
+            DateTime? endDate = null;
+
+            if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
             {
-                Global.Logger.Information("Checking signal for market {market}", market);
+                //in simulation the date comes from external
+                candleDate = Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
 
-                var minimumDate = strategy.GetMinimumDateTime();
-                var candleDate = strategy.GetCurrentCandleDateTime();
-                DateTime? endDate = null;
+                //TODO: improve to other timeframe
+                minimumDate = candleDate.AddMinutes(-(30 * strategy.MinimumAmountOfCandles));
 
-                if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
-                {
-                    //in simulation the date comes from external
-                    candleDate = Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
+                endDate = candleDate;
+            }
 
-                    //TODO: improve to other timeframe
-                    minimumDate = candleDate.AddMinutes(-(30 * strategy.MinimumAmountOfCandles));
+            var candles = await Global.ExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate, endDate);
 
-                    endDate = candleDate;
-                }
+            var desiredLastCandleTime = candleDate.AddMinutes(-(strategy.IdealPeriod.ToMinutesEquivalent()));
 
-                var candles = await Global.ExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate, endDate);
+            Global.Logger.Information("Checking signal for market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
 
-                var desiredLastCandleTime = candleDate.AddMinutes(-(strategy.IdealPeriod.ToMinutesEquivalent()));
+            int k = 1;
 
-                Global.Logger.Information("Checking signal for market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
+            //on simulation, if we dont have candles we have to re-check our DB data..
+            while (candles.Last().Timestamp < desiredLastCandleTime && k < 20 && !Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+            {
+                k++;
+                Thread.Sleep(1000 * k);
 
-                int k = 1;
+                candles = await Global.ExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate, endDate);
+                Global.Logger.Information("R Checking signal for market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
+            }
 
-                //on simulation, if we dont have candles we have to re-check our DB data..
-                while (candles.Last().Timestamp < desiredLastCandleTime && k < 20 && !Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
-                {
-                    k++;
-                    Thread.Sleep(1000 * k);
+            Global.Logger.Information("Checking signal for market {Market} lastCandleTime: {last} , close: {close}", market, candles.Last().Timestamp, candles.Last().Close);
 
-                    candles = await Global.ExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate, endDate);
-                    Global.Logger.Information("R Checking signal for market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
-                }
+            // We eliminate all candles that aren't needed for the dataset incl. the last one (if it's the current running candle).
+            candles = candles.Where(x => x.Timestamp >= minimumDate && x.Timestamp < candleDate).ToList();
 
-                Global.Logger.Information("Checking signal for market {Market} lastCandleTime: {last} , close: {close}", market, candles.Last().Timestamp, candles.Last().Close);
-
-                // We eliminate all candles that aren't needed for the dataset incl. the last one (if it's the current running candle).
-                candles = candles.Where(x => x.Timestamp >= minimumDate && x.Timestamp < candleDate).ToList();
-
-                // Not enough candles to perform what we need to do.
-                if (candles.Count < strategy.MinimumAmountOfCandles)
-                {
-                    Global.Logger.Warning("Not enough candle data for {Market}...", market);
-                    return new TradeSignal
-                    {
-                        TradeAdvice = TradeAdvice.Hold,
-                        MarketName = market
-                    };
-                }
-
-                // Get the date for the last candle.
-                var signalDate = candles[candles.Count - 1].Timestamp;
-                var strategySignalDate = strategy.GetSignalDate();
-
-                if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
-                {
-                    //TODO: improve to other timeframe
-                    strategySignalDate = candleDate.AddMinutes(-30);
-                }
-
-                // This is an outdated candle...
-                if (signalDate < strategySignalDate)
-                {
-                    Global.Logger.Information("Outdated candle for {Market}...", market);
-                    return null;
-                }
-
-                // This calculates an advice for the next timestamp.
-                var advice = strategy.Forecast(candles);
-
-                watch1.Stop();
-                Global.Logger.Warning($"Ended FindBuyOpportunities in #{watch1.Elapsed.TotalSeconds} seconds");
-
+            // Not enough candles to perform what we need to do.
+            if (candles.Count < strategy.MinimumAmountOfCandles)
+            {
+                Global.Logger.Warning("Not enough candle data for {Market}...", market);
                 return new TradeSignal
                 {
-                    TradeAdvice = advice,
-                    MarketName = market,
-                    SignalCandle = strategy.GetSignalCandle(candles)
+                    TradeAdvice = TradeAdvice.Hold,
+                    MarketName = market
                 };
             }
-            catch (Exception ex)
+
+            // Get the date for the last candle.
+            var signalDate = candles[candles.Count - 1].Timestamp;
+            var strategySignalDate = strategy.GetSignalDate();
+
+            if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
             {
-                // Couldn't get a buy signal for this market, no problem. Let's skip it.
-                Global.Logger.Error(ex, "Couldn't get buy signal for {Market}...", market);
+                //TODO: improve to other timeframe
+                strategySignalDate = candleDate.AddMinutes(-30);
+            }
+
+            // This is an outdated candle...
+            if (signalDate < strategySignalDate)
+            {
+                Global.Logger.Information("Outdated candle for {Market}...", market);
                 return null;
             }
+
+            // This calculates an advice for the next timestamp.
+            var advice = strategy.Forecast(candles);
+
+            watch1.Stop();
+            Global.Logger.Warning($"Ended FindBuyOpportunities in #{watch1.Elapsed.TotalSeconds} seconds");
+
+            return new TradeSignal
+            {
+                TradeAdvice = advice,
+                MarketName = market,
+                SignalCandle = strategy.GetSignalCandle(candles)
+            };
         }
 
         /// <summary>
@@ -638,7 +627,7 @@ namespace MachinaTrader.TradeManagers
                         candles = await Global.ExchangeApi.GetTickerHistory(trade.Market, Period.Minute, 1);
                     }
 
-                    
+
                     var candle = candles.LastOrDefault();
 
                     //in simulation mode we always fill..

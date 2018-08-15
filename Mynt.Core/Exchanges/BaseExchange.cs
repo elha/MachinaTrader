@@ -501,53 +501,55 @@ namespace Mynt.Core.Exchanges
 
         public async Task CacheAllData()
         {
+            Global.Logger.Information($"Starting CacheAllData");
+            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+
             var exchangeCoins = _api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == Global.Configuration.TradeOptions.QuoteCurrency);
+            var currentExchangeOption = Global.Configuration.ExchangeOptions.FirstOrDefault();
 
-            await exchangeCoins.ForEachAsync(async coin =>
+            foreach (var coin in exchangeCoins)
             {
-                 var symbol = coin.MarketName;
+                var symbol = coin.MarketName;
 
-                 var backtestOptions = new BacktestOptions
-                 {
-                     DataFolder = Global.DataPath,
-                     Exchange = Exchange.Gdax,
-                     Coin = symbol,
-                     CandlePeriod = 15
-                 };
-                 Candle database15FirstCandle = Global.DataStoreBacktest.GetBacktestFirstCandle(backtestOptions).Result;
-                 Candle database15LastCandle = Global.DataStoreBacktest.GetBacktestLastCandle(backtestOptions).Result;
+                var backtestOptions = new BacktestOptions
+                {
+                    DataFolder = Global.DataPath,
+                    Exchange = Exchange.Gdax,
+                    Coin = symbol,
+                    CandlePeriod = Int32.Parse(currentExchangeOption.SimulationCandleSize)
+                };
+                Candle databaseFirstCandle = Global.DataStoreBacktest.GetBacktestFirstCandle(backtestOptions).Result;
+                Candle databaseLastCandle = Global.DataStoreBacktest.GetBacktestLastCandle(backtestOptions).Result;
 
-                 if (database15FirstCandle == null || database15LastCandle == null)
-                     return;
+                if (databaseFirstCandle == null || databaseLastCandle == null)
+                    continue;
 
-                 backtestOptions.StartDate = database15FirstCandle.Timestamp;
-                 backtestOptions.EndDate = database15LastCandle.Timestamp;
+                backtestOptions.StartDate = databaseFirstCandle.Timestamp;
+                backtestOptions.EndDate = databaseLastCandle.Timestamp;
 
-                 var candleProvider = new DatabaseCandleProvider();
-                 var _candle15 = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest).Result;
+                var candleProvider = new DatabaseCandleProvider();
+                var _candle15 = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest).Result;
 
-                 Global.Logger.Warning($"CacheAllData {backtestOptions.Coin + backtestOptions.CandlePeriod} {_candle15.Count}");
-
-                 Global.AppCache.Add(backtestOptions.Coin + backtestOptions.CandlePeriod, _candle15, new Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions());
-
-                 Global.Logger.Warning($"CacheAllData {backtestOptions.Coin + backtestOptions.CandlePeriod} {Global.AppCache.Get<List<Candle>>(backtestOptions.Coin + backtestOptions.CandlePeriod).Count}");
+                Global.AppCache.Remove(backtestOptions.Coin + backtestOptions.CandlePeriod);
+                Global.AppCache.Add(backtestOptions.Coin + backtestOptions.CandlePeriod, _candle15, new MemoryCacheEntryOptions());
 
 
-                 backtestOptions.CandlePeriod = 1;
-                 Candle database1FirstCandle = Global.DataStoreBacktest.GetBacktestFirstCandle(backtestOptions).Result;
-                 Candle database1LastCandle = Global.DataStoreBacktest.GetBacktestLastCandle(backtestOptions).Result;
 
-                 backtestOptions.StartDate = database1FirstCandle.Timestamp;
-                 backtestOptions.EndDate = database1LastCandle.Timestamp;
+                backtestOptions.CandlePeriod = 1;
+                Candle database1FirstCandle = Global.DataStoreBacktest.GetBacktestFirstCandle(backtestOptions).Result;
+                Candle database1LastCandle = Global.DataStoreBacktest.GetBacktestLastCandle(backtestOptions).Result;
 
-                 var _candle1 = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest).Result;
+                backtestOptions.StartDate = database1FirstCandle.Timestamp;
+                backtestOptions.EndDate = database1LastCandle.Timestamp;
 
-                 Global.Logger.Warning($"CacheAllData {backtestOptions.Coin + backtestOptions.CandlePeriod} {_candle1.Count}");
+                var _candle1 = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest).Result;
 
-                 Global.AppCache.Add(backtestOptions.Coin + backtestOptions.CandlePeriod, _candle1, new Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions());
+                Global.AppCache.Remove(backtestOptions.Coin + backtestOptions.CandlePeriod);
+                Global.AppCache.Add(backtestOptions.Coin + backtestOptions.CandlePeriod, _candle1, new MemoryCacheEntryOptions());
+            }
 
-                 Global.Logger.Warning($"CacheAllData {backtestOptions.Coin + backtestOptions.CandlePeriod} {Global.AppCache.Get<List<Candle>>(backtestOptions.Coin + backtestOptions.CandlePeriod).Count}");
-             });
+            watch1.Stop();
+            Global.Logger.Warning($"Ended CacheAllData in #{watch1.Elapsed.TotalSeconds} seconds");
         }
 
         #endregion
@@ -600,29 +602,6 @@ namespace Mynt.Core.Exchanges
                     });
                 }
             });
-
-            //foreach (var item in filteredList)
-            //{
-            //    var ticker = await _api.GetTickerAsync(item);
-
-            //    if (ticker == null)
-            //        continue;
-
-            //    var symbol = symbols.FirstOrDefault(x => x.MarketName == item);
-
-            //    if (symbol != null)
-            //    {
-            //        summaries.Add(new Models.MarketSummary()
-            //        {
-            //            CurrencyPair = new CurrencyPair() { BaseCurrency = symbol.MarketCurrency, QuoteCurrency = symbol.BaseCurrency },
-            //            MarketName = item,
-            //            Ask = ticker.Ask,
-            //            Bid = ticker.Bid,
-            //            Last = ticker.Last,
-            //            Volume = ticker.Volume.ConvertedVolume,
-            //        });
-            //    }
-            //}
 
             watch1.Stop();
             Global.Logger.Error($"Ended GetExtendedMarketSummaries in #{watch1.Elapsed.TotalSeconds} seconds");

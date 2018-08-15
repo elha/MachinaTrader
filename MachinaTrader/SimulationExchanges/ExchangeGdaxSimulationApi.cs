@@ -1,14 +1,10 @@
 using ExchangeSharp;
 using MachinaTrader.Globals;
-using Mynt.Core.Backtester;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MachinaTrader.Globals.Structure.Enums;
 using MachinaTrader.Globals.Structure.Models;
-using MachinaTrader.Globals.Helpers;
-using System.Threading;
 
 namespace MachinaTrader.SimulationExchanges
 {
@@ -61,21 +57,7 @@ namespace MachinaTrader.SimulationExchanges
 
             var candles = new List<MarketCandle>();
 
-            var backtestOptions = new BacktestOptions();
-            backtestOptions.DataFolder = Global.DataPath;
-            backtestOptions.Exchange = Exchange.Gdax;
-            backtestOptions.Coin = symbol;
-            backtestOptions.CandlePeriod = Int32.Parse(Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCandleSize);
-
-            //if (startDate.HasValue)
-            //    backtestOptions.StartDate = startDate.Value;
-            //if (endDate.HasValue)
-            //    backtestOptions.EndDate = endDate.Value;
-
-            //var candleProvider = new DatabaseCandleProvider();
-            //var items = await candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest);
-
-            var cachedCandles = Global.AppCache.Get<List<Candle>>(backtestOptions.Coin + backtestOptions.CandlePeriod);
+            var cachedCandles = Global.AppCache.Get<List<Candle>>(symbol + Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCandleSize);
             if (cachedCandles == null)
                 return null;
 
@@ -102,7 +84,6 @@ namespace MachinaTrader.SimulationExchanges
                 }
                 catch (Exception ex)
                 {
-
                     throw;
                 }
             }
@@ -143,35 +124,11 @@ namespace MachinaTrader.SimulationExchanges
             Global.Logger.Information($"Starting GetExchangeTicker {symbol}");
             var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
-            var backtestOptions = new BacktestOptions();
-            backtestOptions.DataFolder = Global.DataPath;
-            backtestOptions.Exchange = Exchange.Gdax;
-            backtestOptions.Coin = symbol;
-            backtestOptions.CandlePeriod = 1; //we need 1min database candles to best simulation of ticker
-            backtestOptions.EndDate = Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
-
-            //int k = 1;
-            //int minutes = -3;
-            //Candle lastCandle = null;
-            //while (lastCandle == null && k < 10)
-            //{
-            //    k++;
-            //    backtestOptions.StartDate = Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate.AddMinutes(minutes);
-
-            //    var candleProvider = new DatabaseCandleProvider();
-            //    var lastCandles = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest).Result;
-            //    lastCandle = lastCandles.FirstOrDefault();
-
-            //    minutes = minutes-5;
-            //}
-
-            var candles = Global.AppCache.Get<List<Candle>>(backtestOptions.Coin + backtestOptions.CandlePeriod);
+            var candles = Global.AppCache.Get<List<Candle>>(symbol + "1");
             if (candles == null)
                 return null;
 
             candles = candles.Where(c => c.Timestamp <= Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate).ToList();
-
-            Global.Logger.Warning($"GetExchangeTicker {backtestOptions.Coin + backtestOptions.CandlePeriod} {candles.Count}");
 
             var lastCandle = candles.Last();
 
