@@ -293,8 +293,10 @@ namespace MachinaTrader.Controllers
 
         [HttpGet]
         [Route("simulation")]
-        public async Task<bool> Simulation(string coinsToBuy, string strategy, string fromDate, string toDate)
+        public async Task<bool> Simulation(string coinToBuy, string strategy, string fromDate, string toDate)
         {
+            await Global.ExchangeApi.CacheAllData();
+
             var currentExchangeOption = Global.Configuration.ExchangeOptions.FirstOrDefault();
 
             var simulationStartingDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(fromDate, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
@@ -304,7 +306,7 @@ namespace MachinaTrader.Controllers
             {
                 DataFolder = Global.DataPath,
                 Exchange = Exchange.Gdax,
-                Coin = coinsToBuy,
+                Coin = coinToBuy,
                 CandlePeriod = Int32.Parse(currentExchangeOption.SimulationCandleSize)
             };
 

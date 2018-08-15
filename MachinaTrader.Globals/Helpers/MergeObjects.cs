@@ -58,9 +58,13 @@ namespace MachinaTrader.Globals.Helpers
 
     public static class ParallelUtility
     {
+        //public static Task ForEachAsync<T>(this IEnumerable<T> sequence, Func<T, Task> action)
+        //{
+        //    return Task.WhenAll(sequence.Select(action));
+        //}
         public static Task ForEachAsync<T>(this IEnumerable<T> sequence, Func<T, Task> action)
         {
-            return Task.WhenAll(sequence.Select(action));
+            return Task.WhenAll(from item in sequence select Task.Run(() => action(item)));
         }
     }
 }

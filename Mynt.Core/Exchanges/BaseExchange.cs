@@ -12,6 +12,7 @@ using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Mynt.Core.Backtester;
 using Mynt.Core.Extensions;
 using MarketSummary = MachinaTrader.Globals.Structure.Models.MarketSummary;
 
@@ -498,6 +499,57 @@ namespace Mynt.Core.Exchanges
             return _api;
         }
 
+        public async Task CacheAllData()
+        {
+            var exchangeCoins = _api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == Global.Configuration.TradeOptions.QuoteCurrency);
+
+            await exchangeCoins.ForEachAsync(async coin =>
+            {
+                 var symbol = coin.MarketName;
+
+                 var backtestOptions = new BacktestOptions
+                 {
+                     DataFolder = Global.DataPath,
+                     Exchange = Exchange.Gdax,
+                     Coin = symbol,
+                     CandlePeriod = 15
+                 };
+                 Candle database15FirstCandle = Global.DataStoreBacktest.GetBacktestFirstCandle(backtestOptions).Result;
+                 Candle database15LastCandle = Global.DataStoreBacktest.GetBacktestLastCandle(backtestOptions).Result;
+
+                 if (database15FirstCandle == null || database15LastCandle == null)
+                     return;
+
+                 backtestOptions.StartDate = database15FirstCandle.Timestamp;
+                 backtestOptions.EndDate = database15LastCandle.Timestamp;
+
+                 var candleProvider = new DatabaseCandleProvider();
+                 var _candle15 = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest).Result;
+
+                 Global.Logger.Warning($"CacheAllData {backtestOptions.Coin + backtestOptions.CandlePeriod} {_candle15.Count}");
+
+                 Global.AppCache.Add(backtestOptions.Coin + backtestOptions.CandlePeriod, _candle15, new Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions());
+
+                 Global.Logger.Warning($"CacheAllData {backtestOptions.Coin + backtestOptions.CandlePeriod} {Global.AppCache.Get<List<Candle>>(backtestOptions.Coin + backtestOptions.CandlePeriod).Count}");
+
+
+                 backtestOptions.CandlePeriod = 1;
+                 Candle database1FirstCandle = Global.DataStoreBacktest.GetBacktestFirstCandle(backtestOptions).Result;
+                 Candle database1LastCandle = Global.DataStoreBacktest.GetBacktestLastCandle(backtestOptions).Result;
+
+                 backtestOptions.StartDate = database1FirstCandle.Timestamp;
+                 backtestOptions.EndDate = database1LastCandle.Timestamp;
+
+                 var _candle1 = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest).Result;
+
+                 Global.Logger.Warning($"CacheAllData {backtestOptions.Coin + backtestOptions.CandlePeriod} {_candle1.Count}");
+
+                 Global.AppCache.Add(backtestOptions.Coin + backtestOptions.CandlePeriod, _candle1, new Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions());
+
+                 Global.Logger.Warning($"CacheAllData {backtestOptions.Coin + backtestOptions.CandlePeriod} {Global.AppCache.Get<List<Candle>>(backtestOptions.Coin + backtestOptions.CandlePeriod).Count}");
+             });
+        }
+
         #endregion
 
         #region non-default implementations
@@ -526,7 +578,8 @@ namespace Mynt.Core.Exchanges
             var list = await _api.GetSymbolsAsync();
             var filteredList = list.Where(x => x.ToLower().EndsWith(quoteCurrency.ToLower(), StringComparison.Ordinal));
 
-            await filteredList.ForEachAsync(async item => {
+            await filteredList.ForEachAsync(async item =>
+            {
                 var ticker = await _api.GetTickerAsync(item);
 
                 if (ticker == null)
