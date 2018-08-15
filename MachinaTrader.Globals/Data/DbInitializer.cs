@@ -1,18 +1,21 @@
 using System.Threading.Tasks;
-using MachinaTrader.Globals.Models;
+using AspNetCore.Identity.LiteDB.Data;
+using AspNetCore.Identity.LiteDB.Models;
 using Microsoft.AspNetCore.Identity;
+using IdentityRole = AspNetCore.Identity.LiteDB.IdentityRole;
+
 
 namespace MachinaTrader.Globals.Data
 {
 
     public class DatabaseInitializer : IDatabaseInitializer
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ILiteDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
         public DatabaseInitializer(
-            ApplicationDbContext context,
+            ILiteDbContext context,
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager)
         {
@@ -23,8 +26,6 @@ namespace MachinaTrader.Globals.Data
 
         public async Task Initialize()
         {
-            _context.Database.EnsureCreated();
-
             //Create the Administartor Role
             await _roleManager.CreateAsync(new IdentityRole("Administrator"));
 
@@ -46,7 +47,7 @@ namespace MachinaTrader.Globals.Data
                 var resultDeletePassword = await _userManager.RemovePasswordAsync(user);
                 var resultResetPassword = await _userManager.AddPasswordAsync(user, userPassword);
             }
-
         }
     }
+
 }

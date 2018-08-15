@@ -103,13 +103,15 @@
 <script type="text/javascript">
     var pagefunction = function () {
     };
-
-
+    
     $(document).ready(function () {
         table = $('#accountsTableId').DataTable({
             ajax: {
                 url: '/api/account/balance',
                 dataSrc: ''
+            },
+            "oLanguage": {
+                "sEmptyTable": "Check your API keys under configuration page."
             },
             responsive: true,
             "autoWidth": false,
@@ -147,29 +149,34 @@
                     }
                 },
                 {
-                    "title": "Value in QuoteCurrency",
-                    "sWidth": "1000px",
-                    "sType": "alt-string",
-                    "sClass": "center",
-                    responsivePriority: 2,
-                    mRender: function (data, type, full, meta) {
-                        var formatted = parseFloat(full.balanceValueQuoteCurrency).toFixed(8);
-                        formatted = '<span class="btn btn-info btn-sm" style="width: 50px;">' + full.quoteCurrrency + '</span>&nbsp;' + formatted;
-                        return formatted;
-                    }
-                },
-                {
                     "title": "Value in Usd",
                     "sWidth": "1000px",
                     "sType": "alt-string",
                     "sClass": "center",
                     responsivePriority: 2,
                     mRender: function (data, type, full, meta) {
-                        var formatted = parseFloat(full.balanceValueUsd).toFixed(3);
+                        var formatted = parseFloat(full.balanceInUsd).toFixed(3);
                         formatted = '<span class="btn btn-info btn-sm" style="width: 50px;">USD</span>&nbsp;' + formatted;
                         return formatted;
                     }
                 },
+                {
+                    "title": "Value in DisplayCurrency",
+                    "sWidth": "1000px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        if (full.balanceInDisplayCurrency === 0) {
+                            formatted = '<span class="btn btn-danger btn-sm" style="width: auto;">' + full.displayCurrency + ' not available</span>&nbsp;' ;
+                        }
+                        if (full.balanceInDisplayCurrency > 0) {
+                            var formatted = parseFloat(full.balanceInDisplayCurrency).toFixed(8);
+                            formatted = '<span class="btn btn-info btn-sm" style="width: 50px;">' + full.displayCurrency + '</span>&nbsp;' + formatted;
+                        }
+                        return formatted;
+                    }
+                }
             ]
         });
     });
