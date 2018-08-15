@@ -57,7 +57,57 @@
                                 <option :selected="apiMainConfigData['systemOptions']['database'] == 'MongoDB'" value="MongoDB" data-icon="fal fa-database">&nbsp;&nbsp;MongoDB</option>
                                 <option :selected="apiMainConfigData['systemOptions']['database'] == 'LiteDB'" value="LiteDB" data-icon="fal fa-database">&nbsp;&nbsp;LiteDB</option>
                             </select>
+                            
+                            <table id="databaseSettings" class="table table-hover table-striped">
+                                <tr>
+                                    <td>
+                                        <span class="qTip" title="Port">Url <i class="fal fa-question-circle"></i></span>
+                                        <div style="display: none;">
+                                            Url where your MongoDB is running.
+                                            <br /><br /><strong>Default:</strong> <i>localhost</i>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control string" name="SystemOptions.DatabaseUrl" v-bind:value="apiMainConfigData['systemOptions']['databaseUrl']" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span class="qTip" title="Port">Port <i class="fal fa-question-circle"></i></span>
+                                        <div style="display: none;">
+                                            Port where your MongoDB is running.
+                                            <br /><br /><strong>Default:</strong> <i>27017</i>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control integer" name="SystemOptions.DatabasePort" v-bind:value="apiMainConfigData['systemOptions']['databasePort']" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span class="qTip" title="Username">Username <i class="fal fa-question-circle"></i></span>
+                                        <div style="display: none;">
+                                            If you are running localhost just let it empty.
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control string" name="SystemOptions.DatabaseUsername" v-bind:value="apiMainConfigData['systemOptions']['databaseUsername']" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span class="qTip" title="Password">Password <i class="fal fa-question-circle"></i></span>
+                                        <div style="display: none;">
+                                            If you are running localhost just let it empty.
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="password" class="form-control string" name="SystemOptions.DatabasePassword" v-bind:value="apiMainConfigData['systemOptions']['databasePassword']" />
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
+                        
                     </tr>
                     <tr>
                         <td width="300px">
@@ -619,7 +669,21 @@
     var initialSellTimerCron = null;
 
     var pagefunction = function () {
-
+        $(document).ready(function () {
+            var t = document.getElementById("database");
+            if (t.value === 'LiteDB') {
+                $('#databaseSettings').css("display", "none");
+            }
+        });
+        document.getElementById("database").onchange = function (e) {
+            if (this.value === 'MongoDB') {
+                $('#databaseSettings').removeAttr("style");
+            }
+            if (this.value === 'LiteDB') {
+                $('#databaseSettings').css("display", "none");
+            }
+        };
+        
         /*$('#apiMainConfig').find(':input').each(function () {
             $(this).on("propertychange, change, keyup, paste, input", function () {
                 event.preventDefault();

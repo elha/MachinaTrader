@@ -16,6 +16,8 @@ using Quartz.Impl;
 using MachinaTrader.Globals.Structure.Enums;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Models;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace MachinaTrader
 {
@@ -51,9 +53,28 @@ namespace MachinaTrader
 
             if (Global.Configuration.SystemOptions.Database == "MongoDB")
             {
+                // Main MongoDB
                 Global.Logger.Information("Database set to MongoDB");
                 MongoDbOptions databaseOptions = new MongoDbOptions();
+
+                // Get Url from configuration
+                var sysOpt = Global.Configuration.SystemOptions;
+                if (!string.IsNullOrWhiteSpace(sysOpt.DatabaseUrl))
+                {
+                    if (!string.IsNullOrWhiteSpace(sysOpt.DatabaseUsername) &&
+                        !string.IsNullOrWhiteSpace(sysOpt.DatabasePassword))
+                        databaseOptions.MongoUrl = "mongodb://" + sysOpt.DatabaseUsername + ":" +
+                                                   sysOpt.DatabasePassword + "@" + sysOpt.DatabaseUrl + ":" +
+                                                   sysOpt.DatabasePort;
+                    else
+                        databaseOptions.MongoUrl = "mongodb://" + sysOpt.DatabaseUrl + ":" + sysOpt.DatabasePort;
+                }
                 Global.DataStore = new MongoDbDataStore(databaseOptions);
+
+                // Check DB connection
+                MongoDbCheck(databaseOptions, databaseOptions.MongoDatabaseName);
+                
+                // Backtest MongoDB
                 MongoDbOptions backtestDatabaseOptions = new MongoDbOptions();
                 Global.DataStoreBacktest = new MongoDbDataStoreBacktest(backtestDatabaseOptions);
             }
@@ -167,6 +188,18 @@ namespace MachinaTrader
                     }
                 }
             }
+        }
+
+        public static void MongoDbCheck(MongoDbOptions databaseOptions, string dbName)
+        {
+            var client = new MongoClient(databaseOptions.MongoUrl);
+            var database = client.GetDatabase(dbName);
+            var isMongoLive = database.RunCommandAsync((Command<BsonDocument>)"{ping:1}").Wait(1000);
+
+            if (!isMongoLive)
+                Global.Logger.Error("MongoDB: Connection to {0} FAILED!", dbName);
+            else
+                Global.Logger.Information("MongoDB: Connection to {0} SUCCESSFUL!", dbName);
         }
     }
 }
