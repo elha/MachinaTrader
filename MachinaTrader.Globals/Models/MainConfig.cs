@@ -14,12 +14,8 @@ namespace MachinaTrader.Globals.Models
 
     public class SystemOptions
     {
-        // Database stuff
         public string Database { get; set; } = "MongoDB";
-        public string DatabaseUrl { get; set; } = "localhost";
-        public int DatabasePort { get; set; } = 27017;
-        public string DatabaseUsername { get; set; } = "";
-        public string DatabasePassword { get; set; } = "";
+        public MongoDbOptions MongoDbOptions = new MongoDbOptions();
 
         // Frontend stuff
         public int WebPort { get; set; } = 5000;
@@ -28,6 +24,14 @@ namespace MachinaTrader.Globals.Models
         public string DefaultUserEmail { get; set; } = "admin@localhost";
         public string DefaultUserPassword { get; set; } = "admin";
         public string Theme { get; set; } = "dark";
+    }
+
+    public class MongoDbOptions
+    {
+        public string Host { get; set; } = "127.0.0.1";
+        public int Port { get; set; } = 27017;
+        public string Username { get; set; } = null;
+        public string Password { get; set; } = null;
     }
 
 }
