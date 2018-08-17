@@ -3,9 +3,17 @@ using System.Linq;
 
 namespace MachinaTrader.Models
 {
+    public class Account
+    {
+        public string Exchange { get; set; }
+        public List<BalanceEntry> Balances { get; set; }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     public class BalanceEntry
     {
-        // Balance
         public string DisplayCurrency { get; set; }
         public string Market { get; set; }
         public decimal? TotalCoins { get; set; } = 0;

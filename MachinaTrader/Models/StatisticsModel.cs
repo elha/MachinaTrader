@@ -5,19 +5,18 @@ namespace MachinaTrader.Models
 {
     public class Statistics
     {
-        // Profit - loss
         public decimal? ProfitLoss { get; set; } = 0;
         public decimal? ProfitLossPercentage { get; set; } = 0;
+        
+        public List<CoinPerformance> CoinPerformances { get; set; }
+    }
 
-        //public decimal? ProfitLossToday { get; set; }
-        //public decimal? ProfitLossTodayPercentage { get; set; }
-
-        //public decimal? ProfitLossWeek { get; set; }
-        //public decimal? ProfitLossWeekPercentage { get; set; }
-
-        //public decimal? ProfitLossMonth { get; set; }
-        //public decimal? ProfitLossMonthPercentage { get; set; }
-
-        public IOrderedEnumerable<KeyValuePair<string, decimal?>> CoinPerformance { get; set; }
+    public class CoinPerformance
+    {
+        public string Coin { get; set; }
+        public decimal? Performance { get; set; } = 0;
+        public decimal? PerformancePercentage { get; set; } = 0;
+        public int? PositiveTrades { get; set; }
+        public int? NegativeTrade { get; set; } 
     }
 }
