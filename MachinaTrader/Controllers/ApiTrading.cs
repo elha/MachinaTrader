@@ -15,7 +15,7 @@ namespace MachinaTrader.Controllers
 {
 
     [Authorize, Route("api/trading/")]
-    public class MyntApiController : Controller
+    public class ApiTrading : Controller
     {
         [HttpGet]
         [Route("exchangePairsExchangeSymbols")]
@@ -279,43 +279,5 @@ namespace MachinaTrader.Controllers
             var closedTrades = await Global.DataStore.GetClosedTradesAsync();
             return new JsonResult(closedTrades);
         }
-
-        [HttpGet]
-        [Route("statistics")]
-        public async Task<IActionResult> Statistics()
-        {
-            // Create Statistic model
-            var stat = new Statistics();
-
-            // Get winner/loser currencies
-            var coins = new Dictionary<string, decimal?>();
-            foreach (var cT in await Global.DataStore.GetClosedTradesAsync())
-            {
-                if (cT.SellOrderId != null)
-                {
-                    // Get profit per currency
-                    if (coins.ContainsKey(cT.Market))
-                        coins[cT.Market] = coins[cT.Market].Value + cT.CloseProfitPercentage;
-                    else
-                        coins.Add(cT.Market, cT.CloseProfitPercentage);
-
-                    // Profit-loss
-                    if (cT.CloseProfit != null) stat.ProfitLoss = stat.ProfitLoss + cT.CloseProfit.Value;
-                    if (cT.CloseProfitPercentage != null)
-                        stat.ProfitLossPercentage = stat.ProfitLossPercentage + cT.CloseProfitPercentage.Value;
-                }
-
-            }
-
-            // Coin performance
-            stat.CoinPerformance = coins.ToList().OrderByDescending(c => c.Value);
-
-            // Create some viewbags
-            ViewBag.tradeOptions = Global.Configuration.TradeOptions;
-            ViewBag.stat = stat;
-
-            return new JsonResult(ViewBag);
-        }
-
     }
 }

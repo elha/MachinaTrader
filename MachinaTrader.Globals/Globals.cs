@@ -126,6 +126,7 @@ namespace MachinaTrader.Globals
         public static IExchangeApi ExchangeApi { get; set; }
         public static MainConfig Configuration { get; set; }
         public static IScheduler QuartzTimer = new StdSchedulerFactory().GetScheduler().Result;
+        public static string DatabaseConnectionString { get; set; }
 
         public static RuntimeConfig RuntimeSettings = new RuntimeConfig();
         public static IApplicationBuilder ApplicationBuilder { get; set; }

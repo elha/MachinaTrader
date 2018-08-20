@@ -114,6 +114,7 @@ namespace MachinaTrader
             services.AddSingleton<ILiteDbContext, LiteDbContext>(serviceProvider => new LiteDbContext(HostingEnvironment, authDbPath));
 
             services.Configure<GzipCompressionProviderOptions>(options => options.Level = System.IO.Compression.CompressionLevel.Optimal);
+            services.AddResponseCompression();
 
             services.AddIdentity<AspNetCore.Identity.LiteDB.Models.ApplicationUser, AspNetCore.Identity.LiteDB.IdentityRole>(options => options.Stores.MaxLengthForKeys = 128)
                 .AddUserStore<LiteDbUserStore<AspNetCore.Identity.LiteDB.Models.ApplicationUser>>()

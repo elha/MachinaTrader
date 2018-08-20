@@ -188,6 +188,21 @@ namespace MachinaTrader.Globals
 
         public void DefaultCoreRuntimeSettings()
         {
+
+            //Create Database Connection string if needed
+            if (Global.Configuration.SystemOptions.Database == "MongoDB")
+            {
+                Global.DatabaseConnectionString = "mongodb://";
+                if (!string.IsNullOrEmpty(Global.Configuration.SystemOptions.MongoDbOptions.Host))
+                {
+                    if (!string.IsNullOrEmpty(Global.Configuration.SystemOptions.MongoDbOptions.Username) && !string.IsNullOrEmpty(Global.Configuration.SystemOptions.MongoDbOptions.Password))
+                    {
+                        Global.DatabaseConnectionString = Global.DatabaseConnectionString + Global.Configuration.SystemOptions.MongoDbOptions.Username + ":" + Global.Configuration.SystemOptions.MongoDbOptions.Password + "@";
+                    }
+                    Global.DatabaseConnectionString = Global.DatabaseConnectionString + Global.Configuration.SystemOptions.MongoDbOptions.Host + ":" + Global.Configuration.SystemOptions.MongoDbOptions.Port;
+                }
+            }
+
             Global.CoreRuntime["Plugins"] = new JObject();
 
             foreach (var file in new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).GetFileSystemInfos("MachinaTrader.Plugin.*.dll", SearchOption.TopDirectoryOnly))

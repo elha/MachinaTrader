@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using MachinaTrader.Globals;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,8 @@ using Quartz.Impl;
 using MachinaTrader.Globals.Structure.Enums;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Models;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using ExchangeSharp;
 
 namespace MachinaTrader
@@ -54,8 +57,17 @@ namespace MachinaTrader
             {
                 Global.Logger.Information("Database set to MongoDB");
                 MongoDbOptions databaseOptions = new MongoDbOptions();
+                databaseOptions.MongoUrl = Global.DatabaseConnectionString;
+
                 Global.DataStore = new MongoDbDataStore(databaseOptions);
+
+                // Check DB connection
+                MongoDbCheck(databaseOptions, databaseOptions.MongoDatabaseName);
+                
+                // Backtest MongoDB
                 MongoDbOptions backtestDatabaseOptions = new MongoDbOptions();
+                backtestDatabaseOptions.MongoUrl = Global.DatabaseConnectionString;
+
                 Global.DataStoreBacktest = new MongoDbDataStoreBacktest(backtestDatabaseOptions);
             }
             else
@@ -170,6 +182,22 @@ namespace MachinaTrader
                     }
                 }
             }
+        }
+
+        public static void MongoDbCheck(MongoDbOptions databaseOptions, string dbName)
+        {
+            var client = new MongoClient(databaseOptions.MongoUrl);
+            var database = client.GetDatabase(dbName);
+            var isMongoLive = database.RunCommandAsync((Command<BsonDocument>)"{ping:1}").Wait(1000);
+            
+            while (!isMongoLive)
+            {
+                Global.Logger.Error("MongoDB: Connection to {0} FAILED! Waiting for connection", dbName);
+                Thread.Sleep(1000);
+                isMongoLive = database.RunCommandAsync((Command<BsonDocument>)"{ping:1}").Wait(1000);
+            }
+
+            Global.Logger.Information("MongoDB: Connection to {0} SUCCESSFUL!", dbName);
         }
     }
 }
