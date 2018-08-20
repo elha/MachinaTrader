@@ -21,7 +21,7 @@ These teams got together and made an awesome crypto bot with incredible easy Fro
 * [Installation Docker -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
 * [Debugging -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
 * [Configuration -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
-* [Indicators -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
+* [Indicators -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki(Indicators))
 * [Strategies -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
 * [Notifications -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
 * [Backtesting -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
