@@ -110,7 +110,7 @@ namespace Mynt.Core.Exchanges
 
         public async Task<string> Buy(string market, decimal quantity, decimal rate)
         {
-            var request = new ExchangeSharp.ExchangeOrderRequest()
+            var request = new ExchangeOrderRequest()
             {
                 Amount = quantity,
                 IsBuy = true,
@@ -203,7 +203,7 @@ namespace Mynt.Core.Exchanges
 
         public async Task<Order> GetOrder(string orderId, string market)
         {
-            ExchangeOrderResult order = new ExchangeOrderResult();
+            var order = new ExchangeOrderResult();
 
             try
             {
@@ -451,7 +451,7 @@ namespace Mynt.Core.Exchanges
 
         public async Task<string> Sell(string market, decimal quantity, decimal rate)
         {
-            var request = new ExchangeSharp.ExchangeOrderRequest()
+            var request = new ExchangeOrderRequest()
             {
                 Amount = quantity,
                 IsBuy = false,
@@ -459,6 +459,7 @@ namespace Mynt.Core.Exchanges
                 Price = rate,
                 Symbol = market
             };
+
             try
             {
                 var order = await _api.PlaceOrderAsync(request);
@@ -470,7 +471,6 @@ namespace Mynt.Core.Exchanges
             }
 
             return null;
-
         }
 
         public async Task<ExchangeMarket> GetSymbolInfo(string symbol)
@@ -514,7 +514,7 @@ namespace Mynt.Core.Exchanges
                 var backtestOptions = new BacktestOptions
                 {
                     DataFolder = Global.DataPath,
-                    Exchange = Exchange.Gdax,
+                    Exchange = _exchange,
                     Coin = symbol,
                     CandlePeriod = Int32.Parse(currentExchangeOption.SimulationCandleSize)
                 };
@@ -531,7 +531,7 @@ namespace Mynt.Core.Exchanges
                 var _candle15 = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest).Result;
 
                 Global.AppCache.Remove(backtestOptions.Coin + backtestOptions.CandlePeriod);
-                Global.AppCache.Add(backtestOptions.Coin + backtestOptions.CandlePeriod, _candle15, new MemoryCacheEntryOptions());
+                Global.AppCache.Add(_api.Name + backtestOptions.Coin + backtestOptions.CandlePeriod, _candle15, new MemoryCacheEntryOptions());
 
 
 
@@ -545,7 +545,7 @@ namespace Mynt.Core.Exchanges
                 var _candle1 = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest).Result;
 
                 Global.AppCache.Remove(backtestOptions.Coin + backtestOptions.CandlePeriod);
-                Global.AppCache.Add(backtestOptions.Coin + backtestOptions.CandlePeriod, _candle1, new MemoryCacheEntryOptions());
+                Global.AppCache.Add(_api.Name + backtestOptions.Coin + backtestOptions.CandlePeriod, _candle1, new MemoryCacheEntryOptions());
             }
 
             watch1.Stop();

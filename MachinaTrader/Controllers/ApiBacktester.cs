@@ -302,21 +302,9 @@ namespace MachinaTrader.Controllers
             var simulationStartingDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(fromDate, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
             var simulationEndingDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(toDate, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
 
-            var backtestOptions = new BacktestOptions()
-            {
-                DataFolder = Global.DataPath,
-                Exchange = Exchange.Gdax,
-                Coin = coinToBuy,
-                CandlePeriod = Int32.Parse(currentExchangeOption.SimulationCandleSize)
-            };
-
-            Candle databaseFirstCandle = await Global.DataStoreBacktest.GetBacktestFirstCandle(backtestOptions);
-            Candle databaseLastCandle = await Global.DataStoreBacktest.GetBacktestLastCandle(backtestOptions);
-
             var tradeManager = new TradeManager();
 
-            currentExchangeOption.SimulationCurrentDate = simulationStartingDate > databaseFirstCandle.Timestamp ? simulationStartingDate : databaseFirstCandle.Timestamp;
-            simulationEndingDate = simulationEndingDate < databaseLastCandle.Timestamp ? simulationEndingDate : databaseLastCandle.Timestamp;
+            currentExchangeOption.SimulationCurrentDate = simulationStartingDate;
 
             while (currentExchangeOption.SimulationCurrentDate <= simulationEndingDate)
             {

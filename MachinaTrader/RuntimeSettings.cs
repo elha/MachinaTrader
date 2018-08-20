@@ -16,6 +16,7 @@ using Quartz.Impl;
 using MachinaTrader.Globals.Structure.Enums;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Models;
+using ExchangeSharp;
 
 namespace MachinaTrader
 {
@@ -110,11 +111,13 @@ namespace MachinaTrader
             switch (exchangeOption.Exchange)
             {
                 case Exchange.GdaxSimulation:
-                    Global.ExchangeApi = new BaseExchange(exchangeOption, new SimulationExchanges.ExchangeGdaxSimulationApi());
+                    exchangeOption.Exchange = Exchange.Gdax;
+                    Global.ExchangeApi = new BaseExchange(exchangeOption, new SimulationExchanges.ExchangeSimulationApi(new ExchangeGdaxAPI()));
                     exchangeOption.IsSimulation = true;
                     break;
                 case Exchange.BinanceSimulation:
-                    //Global.ExchangeApi = new BaseExchange(exchangeOption, new SimulationExchanges.ExchangeBinanceSimulationApi());
+                    exchangeOption.Exchange = Exchange.Binance;
+                    Global.ExchangeApi = new BaseExchange(exchangeOption, new SimulationExchanges.ExchangeSimulationApi(new ExchangeBinanceAPI()));
                     exchangeOption.IsSimulation = true;
                     break;
                 default:

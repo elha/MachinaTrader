@@ -73,6 +73,7 @@ namespace MachinaTrader.TradeManagers
                 // Update the buy order in our data storage.
                 trade.OpenOrderId = null;
                 trade.BuyOrderId = null;
+                trade.SellOrderId = null;
                 trade.IsOpen = false;
                 trade.IsBuying = false;
                 trade.SellType = SellType.Cancelled;
