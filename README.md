@@ -17,14 +17,16 @@ These teams got together and made an awesome crypto bot with incredible easy Fro
 
 ## Documentation
 
-* [Installation Windows -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
-* [Installation Docker -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
-* [Debugging -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
+* [Start as programmer](https://github.com/MachinaCore/MachinaTrader/wiki/How-start-as-programmer)
+* [Run on Windows -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
+* [Run on Linux](https://github.com/MachinaCore/MachinaTrader/wiki/Run-on-Linux)
+* [Run with docker](https://github.com/MachinaCore/MachinaTrader/wiki/Run-with-docker)
+* [Debugging](https://github.com/MachinaCore/MachinaTrader/wiki/Debugging)
 * [Configuration -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
-* [Indicators -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki(Indicators))
-* [Strategies -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
 * [Notifications -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
 * [Backtesting -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
+* [Indicators](https://github.com/MachinaCore/MachinaTrader/wiki/Indicators)
+* [Strategies](https://github.com/MachinaCore/MachinaTrader/wiki/Strategies)
 
 ## Additional tools used
 
@@ -32,6 +34,7 @@ These teams got together and made an awesome crypto bot with incredible easy Fro
 * [TA-Lib wrapper](https://www.nuget.org/packages/TA-Lib)
 * [Mynt](https://github.com/sthewissen/Mynt)
 * [MyntUI](https://github.com/MachinaCore/MachinaTrader)
+
 ## Contributing
 
 Feel like this bot is missing a feature? Pull requests are welcome! A few pointers for contributions:
