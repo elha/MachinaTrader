@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.1" />
-    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.2.2" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.3.0" />
     <PackageReference Include="LazyCache.AspNetCore" Version="2.0.0-beta03" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.1.2" />
     <PackageReference Include="Quartz" Version="3.0.6" />
@@ -22,9 +22,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AspNetCore.Identity.LiteDB\AspNetCore.Identity.LiteDB.csproj" />
+    <ProjectReference Include="..\MachinaTrader.Backtester\MachinaTrader.Backtester.csproj" />
+    <ProjectReference Include="..\MachinaTrader.Exchanges\MachinaTrader.Exchanges.csproj" />
     <ProjectReference Include="..\MachinaTrader.Globals\MachinaTrader.Globals.csproj" />
+    <ProjectReference Include="..\MachinaTrader.Notifications\MachinaTrader.Notifications.csproj" />
     <ProjectReference Include="..\MachinaTrader.Plugin.Sample\MachinaTrader.Plugin.Sample.csproj" />
-    <ProjectReference Include="..\Mynt.Core\Mynt.Core.csproj" />
+    <ProjectReference Include="..\MachinaTrader.Strategies\MachinaTrader.Strategies.csproj" />
     <ProjectReference Include="..\Mynt.Data.LiteDB\Mynt.Data.LiteDB.csproj" />
     <ProjectReference Include="..\Mynt.Data.MongoDB\Mynt.Data.MongoDB.csproj" />
   </ItemGroup>

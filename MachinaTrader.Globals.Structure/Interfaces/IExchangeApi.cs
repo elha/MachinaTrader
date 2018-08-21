@@ -37,6 +37,5 @@ namespace MachinaTrader.Globals.Structure.Interfaces
 
         Task<ExchangeAPI> GetFullApi();
 
-        Task CacheAllData();
     }
 }

@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace Mynt.Core.Utility
+namespace MachinaTrader.Globals.Helpers
 {
     public static class ConsoleUtility
     {

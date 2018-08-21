@@ -6,8 +6,6 @@ using System.Threading;
 using MachinaTrader.Globals;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
-using Mynt.Core.Exchanges;
-using Mynt.Core.Notifications;
 using Mynt.Data.LiteDB;
 using Mynt.Data.MongoDB;
 using MachinaTrader.Helpers;
@@ -20,6 +18,8 @@ using MachinaTrader.Globals.Structure.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using ExchangeSharp;
+using MachinaTrader.Exchanges;
+using MachinaTrader.Notifications;
 
 namespace MachinaTrader
 {
