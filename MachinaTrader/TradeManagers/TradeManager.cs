@@ -5,10 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using MachinaTrader.Globals;
 using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.Globals.Structure.Extensions;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Models;
-using Mynt.Core.Extensions;
-using Mynt.Core.Strategies;
+using MachinaTrader.Strategies;
 
 namespace MachinaTrader.TradeManagers
 {
@@ -26,12 +26,12 @@ namespace MachinaTrader.TradeManagers
 
             if (strategyString != null)
             {
-                var type = Type.GetType($"Mynt.Core.Strategies.{strategyString}, Mynt.Core", true, true);
+                var type = Type.GetType($"MachinaTrader.Strategies.{strategyString}, MachinaTrader", true, true);
                 strategy = Activator.CreateInstance(type) as ITradingStrategy ?? new TheScalper();
             }
             else
             {
-                var type = Type.GetType($"Mynt.Core.Strategies.{Global.Configuration.TradeOptions.DefaultStrategy}, Mynt.Core", true, true);
+                var type = Type.GetType($"MachinaTrader.Strategies.{Global.Configuration.TradeOptions.DefaultStrategy}, Mynt.Core", true, true);
                 strategy = Activator.CreateInstance(type) as ITradingStrategy ?? new TheScalper();
             }
 

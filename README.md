@@ -1,96 +1,43 @@
-MachinaTrader
-==============
+MachinaTrader - crypto trading bot
+==================================
+Welcome to the MachinaTrader a crypto trading bot! This bot enables you to trade cryptocurrencies in an automated fashion and comes with a lot of different configuration options. It is a .NET Core based trading bot that runs at your given configuration. We are the bigger brother from [Mynt](https://github.com/sthewissen/Mynt) and [MyntUI](https://github.com/MachinaCore/MachinaTrader). 
+These teams got together and made an awesome crypto bot with incredible easy Frontend UI. 
 
 [![Build status](https://ci.appveyor.com/api/projects/status/2jcpp7x1waux011r?svg=true)](https://ci.appveyor.com/project/MachinaCore/machinatrader)
 
-Join the Discord support Server for more up-to-date info:
+## Contact us
 
 [![Discord](https://discordapp.com/api/guilds/476120274459426831/widget.png)](https://discord.gg/NC5cRVp)
 
 
+## Downloads
+
 [Download current working branches as .paf.exe installer or .7z from appveyor](https://ci.appveyor.com/project/MachinaCore/machinatrader/build/artifacts)
 
-# Getting Started:
- * Clone repo:
-   * `git clone https://github.com/MachinaCore/MachinaTrader.git`
- * Restore MachinaTrader nuget packages:
-   * `dotnet restore`
- * Run MachinaTrader:
-   * `dotnet run`       
- * Open UI:
-   * Open http://127.0.0.1:5000 in browser     
-   
-# If you need to rebuild assets (if you have e.g. changed SASS/JS files):
- * Make sure Visual Studio is closed
- * If you use Windows (if you get node-sass error run `npm rebuild node-sass --force`):
-   * `MachinaTraderUIStyles.bat`   
- *  or install manually:
-   * `npm install` 
-   * `npm run build`  
-   * `npm run build-vendors`    
-   * `npm run css-compile`  
-   * `npm run css-compile-vendors`   
 
-# How to run locally with `docker` or `docker-compose`:
+## Documentation
 
-```bash
-docker build --rm -f Dockerfile -t machinatrader:latest .
-docker run --rm -d machinatrader:latest
-```
+* [Start as programmer](https://github.com/MachinaCore/MachinaTrader/wiki/How-start-as-programmer)
+* [Run on Windows -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
+* [Run on Linux](https://github.com/MachinaCore/MachinaTrader/wiki/Run-on-Linux)
+* [Run with docker](https://github.com/MachinaCore/MachinaTrader/wiki/Run-with-docker)
+* [Debugging](https://github.com/MachinaCore/MachinaTrader/wiki/Debugging)
+* [Configuration -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
+* [Notifications -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
+* [Backtesting -- coming soon](https://github.com/MachinaCore/MachinaTrader/wiki)
+* [Indicators](https://github.com/MachinaCore/MachinaTrader/wiki/Indicators)
+* [Strategies](https://github.com/MachinaCore/MachinaTrader/wiki/Strategies)
 
-or
+## Additional tools used
 
-```bash
-docker-compose up -d
-```
+* [ExchangeSharp](https://github.com/jjxtra/ExchangeSharp)
+* [TA-Lib wrapper](https://www.nuget.org/packages/TA-Lib)
+* [Mynt](https://github.com/sthewissen/Mynt)
+* [MyntUI](https://github.com/MachinaCore/MachinaTrader)
 
-# How to run on production with `docker-compose`:
+## Contributing
 
-Modify `.env` environment variables:
+Feel like this bot is missing a feature? Pull requests are welcome! A few pointers for contributions:
 
-```
-# LetsEncrypt API url
-ACME_CA_URI=https://acme-v01.api.letsencrypt.org/directory
-
-# Server host name
-VIRTUAL_HOST=localhost
-
-# LetsEncrypt notifications email
-LETSENCRYPT_EMAIL=me@example.com
-
-# LetsEncrypt host name
-LETSENCRYPT_HOST=example.com
-
-# Mongo data files
-MONGO_FILES_PATH=./docker/mongo
-
-# Nginx data files
-NGINX_FILES_PATH=./docker/nginx
-
-# App data files
-MACHINATRADER_FILES_PATH=./docker/machinatrader
-```
-
-Start application: 
-
-```bash
-docker-compose -f docker-compose-production.yml up -d --build
-```
-
-Stop application:
-
-```bash
-docker-compose -f docker-compose-production.yml down
-```
-
-# Recommended plugin for debugging VueJS
-
-- Get Chrome DevTools for VueJS [here](https://chrome.google.com/webstore/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-After installing the tools in chrome add these scripts to target .html file and remove or uncomment the existing vue.min.js:
-```
-<!-- development version, includes helpful console warnings -->
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-<script>
-    Vue.config.devtools = true;
-</script>
-```
+- Create a PR.
+- If you are unsure, discuss the feature in an issue before a PR.
