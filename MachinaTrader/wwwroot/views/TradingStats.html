@@ -241,6 +241,10 @@
             success: function (rtnData) {
                 console.log(rtnData);
 
+                var arr = jQuery.map(rtnData.stat.dates, function (value, i) {
+                    return (moment(value).format("YYYY-MM-DD HH:mm:ss"));
+                });
+
                 var config = {
                     type: 'line',
                     data: {
@@ -252,7 +256,7 @@
                             pointBorderColor: '#fff',
                             data: rtnData.stat.balances
                         }],
-                        labels: rtnData.stat.dates
+                        labels: arr
                     },
                     options: {
                         responsive: true

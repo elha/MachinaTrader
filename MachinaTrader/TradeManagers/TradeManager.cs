@@ -436,7 +436,8 @@ namespace MachinaTrader.TradeManagers
                 return;
             }
 
-            var trade = await CreateBuyOrder(signal.MarketName, signal.SignalCandle, strategy);
+            //var trade = await CreateBuyOrder(signal.MarketName, signal.SignalCandle, strategy);
+            var trade = await CreateBuyOrder(signal, strategy);
 
             // We found a trade and have set it all up!
             if (trade != null)
@@ -463,16 +464,19 @@ namespace MachinaTrader.TradeManagers
         /// <param name="signalCandle"></param>
         /// <param name="strategy"></param>
         /// <returns></returns>
-        private async Task<Trade> CreateBuyOrder(string pair, Candle signalCandle, ITradingStrategy strategy)
+        private async Task<Trade> CreateBuyOrder(TradeSignal signal, ITradingStrategy strategy)
         {
+            var pair = signal.MarketName;
+            var signalCandle = signal.SignalCandle;
+
             // Take the amount to invest per trader OR the current balance for this trader.
-
-            //if (freeTrader.CurrentBalance < Global.Configuration.TradeOptions.AmountToInvestPerTrader || Global.Configuration.TradeOptions.ProfitStrategy == ProfitType.Reinvest)
-            //    btcToSpend = freeTrader.CurrentBalance;
-            //else
-
-#warning TODO: we could check exchangeQuoteBalance.Available and buy a % of that amount
             var fichesToSpend = Global.Configuration.TradeOptions.AmountToInvestPerTrader;
+
+            if (Global.Configuration.TradeOptions.ProfitStrategy == ProfitType.Reinvest)
+            {
+                var exchangeQuoteBalance = Global.ExchangeApi.GetBalance(signal.QuoteCurrency).Result.Available;
+                fichesToSpend = exchangeQuoteBalance * 25 / 100;
+            }
 
             // The amount here is an indication and will probably not be precisely what you get.
             var ticker = await Global.ExchangeApi.GetTicker(pair);
