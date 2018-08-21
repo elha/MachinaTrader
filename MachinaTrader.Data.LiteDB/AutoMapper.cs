@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using AutoMapper;
 using MachinaTrader.Globals.Structure.Models;
 
-
-namespace Mynt.Data.MongoDB
+namespace MachinaTrader.Data.LiteDB
 {
     public static class Mapping
     {

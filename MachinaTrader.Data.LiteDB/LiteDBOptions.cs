@@ -1,5 +1,4 @@
-﻿using System;
-namespace Mynt.Data.LiteDB
+namespace MachinaTrader.Data.LiteDB
 {
     public class LiteDbOptions
     {

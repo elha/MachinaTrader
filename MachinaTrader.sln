@@ -7,10 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader", "MachinaTra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Globals", "MachinaTrader.Globals\MachinaTrader.Globals.csproj", "{1FA72791-9EA6-4116-8819-C58F74A953A3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mynt.Data.LiteDB", "Mynt.Data.LiteDB\Mynt.Data.LiteDB.csproj", "{9134C68D-DD52-466C-AEA0-D6C9C0E9015C}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mynt.Data.MongoDB", "Mynt.Data.MongoDB\Mynt.Data.MongoDB.csproj", "{3FAE6CD1-FC79-4AC5-AA76-89718D4C41DE}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Plugin.Sample", "MachinaTrader.Plugin.Sample\MachinaTrader.Plugin.Sample.csproj", "{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Globals.Structure", "MachinaTrader.Globals.Structure\MachinaTrader.Globals.Structure.csproj", "{25E9CDA8-ED82-4E10-8C71-77F41F61CBB2}"
@@ -25,15 +21,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{88E16334-E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Identity.LiteDB", "AspNetCore.Identity.LiteDB\AspNetCore.Identity.LiteDB.csproj", "{1688BBBD-2C3A-4091-A6CF-26B0FA842DB8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MachinaTrader.Backtester", "MachinaTrader.Backtester\MachinaTrader.Backtester.csproj", "{8C510936-E0A5-4600-AE6B-A6E0AEB18BFB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Backtester", "MachinaTrader.Backtester\MachinaTrader.Backtester.csproj", "{8C510936-E0A5-4600-AE6B-A6E0AEB18BFB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MachinaTrader.Indicators", "MachinaTrader.Indicators\MachinaTrader.Indicators.csproj", "{039C1CC2-F16A-465D-858E-63FFAD73051B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Indicators", "MachinaTrader.Indicators\MachinaTrader.Indicators.csproj", "{039C1CC2-F16A-465D-858E-63FFAD73051B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MachinaTrader.Exchanges", "MachinaTrader.Exchanges\MachinaTrader.Exchanges.csproj", "{D5D6B264-93C0-49C1-8C7E-393A293661B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Exchanges", "MachinaTrader.Exchanges\MachinaTrader.Exchanges.csproj", "{D5D6B264-93C0-49C1-8C7E-393A293661B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MachinaTrader.Strategies", "MachinaTrader.Strategies\MachinaTrader.Strategies.csproj", "{982EB8BD-986B-4564-A696-482BF5F4DCB1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Strategies", "MachinaTrader.Strategies\MachinaTrader.Strategies.csproj", "{982EB8BD-986B-4564-A696-482BF5F4DCB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MachinaTrader.Notifications", "MachinaTrader.Notifications\MachinaTrader.Notifications.csproj", "{F33B047F-0575-41DE-AA24-49CD91B64A1D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Notifications", "MachinaTrader.Notifications\MachinaTrader.Notifications.csproj", "{F33B047F-0575-41DE-AA24-49CD91B64A1D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Data.LiteDB", "MachinaTrader.Data.LiteDB\MachinaTrader.Data.LiteDB.csproj", "{C2737574-1BBE-45CC-B02D-002B346E8017}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Data.MongoDB", "MachinaTrader.Data.MongoDB\MachinaTrader.Data.MongoDB.csproj", "{5BF3B351-77B3-4108-B782-2A633363089C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,14 +49,6 @@ Global
 		{1FA72791-9EA6-4116-8819-C58F74A953A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FA72791-9EA6-4116-8819-C58F74A953A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FA72791-9EA6-4116-8819-C58F74A953A3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9134C68D-DD52-466C-AEA0-D6C9C0E9015C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9134C68D-DD52-466C-AEA0-D6C9C0E9015C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9134C68D-DD52-466C-AEA0-D6C9C0E9015C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9134C68D-DD52-466C-AEA0-D6C9C0E9015C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3FAE6CD1-FC79-4AC5-AA76-89718D4C41DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3FAE6CD1-FC79-4AC5-AA76-89718D4C41DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3FAE6CD1-FC79-4AC5-AA76-89718D4C41DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3FAE6CD1-FC79-4AC5-AA76-89718D4C41DE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -89,17 +81,30 @@ Global
 		{F33B047F-0575-41DE-AA24-49CD91B64A1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F33B047F-0575-41DE-AA24-49CD91B64A1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F33B047F-0575-41DE-AA24-49CD91B64A1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2737574-1BBE-45CC-B02D-002B346E8017}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2737574-1BBE-45CC-B02D-002B346E8017}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2737574-1BBE-45CC-B02D-002B346E8017}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2737574-1BBE-45CC-B02D-002B346E8017}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BF3B351-77B3-4108-B782-2A633363089C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BF3B351-77B3-4108-B782-2A633363089C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BF3B351-77B3-4108-B782-2A633363089C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BF3B351-77B3-4108-B782-2A633363089C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1FA72791-9EA6-4116-8819-C58F74A953A3} = {0A05999C-2371-406C-B3C2-C00F10D753BC}
-		{9134C68D-DD52-466C-AEA0-D6C9C0E9015C} = {1DE9C319-72EC-447B-A9C9-83C88AEE735A}
-		{3FAE6CD1-FC79-4AC5-AA76-89718D4C41DE} = {1DE9C319-72EC-447B-A9C9-83C88AEE735A}
 		{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4} = {8B0CBE2A-BD4C-4CA0-9EF1-B8E23166D5E8}
 		{25E9CDA8-ED82-4E10-8C71-77F41F61CBB2} = {0A05999C-2371-406C-B3C2-C00F10D753BC}
 		{1688BBBD-2C3A-4091-A6CF-26B0FA842DB8} = {0A05999C-2371-406C-B3C2-C00F10D753BC}
+		{8C510936-E0A5-4600-AE6B-A6E0AEB18BFB} = {88E16334-E490-4AC7-ACF6-B5329DB52B6A}
+		{039C1CC2-F16A-465D-858E-63FFAD73051B} = {88E16334-E490-4AC7-ACF6-B5329DB52B6A}
+		{D5D6B264-93C0-49C1-8C7E-393A293661B9} = {88E16334-E490-4AC7-ACF6-B5329DB52B6A}
+		{982EB8BD-986B-4564-A696-482BF5F4DCB1} = {88E16334-E490-4AC7-ACF6-B5329DB52B6A}
+		{F33B047F-0575-41DE-AA24-49CD91B64A1D} = {88E16334-E490-4AC7-ACF6-B5329DB52B6A}
+		{C2737574-1BBE-45CC-B02D-002B346E8017} = {1DE9C319-72EC-447B-A9C9-83C88AEE735A}
+		{5BF3B351-77B3-4108-B782-2A633363089C} = {1DE9C319-72EC-447B-A9C9-83C88AEE735A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2946592A-AFF5-419A-95D4-F0924469CDA1}

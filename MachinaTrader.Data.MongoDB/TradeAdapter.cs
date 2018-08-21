@@ -1,10 +1,10 @@
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 using System;
 using MachinaTrader.Globals.Structure.Enums;
 using MachinaTrader.Globals.Structure.Models;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
-namespace Mynt.Data.MongoDB
+namespace MachinaTrader.Data.MongoDB
 {
     public class TradeAdapter
     {

@@ -1,16 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using LiteDB;
 using MachinaTrader.Globals.Structure.Enums;
 
-namespace Mynt.Data.LiteDB
+namespace MachinaTrader.Data.MongoDB
 {
     public class TradeSignalAdapter
     {
-        [BsonId]
         public Guid Id { get; set; }
-
         public Guid ParentId { get; set; }
 
         public string MarketName { get; set; }

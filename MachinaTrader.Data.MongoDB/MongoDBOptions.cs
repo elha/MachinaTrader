@@ -1,5 +1,4 @@
-using System;
-namespace Mynt.Data.MongoDB
+namespace MachinaTrader.Data.MongoDB
 {
 	public class MongoDbOptions
 	{

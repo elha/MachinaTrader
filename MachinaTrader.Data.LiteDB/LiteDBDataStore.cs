@@ -5,7 +5,7 @@ using LiteDB;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Models;
 
-namespace Mynt.Data.LiteDB
+namespace MachinaTrader.Data.LiteDB
 {
 
     public class LiteDbDataStore : IDataStore

@@ -1,10 +1,10 @@
-using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Models;
+using MongoDB.Driver;
 
-namespace Mynt.Data.MongoDB
+namespace MachinaTrader.Data.MongoDB
 {
     public class MongoDbDataStore : IDataStore
     {

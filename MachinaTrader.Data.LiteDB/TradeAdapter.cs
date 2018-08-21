@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using MachinaTrader.Globals.Structure.Enums;
 using MachinaTrader.Globals.Structure.Models;
 
-namespace Mynt.Data.LiteDB
+namespace MachinaTrader.Data.LiteDB
 {
     public class TradeAdapter
     {

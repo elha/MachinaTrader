@@ -5,12 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using MachinaTrader.Globals;
 using LiteDB;
+using MachinaTrader.Globals;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Models;
 
-namespace Mynt.Data.LiteDB
+namespace MachinaTrader.Data.LiteDB
 {
 
     public class LiteDbDataStoreBacktest : IDataStoreBacktest
