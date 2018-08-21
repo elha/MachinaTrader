@@ -34,8 +34,8 @@ namespace MachinaTrader.Backtester
             //parallelOptions.MaxDegreeOfParallelism = Environment.ProcessorCount;
             //Parallel.ForEach(backtestOptions.Coins, parallelOptions, async globalSymbol =>
             //{
-                foreach (string globalSymbol in backtestOptions.Coins)
-                {
+            foreach (string globalSymbol in backtestOptions.Coins)
+            {
                 string exchangeSymbol = await baseExchangeApi.GlobalSymbolToExchangeSymbol(globalSymbol);
                 backtestOptions.Coin = globalSymbol;
                 string currentlyRunningString = backtestOptions.Exchange + "_" + globalSymbol + "_" + backtestOptions.CandlePeriod;
@@ -155,7 +155,8 @@ namespace MachinaTrader.Backtester
             if (backtestOptions.EndDate != DateTime.MinValue)
             {
                 Console.WriteLine("\tBacktest EndDate: " + Convert.ToDateTime(backtestOptions.EndDate).ToUniversalTime() + " UTC");
-            } else
+            }
+            else
             {
                 Console.WriteLine("\tBacktest EndDate: " + DateTime.UtcNow + " UTC");
             }

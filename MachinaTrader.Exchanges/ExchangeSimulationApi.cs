@@ -48,6 +48,7 @@ namespace MachinaTrader.Exchanges
 
                 tickers.Add(new KeyValuePair<string, ExchangeTicker>(symbol, ticker));
             }
+
             return tickers;
         }
 
@@ -102,8 +103,30 @@ namespace MachinaTrader.Exchanges
 
         protected override async Task<IEnumerable<ExchangeMarket>> OnGetSymbolsMetadataAsync()
         {
-            //Global.Logger.Information($"Starting OnGetSymbolsMetadataAsync");
-            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
+            ////Global.Logger.Information($"Starting OnGetSymbolsMetadataAsync");
+            ////var watch1 = System.Diagnostics.Stopwatch.StartNew();
+
+            //var markets = Global.AppCache.GetOrAdd(_realApi.Name, (a) =>
+            //{
+            //    var dd = _realApi.GetSymbolsMetadataAsync().Result;
+
+            //    foreach (var item in dd)
+            //    {
+            //        item.MarketName = (item.MarketCurrency + '-' + item.BaseCurrency);
+            //    }
+            //    return dd;
+            //});
+
+            //if (markets.Count() == 0)
+            //    throw new Exception();
+
+            ////watch1.Stop();
+            ////Global.Logger.Warning($"Ended OnGetSymbolsMetadataAsync in #{watch1.Elapsed.TotalSeconds} seconds");
+
+            //return markets;
+
+
+
 
             var markets = Global.AppCache.GetOrAdd(_realApi.Name, async (a) => await _realApi.GetSymbolsMetadataAsync());
             if (markets.Result.Count() == 0)
@@ -130,6 +153,9 @@ namespace MachinaTrader.Exchanges
                 return null;
 
             candles = candles.Where(c => c.Timestamp <= Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate).ToList();
+
+            if (candles == null || !candles.Any())
+                return null;
 
             var lastCandle = candles.Last();
 
@@ -160,11 +186,28 @@ namespace MachinaTrader.Exchanges
 
         public override string ExchangeSymbolToGlobalSymbol(string symbol)
         {
+            if (_realApi is ExchangeBinanceAPI)
+            {
+                var crypto = symbol.Replace(Global.Configuration.TradeOptions.QuoteCurrency, "");
+                return Global.Configuration.TradeOptions.QuoteCurrency + "-" + crypto;
+            }
+
             string[] pieces = symbol.Split('-');
             return pieces.First() + pieces.Last();
         }
 
-     
+        public override string GlobalSymbolToExchangeSymbol(string symbol)
+        {
+            if (_realApi is ExchangeBinanceAPI)
+            {
+                string[] pieces2 = symbol.Split('-');
+                return pieces2.Last() + pieces2.First();
+            }
+
+            return symbol;
+        }
+        
+
         protected override async Task<ExchangeOrderResult> OnGetOrderDetailsAsync(string orderId, string symbol = null)
         {
             return _orders.Where(o => o.OrderId == orderId).FirstOrDefault();

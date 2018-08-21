@@ -125,7 +125,7 @@ namespace MachinaTrader.Exchanges
             {
                 Console.WriteLine(ex.ToString());
             }
-           
+
             return null;
         }
 
@@ -146,7 +146,7 @@ namespace MachinaTrader.Exchanges
 
         public async Task<List<MarketSummary>> GetMarketSummaries(string quoteCurrency)
         {
-             var result = new List<MarketSummary>();
+            var result = new List<MarketSummary>();
 
             if (_exchange == Exchange.Huobi || _exchange == Exchange.Okex || _exchange == Exchange.Gdax || _exchange == Exchange.GdaxSimulation)
             {
@@ -479,8 +479,8 @@ namespace MachinaTrader.Exchanges
                 var result = (await _api.GetSymbolsMetadataAsync()).ToList();
                 _exchangeInfo = result;
             }
-
-            return _exchangeInfo.FirstOrDefault(x => x.MarketName == symbol);
+            var eSymbol = _api.GlobalSymbolToExchangeSymbol(symbol);
+            return _exchangeInfo.FirstOrDefault(x => x.MarketName == eSymbol);
         }
 
         public async Task<string> GlobalSymbolToExchangeSymbol(string symbol)

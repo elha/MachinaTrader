@@ -54,10 +54,15 @@ namespace MachinaTrader.Backtester
 
             var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == Global.Configuration.TradeOptions.QuoteCurrency);
             var currentExchangeOption = Global.Configuration.ExchangeOptions.FirstOrDefault();
+            
+            IExchangeAPI realExchange = ExchangeAPI.GetExchangeAPI(api.Name);
 
             foreach (var coin in exchangeCoins)
             {
                 var symbol = coin.MarketName;
+
+                if (realExchange is ExchangeBinanceAPI)
+                    symbol = api.ExchangeSymbolToGlobalSymbol(symbol);
 
                 var backtestOptions = new BacktestOptions
                 {
@@ -86,6 +91,9 @@ namespace MachinaTrader.Backtester
                 backtestOptions.CandlePeriod = 1;
                 Candle database1FirstCandle = Global.DataStoreBacktest.GetBacktestFirstCandle(backtestOptions).Result;
                 Candle database1LastCandle = Global.DataStoreBacktest.GetBacktestLastCandle(backtestOptions).Result;
+
+                if (database1FirstCandle == null || database1LastCandle == null)
+                    continue;
 
                 backtestOptions.StartDate = database1FirstCandle.Timestamp;
                 backtestOptions.EndDate = database1LastCandle.Timestamp;
