@@ -1,5 +1,4 @@
 using System;
-using MachinaTrader.Globals.Structure.Enums;
 
 namespace MachinaTrader.Globals.Structure.Models
 {

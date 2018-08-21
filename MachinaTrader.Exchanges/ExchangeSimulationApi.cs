@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MachinaTrader.Globals.Structure.Models;
 
-namespace MachinaTrader.SimulationExchanges
+namespace MachinaTrader.Exchanges
 {
     public class ExchangeSimulationApi : ExchangeAPI
     {
@@ -157,7 +157,7 @@ namespace MachinaTrader.SimulationExchanges
 
         public override string ExchangeSymbolToGlobalSymbol(string symbol)
         {
-            string[] pieces = symbol.Split("-");
+            string[] pieces = symbol.Split('-');
 
             return pieces.First() + pieces.Last();
         }

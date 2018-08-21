@@ -112,7 +112,7 @@ namespace MachinaTrader.Data.LiteDB
 
         public async Task<List<WalletTransaction>> GetWalletTransactionsAsync()
         {
-            var walletTransactions = _walletTransactionsAdapter.FindAll().OrderByDescending(s => s.Date).ToList();
+            var walletTransactions = _walletTransactionsAdapter.FindAll().OrderBy(s => s.Date).ToList();
             var items = Mapping.Mapper.Map<List<WalletTransaction>>(walletTransactions);
 
             return items;

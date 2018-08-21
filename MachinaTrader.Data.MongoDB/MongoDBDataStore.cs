@@ -90,7 +90,7 @@ namespace MachinaTrader.Data.MongoDB
 
         public async Task<List<WalletTransaction>> GetWalletTransactionsAsync()
         {
-            var walletTransactions = await _walletTransactionsAdapter.Find(FilterDefinition<WalletTransactionAdapter>.Empty).SortByDescending(s=>s.Date).ToListAsync();
+            var walletTransactions = await _walletTransactionsAdapter.Find(FilterDefinition<WalletTransactionAdapter>.Empty).SortBy(s=>s.Date).ToListAsync();
             var items = Mapping.Mapper.Map<List<WalletTransaction>>(walletTransactions);
 
             return items;

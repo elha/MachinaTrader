@@ -295,8 +295,6 @@ namespace MachinaTrader.Controllers
         [Route("simulation")]
         public async Task<bool> Simulation(string coinToBuy, string strategy, string fromDate, string toDate)
         {
-            //await Global.ExchangeApi.CacheAllData();
-
             var candleProvider = new DatabaseCandleProvider();
             var globalFullApi = await Global.ExchangeApi.GetFullApi();
             await candleProvider.CacheAllData(globalFullApi, Global.Configuration.ExchangeOptions.FirstOrDefault().Exchange);

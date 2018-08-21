@@ -124,12 +124,12 @@ namespace MachinaTrader
             {
                 case Exchange.GdaxSimulation:
                     exchangeOption.Exchange = Exchange.Gdax;
-                    Global.ExchangeApi = new BaseExchange(exchangeOption, new SimulationExchanges.ExchangeSimulationApi(new ExchangeGdaxAPI()));
+                    Global.ExchangeApi = new BaseExchange(exchangeOption, new ExchangeSimulationApi(new ExchangeGdaxAPI()));
                     exchangeOption.IsSimulation = true;
                     break;
                 case Exchange.BinanceSimulation:
                     exchangeOption.Exchange = Exchange.Binance;
-                    Global.ExchangeApi = new BaseExchange(exchangeOption, new SimulationExchanges.ExchangeSimulationApi(new ExchangeBinanceAPI()));
+                    Global.ExchangeApi = new BaseExchange(exchangeOption, new ExchangeSimulationApi(new ExchangeBinanceAPI()));
                     exchangeOption.IsSimulation = true;
                     break;
                 default:
