@@ -8,80 +8,41 @@
 <script src="/vendors/axios/js/axios.min.js"></script>
 <script src="/vendors/bootbox/js/bootbox.min.js"></script>
 
+<script src="/vendors/chart.js/js/Chart.min.js"></script>
+<script src="/vendors/@coreui/coreui-plugin-chartjs-custom-tooltips/js/custom-tooltips.min.js"></script>
+
 <style>
-    .greenCell {
-        background: rgba(0, 255, 0, 0.2) !important;
-    }
+    .greenCell { background: rgba(0, 255, 0, 0.2) !important; }
 
-    .orangeCell {
-        background: rgba(0, 255, 152, 0.1) !important;
-    }
+    .orangeCell { background: rgba(0, 255, 152, 0.1) !important; }
 
-    .redCell {
-        background: rgba(255, 0, 0, 0.20) !important;
-    }
+    .redCell { background: rgba(255, 0, 0, 0.20) !important; }
 
-    .small-text {
-        font-size: 10px;
-        line-height: 24px;
-    }
+    .small-text { font-size: 10px; line-height: 24px; }
 
-    .table-round > .box-body {
-        padding: 0;
-    }
+    .table-round > .box-body { padding: 0; }
 
-    .table th, .table td {
-        padding: 0.75rem;
-        vertical-align: top;
-        border-top: 0;
-    }
+    .table th, .table td { padding: 0.75rem; vertical-align: top; border-top: 0; }
 
-    .table thead th {
-        vertical-align: bottom;
-        border-bottom: 0;
-    }
+    .table thead th { vertical-align: bottom; border-bottom: 0; }
 
-    table.dataTable {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        border-collapse: collapse !important;
-    }
+    table.dataTable { margin-top: 0 !important; margin-bottom: 0 !important; border-collapse: collapse !important; }
 
-    .dataTables_wrapper .row .col-sm-12 {
-        padding: 0 !important;
-    }
+    .dataTables_wrapper .row .col-sm-12 { padding: 0 !important; }
 
-    div.dataTables_wrapper div.dataTables_info {
-        padding: 1.8em;
-    }
+    div.dataTables_wrapper div.dataTables_info { padding: 1.8em; }
 
-    div.dataTables_wrapper div.dataTables_paginate {
-        padding: 1em;
-    }
+    div.dataTables_wrapper div.dataTables_paginate { padding: 1em; }
 
-    .card-body-header {
-        margin-right: 0;
-        margin-left: 0;
-        padding-top: 15px;
-        background-color: rgba(198, 198, 198, 0.5);
-        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    }
+    .card-body-header { margin-right: 0; margin-left: 0; padding-top: 15px; background-color: rgba(198, 198, 198, 0.5); box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12); }
 
-    .table-bordered {
-        border: 0;
-    }
+    .table-bordered { border: 0; }
 
-    .select2-selection {
-        width: 100%;
-    }
+    .select2-selection { width: 100%; }
 
-    .dataTables_length {
-        margin-left: 20px;
-    }
+    .dataTables_length { margin-left: 20px; }
 
-    .dataTables_filter {
-        margin-right: 20px;
-    }
+    .dataTables_filter { margin-right: 20px; }
 </style>
 
 <div class="animated fadeIn" id="myntStatistics" v-if="myntStatisticsData">
@@ -163,7 +124,6 @@
     </div>
 </div>
 
-
 <div class="animated fadeIn" id="myntLogs">
     <div class="row" id="widgetCoinsperformance">
         <div class="col-md-12">
@@ -178,6 +138,15 @@
         </div>
     </div>
 </div>
+
+<div class="animated fadeIn">
+    <div class="row">
+        <div class="col-md-12">
+            <canvas id="canvas-1"></canvas>
+        </div>
+    </div>
+</div>
+
 <!-- development version, includes helpful console warnings -->
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script>
@@ -264,8 +233,39 @@
                 },
             ]
         });
-    });
 
+        $.ajax({
+            url: "/api/statistics/wallet",
+            type: "GET",
+            dataType: 'json',
+            success: function (rtnData) {
+                console.log(rtnData);
+
+                var config = {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'Balances',
+                            backgroundColor: 'rgba(220, 220, 220, 0.2)',
+                            borderColor: 'rgba(220, 220, 220, 1)',
+                            pointBackgroundColor: 'rgba(220, 220, 220, 1)',
+                            pointBorderColor: '#fff',
+                            data: rtnData.stat.balances
+                        }],
+                        labels: rtnData.stat.dates
+                    },
+                    options: {
+                        responsive: true
+                    }
+                };
+
+                var lineChart = new Chart($('#canvas-1'), config);  
+            },
+            error: function (rtnData) {
+                alert('error' + rtnData);
+            }
+        });
+    });
 
     var myntStatistics = new Vue({
         el: '#myntStatistics',

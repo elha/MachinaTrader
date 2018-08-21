@@ -118,10 +118,17 @@ namespace Mynt.Core.Exchanges
                 Price = rate,
                 Symbol = market
             };
-
-            var order = await _api.PlaceOrderAsync(request);
-
-            return order.OrderId;
+            try
+            {
+                var order = await _api.PlaceOrderAsync(request);
+                return order.OrderId;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+           
+            return null;
         }
 
         public async Task CancelOrder(string orderId, string market)

@@ -29,4 +29,8 @@
     <ProjectReference Include="..\Mynt.Data.MongoDB\Mynt.Data.MongoDB.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\Logs\" />
+  </ItemGroup>
+
 </Project>

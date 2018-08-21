@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using AutoMapper;
 using MachinaTrader.Globals.Structure.Models;
 
@@ -40,6 +38,9 @@ namespace Mynt.Data.LiteDB
 
             CreateMap<TradeSignal, TradeSignalAdapter>();
             CreateMap<TradeSignalAdapter, TradeSignal>();
+
+            CreateMap<WalletTransaction, WalletTransactionAdapter>();
+            CreateMap<WalletTransactionAdapter, WalletTransaction>();
         }
     }
 }

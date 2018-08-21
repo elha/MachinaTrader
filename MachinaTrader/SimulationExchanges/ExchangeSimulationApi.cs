@@ -19,6 +19,9 @@ namespace MachinaTrader.SimulationExchanges
         public ExchangeSimulationApi(ExchangeAPI realApi)
         {
             _realApi = realApi;
+
+#warning TODO: get from configuration
+            wallet.Add(DateTime.UtcNow, 500);
         }
 
         protected override async Task<IEnumerable<KeyValuePair<string, ExchangeTicker>>> OnGetTickersAsync()
@@ -160,12 +163,14 @@ namespace MachinaTrader.SimulationExchanges
         }
 
 
+
+
         private Dictionary<DateTime, decimal> wallet = new Dictionary<DateTime, decimal>();
         private List<ExchangeOrderResult> orders = new List<ExchangeOrderResult>();
 
         protected override async Task<ExchangeOrderResult> OnGetOrderDetailsAsync(string orderId, string symbol = null)
         {
-            return orders.Where(o => o.OrderId == orderId).FirstOrDefault();           
+            return orders.Where(o => o.OrderId == orderId).FirstOrDefault();
         }
 
         protected override async Task OnCancelOrderAsync(string orderId, string symbol = null)
@@ -177,11 +182,11 @@ namespace MachinaTrader.SimulationExchanges
         {
             if (order.IsBuy)
             {
-                wallet.Add(DateTime.UtcNow, order.Price * order.Amount);
+                wallet.Add(DateTime.UtcNow, -(order.Price * order.Amount));
             }
             else
             {
-                wallet.Add(DateTime.UtcNow, -(order.Price * order.Amount));
+                wallet.Add(DateTime.UtcNow, order.Price * order.Amount);
             }
 
             var orderResult = new ExchangeOrderResult()
@@ -205,7 +210,7 @@ namespace MachinaTrader.SimulationExchanges
             return orderResult;
         }
 
-        public new Dictionary<string, decimal> GetAmountsAvailableToTrade()
+        protected override async Task<Dictionary<string, decimal>> OnGetAmountsAvailableToTradeAsync()
         {
             var balances = new Dictionary<string, decimal>();
 

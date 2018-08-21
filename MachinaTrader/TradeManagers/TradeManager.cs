@@ -81,6 +81,8 @@ namespace MachinaTrader.TradeManagers
 
                 await Global.DataStore.SaveTradeAsync(trade);
 
+                await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction() { Amount = (trade.OpenRate * trade.Quantity) , Date = DateTime.UtcNow });
+
                 await SendNotification($"Buy Order cancelled because it wasn't filled in time: {this.TradeToString(trade)}.");
             }
         }
@@ -104,6 +106,12 @@ namespace MachinaTrader.TradeManagers
                 if (trade.SellNow)
                 {
                     var orderId = Global.Configuration.TradeOptions.PaperTrade ? GetOrderId() : await Global.ExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
+
+                    if (orderId == null)
+                    {
+                        await SendNotification($"Error to open a Selling Order by manually set: profit {currentProfit} for {this.TradeToString(trade)}");
+                        continue;
+                    }
 
                     trade.OpenOrderId = orderId;
                     trade.SellOrderId = orderId;
@@ -266,6 +274,7 @@ namespace MachinaTrader.TradeManagers
                             TradeAdvice = signal.TradeAdvice,
                             SignalCandle = signal.SignalCandle
                         }, strategy);
+
                     }
                     else
                     {
@@ -432,6 +441,9 @@ namespace MachinaTrader.TradeManagers
                 // Save the order.
                 await Global.DataStore.SaveTradeAsync(trade);
 
+                //money area unavailable from wallet immediately
+                await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction() { Amount = -(trade.OpenRate * trade.Quantity), Date = DateTime.UtcNow });
+
                 // Send a notification that we found something suitable
                 await SendNotification($"Saved a BUY ORDER for: {this.TradeToString(trade)}");
             }
@@ -463,6 +475,13 @@ namespace MachinaTrader.TradeManagers
             // Get the order ID, this is the most important because we need this to check
             // up on our trade. We update the data below later when the final data is present.
             var orderId = Global.Configuration.TradeOptions.PaperTrade ? GetOrderId() : await Global.ExchangeApi.Buy(pair, amount, openRate);
+
+            if (orderId == null)
+            {
+                Global.Logger.Information($"Error to open a BUY Order for: {pair} {amount} {openRate}");
+
+                return null;
+            }
 
             var fullApi = await Global.ExchangeApi.GetFullApi();
             var symbol = await Global.ExchangeApi.ExchangeCurrencyToGlobalCurrency(pair);
@@ -577,7 +596,7 @@ namespace MachinaTrader.TradeManagers
                         trade.StakeAmount = exchangeOrder.OriginalQuantity * exchangeOrder.Price;
                         trade.Quantity = exchangeOrder.OriginalQuantity;
                         trade.OpenRate = exchangeOrder.Price;
-                        trade.OpenDate = exchangeOrder.OrderDate;
+                        trade.OpenDate = Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation? trade.OpenDate : exchangeOrder.OrderDate;
 
                         await SendNotification($"BUY Order is filled: {this.TradeToString(trade)}");
                     }
@@ -627,8 +646,7 @@ namespace MachinaTrader.TradeManagers
                     {
                         candles = await Global.ExchangeApi.GetTickerHistory(trade.Market, Period.Minute, 1);
                     }
-
-
+                    
                     var candle = candles.LastOrDefault();
 
                     //in simulation mode we always fill..
@@ -654,6 +672,8 @@ namespace MachinaTrader.TradeManagers
                         }
                     }
 
+                    await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction() { Amount = (trade.CloseRate.Value * trade.Quantity), Date = DateTime.UtcNow });
+
                     await SendNotification($"Sell Order is filled: {this.TradeToString(trade)}");
                 }
                 else
@@ -669,8 +689,11 @@ namespace MachinaTrader.TradeManagers
                         trade.IsSelling = false;
                         trade.CloseDate = exchangeOrder.OrderDate;
                         trade.CloseRate = exchangeOrder.Price;
-                        trade.CloseProfit = (exchangeOrder.Price * exchangeOrder.OriginalQuantity) - trade.StakeAmount;
-                        trade.CloseProfitPercentage = ((exchangeOrder.Price * exchangeOrder.OriginalQuantity) - trade.StakeAmount) / trade.StakeAmount * 100;
+                        trade.Quantity = exchangeOrder.ExecutedQuantity;
+                        trade.CloseProfit = (exchangeOrder.Price * exchangeOrder.ExecutedQuantity) - trade.StakeAmount;
+                        trade.CloseProfitPercentage = ((exchangeOrder.Price * exchangeOrder.ExecutedQuantity) - trade.StakeAmount) / trade.StakeAmount * 100;
+
+                        await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction() { Amount = (trade.CloseRate.Value * trade.Quantity), Date = DateTime.UtcNow });
 
                         await SendNotification($"Sell Order is filled: {this.TradeToString(trade)}");
                     }

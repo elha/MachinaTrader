@@ -15,6 +15,9 @@ namespace MachinaTrader.Globals.Structure.Interfaces
         Task SaveTradeAsync(Trade trade);
         Task<List<Trade>> GetClosedTradesAsync();
 
+        Task SaveWalletTransactionAsync(WalletTransaction walletTransaction);
+        Task<List<WalletTransaction>> GetWalletTransactionsAsync();
+
         // Trader related methods
         Task<List<Trader>> GetTradersAsync();
         Task<List<Trader>> GetBusyTradersAsync();

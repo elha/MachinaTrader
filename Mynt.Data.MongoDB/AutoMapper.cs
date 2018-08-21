@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using AutoMapper;
 using MachinaTrader.Globals.Structure.Models;
-
 
 namespace Mynt.Data.MongoDB
 {
@@ -40,6 +37,9 @@ namespace Mynt.Data.MongoDB
 
             CreateMap<TradeSignal, TradeSignalAdapter>();
             CreateMap<TradeSignalAdapter, TradeSignal>();
+
+            CreateMap<WalletTransaction, WalletTransactionAdapter>();
+            CreateMap<WalletTransactionAdapter, WalletTransaction>();
         }
     }
 }

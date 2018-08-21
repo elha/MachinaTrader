@@ -13,6 +13,7 @@ namespace Mynt.Data.MongoDB
         public static MongoDbOptions MongoDbOptions;
         private IMongoCollection<TraderAdapter> _traderAdapter;
         private IMongoCollection<TradeAdapter> _ordersAdapter;
+        private IMongoCollection<WalletTransactionAdapter> _walletTransactionsAdapter;
 
         public MongoDbDataStore(MongoDbOptions options)
         {
@@ -21,6 +22,7 @@ namespace Mynt.Data.MongoDB
             _database = _client.GetDatabase("MachinaTrader");
             _ordersAdapter = _database.GetCollection<TradeAdapter>("Orders");
             _traderAdapter = _database.GetCollection<TraderAdapter>("Traders");
+            _walletTransactionsAdapter = _database.GetCollection<WalletTransactionAdapter>("WalletTransactions");
         }
 
         public async Task InitializeAsync()
@@ -70,6 +72,28 @@ namespace Mynt.Data.MongoDB
             {
                 await _ordersAdapter.InsertOneAsync(item);
             }
+        }
+
+        public async Task SaveWalletTransactionAsync(WalletTransaction walletTransaction)
+        {
+            var item = Mapping.Mapper.Map<WalletTransactionAdapter>(walletTransaction);
+            WalletTransactionAdapter checkExist = await _walletTransactionsAdapter.Find(x => x.Id.Equals(item.Id)).FirstOrDefaultAsync();
+            if (checkExist != null)
+            {
+                await _walletTransactionsAdapter.ReplaceOneAsync(x => x.Id.Equals(item.Id), item);
+            }
+            else
+            {
+                await _walletTransactionsAdapter.InsertOneAsync(item);
+            }
+        }
+
+        public async Task<List<WalletTransaction>> GetWalletTransactionsAsync()
+        {
+            var walletTransactions = await _walletTransactionsAdapter.Find(FilterDefinition<WalletTransactionAdapter>.Empty).SortByDescending(s=>s.Date).ToListAsync();
+            var items = Mapping.Mapper.Map<List<WalletTransaction>>(walletTransactions);
+
+            return items;
         }
 
         public async Task SaveTraderAsync(Trader trader)

@@ -13,12 +13,14 @@ namespace Mynt.Data.LiteDB
         private readonly LiteDatabase _database;
         private readonly LiteCollection<TraderAdapter> _traderAdapter;
         private readonly LiteCollection<TradeAdapter> _ordersAdapter;
+        private readonly LiteCollection<WalletTransactionAdapter> _walletTransactionsAdapter;
 
         public LiteDbDataStore(LiteDbOptions options)
         {
             _database = new LiteDatabase(options.LiteDbName);
             _ordersAdapter = _database.GetCollection<TradeAdapter>("Orders");
             _traderAdapter = _database.GetCollection<TraderAdapter>("Traders");
+            _walletTransactionsAdapter = _database.GetCollection<WalletTransactionAdapter>("WalletTransactions");
         }
 
         public async Task InitializeAsync()
@@ -71,6 +73,13 @@ namespace Mynt.Data.LiteDB
             _traderAdapter.Upsert(item);
         }
 
+        public async Task SaveWalletTransactionAsync(WalletTransaction walletTransaction)
+        {
+            var item = Mapping.Mapper.Map<WalletTransactionAdapter>(walletTransaction);
+            WalletTransactionAdapter checkExist = _walletTransactionsAdapter.Find(x => x.Id.Equals(item.Id)).FirstOrDefault();
+            _walletTransactionsAdapter.Upsert(item);
+        }
+
         public async Task SaveTradersAsync(List<Trader> traders)
         {
             var items = Mapping.Mapper.Map<List<TraderAdapter>>(traders);
@@ -97,6 +106,14 @@ namespace Mynt.Data.LiteDB
         {
             var traders = _traderAdapter.FindAll().ToList();
             var items = Mapping.Mapper.Map<List<Trader>>(traders);
+
+            return items;
+        }
+
+        public async Task<List<WalletTransaction>> GetWalletTransactionsAsync()
+        {
+            var walletTransactions = _walletTransactionsAdapter.FindAll().OrderByDescending(s => s.Date).ToList();
+            var items = Mapping.Mapper.Map<List<WalletTransaction>>(walletTransactions);
 
             return items;
         }
