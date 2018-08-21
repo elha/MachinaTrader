@@ -20,6 +20,7 @@ using MachinaTrader.Data.LiteDB;
 using MachinaTrader.Data.MongoDB;
 using MachinaTrader.Exchanges;
 using MachinaTrader.Notifications;
+using MachinaTrader.Backtester;
 
 namespace MachinaTrader
 {
@@ -33,7 +34,7 @@ namespace MachinaTrader
         public static List<INotificationManager> NotificationManagers;
         public static OrderBehavior GlobalOrderBehavior;
         public static ConcurrentDictionary<string, Ticker> WebSocketTickers = new ConcurrentDictionary<string, Ticker>();
-        
+
         public static List<string> GlobalCurrencys = new List<string>();
         public static List<string> ExchangeCurrencys = new List<string>();
     }
@@ -58,16 +59,14 @@ namespace MachinaTrader
                 Global.Logger.Information("Database set to MongoDB");
                 MongoDbOptions databaseOptions = new MongoDbOptions();
                 databaseOptions.MongoUrl = Global.DatabaseConnectionString;
-
                 Global.DataStore = new MongoDbDataStore(databaseOptions);
 
                 // Check DB connection
                 MongoDbCheck(databaseOptions, databaseOptions.MongoDatabaseName);
-                
+
                 // Backtest MongoDB
                 MongoDbOptions backtestDatabaseOptions = new MongoDbOptions();
                 backtestDatabaseOptions.MongoUrl = Global.DatabaseConnectionString;
-
                 Global.DataStoreBacktest = new MongoDbDataStoreBacktest(backtestDatabaseOptions);
             }
             else
@@ -75,9 +74,15 @@ namespace MachinaTrader
                 Global.Logger.Information("Database set to LiteDB");
                 LiteDbOptions databaseOptions = new LiteDbOptions { LiteDbName = Global.DataPath + "/MachinaTrader.db" };
                 Global.DataStore = new LiteDbDataStore(databaseOptions);
+
                 LiteDbOptions backtestDatabaseOptions = new LiteDbOptions { LiteDbName = Global.DataPath + "/MachinaTrader.db" };
                 Global.DataStoreBacktest = new LiteDbDataStoreBacktest(backtestDatabaseOptions);
             }
+
+            //we can set other Datastore in case of simulation
+            var exchangeOption = Global.Configuration.ExchangeOptions.FirstOrDefault();
+            if (exchangeOption.IsSimulation)
+                Global.DataStore = new MemoryDataStore();
 
             // Global Hubs
             Runtime.GlobalHubTraders = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubTraders>>();
@@ -125,11 +130,13 @@ namespace MachinaTrader
                 case Exchange.GdaxSimulation:
                     exchangeOption.Exchange = Exchange.Gdax;
                     Global.ExchangeApi = new BaseExchange(exchangeOption, new ExchangeSimulationApi(new ExchangeGdaxAPI()));
+                    Global.DataStore = new MemoryDataStore();
                     exchangeOption.IsSimulation = true;
                     break;
                 case Exchange.BinanceSimulation:
                     exchangeOption.Exchange = Exchange.Binance;
                     Global.ExchangeApi = new BaseExchange(exchangeOption, new ExchangeSimulationApi(new ExchangeBinanceAPI()));
+                    Global.DataStore = new MemoryDataStore();
                     exchangeOption.IsSimulation = true;
                     break;
                 default:
@@ -189,7 +196,7 @@ namespace MachinaTrader
             var client = new MongoClient(databaseOptions.MongoUrl);
             var database = client.GetDatabase(dbName);
             var isMongoLive = database.RunCommandAsync((Command<BsonDocument>)"{ping:1}").Wait(1000);
-            
+
             while (!isMongoLive)
             {
                 Global.Logger.Error("MongoDB: Connection to {0} FAILED! Waiting for connection", dbName);

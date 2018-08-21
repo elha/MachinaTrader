@@ -49,7 +49,7 @@ namespace MachinaTrader.TradeManagers
         /// <returns></returns>
         public async Task CancelUnboughtOrders()
         {
-            Global.Logger.Information($"Starting CancelUnboughtOrders");
+            //Global.Logger.Information($"Starting CancelUnboughtOrders");
 
             // Only trigger if there are orders still buying.
             var activeTrades = await Global.DataStore.GetActiveTradesAsync();
@@ -98,8 +98,8 @@ namespace MachinaTrader.TradeManagers
         {
             var activeTrades = Global.DataStore.GetActiveTradesAsync().Result.Where(x => !x.IsSelling);  //so IsBuying (pending) and isOpen
 
-            Global.Logger.Information($"Starting SellActiveTradesAgainstStrategies, check {activeTrades.Count()} orders");
-            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+            //Global.Logger.Information($"Starting SellActiveTradesAgainstStrategies, check {activeTrades.Count()} orders");
+            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
             foreach (var trade in activeTrades)
             {
@@ -157,7 +157,7 @@ namespace MachinaTrader.TradeManagers
                     continue;
                 }
 
-                Global.Logger.Information($"Checking sell signal for {this.TradeToString(trade)}");
+                //Global.Logger.Information($"Checking sell signal for {this.TradeToString(trade)}");
 
                 var signal = await GetStrategySignal(trade.Market, strategy);
 
@@ -181,8 +181,8 @@ namespace MachinaTrader.TradeManagers
                     await SendNotification($"Opened a Selling Order by signal: profit {currentProfit} for {this.TradeToString(trade)}");
                 }
             }
-            watch1.Stop();
-            Global.Logger.Warning($"Ended SellActiveTradesAgainstStrategies, checked {activeTrades.Count()} orders in #{watch1.Elapsed.TotalSeconds} seconds");
+            //watch1.Stop();
+            //Global.Logger.Warning($"Ended SellActiveTradesAgainstStrategies, checked {activeTrades.Count()} orders in #{watch1.Elapsed.TotalSeconds} seconds");
         }
 
         /// <summary>
@@ -192,15 +192,15 @@ namespace MachinaTrader.TradeManagers
         /// <returns></returns>
         private async Task<List<TradeSignal>> FindBuyOpportunities(ITradingStrategy strategy)
         {
-            Global.Logger.Information($"Starting FindBuyOpportunities");
-            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+            //Global.Logger.Information($"Starting FindBuyOpportunities");
+            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
             var pairs = new List<TradeSignal>();
 
             // Retrieve our exchange current markets
             var markets = await Global.ExchangeApi.GetMarketSummaries(Global.Configuration.TradeOptions.QuoteCurrency);
 
-            Global.Logger.Information($"Market of exchange {Global.ExchangeApi.GetFullApi().Result.Name}: {markets.Count()}");
+            //Global.Logger.Information($"Market of exchange {Global.ExchangeApi.GetFullApi().Result.Name}: {markets.Count()}");
 
             // Check if there are markets matching our volume.
             markets = markets.Where(x =>
@@ -265,7 +265,7 @@ namespace MachinaTrader.TradeManagers
                 // A match was made, buy that please!
                 if (signal?.TradeAdvice == TradeAdvice.Buy)
                 {
-                    Global.Logger.Information($"Found BUY SIGNAL {signal.SignalCandle.Timestamp} for: {market.MarketName} at {signal.SignalCandle.Close} {Global.Configuration.TradeOptions.QuoteCurrency}");
+                    //Global.Logger.Information($"Found BUY SIGNAL {signal.SignalCandle.Timestamp} for: {market.MarketName} at {signal.SignalCandle.Close} {Global.Configuration.TradeOptions.QuoteCurrency}");
 
                     if (activeTrades.Count() < Global.Configuration.TradeOptions.MaxNumberOfConcurrentTrades)
                     {
@@ -285,8 +285,8 @@ namespace MachinaTrader.TradeManagers
                 }
             };
 
-            watch1.Stop();
-            Global.Logger.Warning($"Ended FindBuyOpportunities in #{watch1.Elapsed.TotalSeconds} seconds");
+            //watch1.Stop();
+            //Global.Logger.Warning($"Ended FindBuyOpportunities in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return pairs;
         }
@@ -299,8 +299,8 @@ namespace MachinaTrader.TradeManagers
         /// <returns></returns>
         private async Task<TradeSignal> GetStrategySignal(string market, ITradingStrategy strategy)
         {
-            Global.Logger.Information($"Starting GetStrategySignal {market}");
-            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+            //Global.Logger.Information($"Starting GetStrategySignal {market}");
+            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
             var minimumDate = strategy.GetMinimumDateTime();
             var candleDate = strategy.GetCurrentCandleDateTime();
@@ -321,7 +321,7 @@ namespace MachinaTrader.TradeManagers
 
             var desiredLastCandleTime = candleDate.AddMinutes(-(strategy.IdealPeriod.ToMinutesEquivalent()));
 
-            Global.Logger.Information("Checking signal for market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
+            //Global.Logger.Information("Checking signal for market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
 
             int k = 1;
 
@@ -332,10 +332,10 @@ namespace MachinaTrader.TradeManagers
                 Thread.Sleep(1000 * k);
 
                 candles = await Global.ExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate, endDate);
-                Global.Logger.Information("R Checking signal for market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
+                //Global.Logger.Information("R Checking signal for market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
             }
 
-            Global.Logger.Information("Checking signal for market {Market} lastCandleTime: {last} , close: {close}", market, candles.Last().Timestamp, candles.Last().Close);
+            //Global.Logger.Information("Checking signal for market {Market} lastCandleTime: {last} , close: {close}", market, candles.Last().Timestamp, candles.Last().Close);
 
             // We eliminate all candles that aren't needed for the dataset incl. the last one (if it's the current running candle).
             candles = candles.Where(x => x.Timestamp >= minimumDate && x.Timestamp < candleDate).ToList();
@@ -371,8 +371,8 @@ namespace MachinaTrader.TradeManagers
             // This calculates an advice for the next timestamp.
             var advice = strategy.Forecast(candles);
 
-            watch1.Stop();
-            Global.Logger.Warning($"Ended FindBuyOpportunities in #{watch1.Elapsed.TotalSeconds} seconds");
+            //watch1.Stop();
+            //Global.Logger.Warning($"Ended FindBuyOpportunities in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return new TradeSignal
             {
@@ -524,7 +524,7 @@ namespace MachinaTrader.TradeManagers
                 Global.Logger.Information("Automatic stop set at signal candle low {Low}", signalCandle.Low.ToString("0.00000000"));
             }
 
-            Global.Logger.Information($"Opened a BUY Order for: {this.TradeToString(trade)}");
+            //Global.Logger.Information($"Opened a BUY Order for: {this.TradeToString(trade)}");
 
             return trade;
         }
@@ -558,15 +558,15 @@ namespace MachinaTrader.TradeManagers
         /// <returns></returns>
         private async Task UpdateOpenBuyOrders()
         {
-            Global.Logger.Information($"Starting UpdateOpenBuyOrders");
-            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+            //Global.Logger.Information($"Starting UpdateOpenBuyOrders");
+            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
             // This means its a buy trade that is waiting to get bought. See if we can update that first.
             var activeTrades = await Global.DataStore.GetActiveTradesAsync();
 
             foreach (var trade in activeTrades.Where(x => x.IsBuying))
             {
-                Global.Logger.Information($"Checking Opened BUY Order {this.TradeToString(trade)}");
+                //Global.Logger.Information($"Checking Opened BUY Order {this.TradeToString(trade)}");
 
                 if (Global.Configuration.TradeOptions.PaperTrade)
                 {
@@ -615,8 +615,8 @@ namespace MachinaTrader.TradeManagers
 
                 await Global.DataStore.SaveTradeAsync(trade);
 
-                watch1.Stop();
-                Global.Logger.Warning($"Ended UpdateOpenBuyOrders in #{watch1.Elapsed.TotalSeconds} seconds");
+                //watch1.Stop();
+                //Global.Logger.Warning($"Ended UpdateOpenBuyOrders in #{watch1.Elapsed.TotalSeconds} seconds");
             }
         }
 
@@ -626,8 +626,8 @@ namespace MachinaTrader.TradeManagers
         /// <returns></returns>
         private async Task UpdateOpenSellOrders()
         {
-            Global.Logger.Information($"Starting UpdateOpenSellOrders");
-            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+            //Global.Logger.Information($"Starting UpdateOpenSellOrders");
+            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
             // There are trades that have an open order ID set & sell order id set
             // that means its a sell trade that is waiting to get sold. See if we can update that first.
@@ -635,7 +635,7 @@ namespace MachinaTrader.TradeManagers
             var activeTrades = await Global.DataStore.GetActiveTradesAsync();
             foreach (var trade in activeTrades.Where(x => x.IsSelling))
             {
-                Global.Logger.Information($"Checking Opened SELL Order {this.TradeToString(trade)}");
+                //Global.Logger.Information($"Checking Opened SELL Order {this.TradeToString(trade)}");
 
                 if (Global.Configuration.TradeOptions.PaperTrade)
                 {
@@ -750,8 +750,8 @@ namespace MachinaTrader.TradeManagers
 
                 await Global.DataStore.SaveTradeAsync(trade);
 
-                watch1.Stop();
-                Global.Logger.Warning($"Ended UpdateOpenSellOrders in #{watch1.Elapsed.TotalSeconds} seconds");
+                //watch1.Stop();
+                //Global.Logger.Warning($"Ended UpdateOpenSellOrders in #{watch1.Elapsed.TotalSeconds} seconds");
             }
         }
 
@@ -761,8 +761,8 @@ namespace MachinaTrader.TradeManagers
         /// <returns></returns>
         private async Task CheckForSellConditions()
         {
-            Global.Logger.Information($"Starting CheckForSellConditions");
-            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+            //Global.Logger.Information($"Starting CheckForSellConditions");
+            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
             // There are trades that have no open order ID set & are still open.
             // that means its a trade that is waiting to get sold. See if we can update that first.
@@ -772,7 +772,7 @@ namespace MachinaTrader.TradeManagers
             var activeTrades = await Global.DataStore.GetActiveTradesAsync();
             foreach (var trade in activeTrades.Where(x => !x.IsSelling && !x.IsBuying))
             {
-                Global.Logger.Information($"Checking sell conditions for Opened position: {this.TradeToString(trade)}");
+                //Global.Logger.Information($"Checking sell conditions for Opened position: {this.TradeToString(trade)}");
 
                 // These are trades that are not being bought or sold at the moment so these need to be checked for sell conditions.
                 var ticker = Global.ExchangeApi.GetTicker(trade.Market).Result;
@@ -799,8 +799,8 @@ namespace MachinaTrader.TradeManagers
                 }
             }
 
-            watch1.Stop();
-            Global.Logger.Warning($"Ended CheckForSellConditions in #{watch1.Elapsed.TotalSeconds} seconds");
+            //watch1.Stop();
+            //Global.Logger.Warning($"Ended CheckForSellConditions in #{watch1.Elapsed.TotalSeconds} seconds");
         }
 
         /// <summary>
@@ -814,7 +814,7 @@ namespace MachinaTrader.TradeManagers
         {
             var currentProfit = (ticker.Bid - trade.OpenRate) / trade.OpenRate;
 
-            Global.Logger.Information($"Should sell? profit {(currentProfit * 100).ToString("0.00")} {this.TradeToString(trade)}");
+            //Global.Logger.Information($"Should sell? profit {(currentProfit * 100).ToString("0.00")} {this.TradeToString(trade)}");
 
             var activeTrades = await Global.DataStore.GetActiveTradesAsync();
             var tradeToUpdate = activeTrades.FirstOrDefault(x => x.TradeId == trade.TradeId);
@@ -890,11 +890,11 @@ namespace MachinaTrader.TradeManagers
 
         private async Task SendNotification(string message)
         {
-            Global.Logger.Information(message);
+            //Global.Logger.Information(message);
 
             if (Runtime.NotificationManagers != null)
                 foreach (var notificationManager in Runtime.NotificationManagers)
-                    await notificationManager.SendNotification(message);
+                    notificationManager.SendNotification(message);
         }
 
         private string TradeToString(Trade trade)

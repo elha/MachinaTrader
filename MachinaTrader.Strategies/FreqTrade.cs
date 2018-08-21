@@ -15,8 +15,8 @@ namespace MachinaTrader.Strategies
 
         public override List<TradeAdvice> Prepare(List<Candle> candles)
         {
-            Global.Logger.Information($"Starting FreqTrade");
-            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+            //Global.Logger.Information($"Starting FreqTrade");
+            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
             var result = new List<TradeAdvice>();
 
@@ -69,8 +69,8 @@ namespace MachinaTrader.Strategies
             //    }
             //}
 
-            watch1.Stop();
-            Global.Logger.Warning($"Ended FreqTrade in #{watch1.Elapsed.TotalSeconds} seconds");
+            //watch1.Stop();
+            //Global.Logger.Warning($"Ended FreqTrade in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return result;
         }

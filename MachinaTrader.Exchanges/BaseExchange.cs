@@ -36,7 +36,6 @@ namespace MachinaTrader.Exchanges
             {
                 apiKey = configuration.GetSection("Exchanges").GetSection(exchange).GetValue<string>("ApiKey");
                 apiSecret = configuration.GetSection("Exchanges").GetSection(exchange).GetValue<string>("ApiSecret");
-
             }
             else
             {
@@ -147,10 +146,7 @@ namespace MachinaTrader.Exchanges
 
         public async Task<List<MarketSummary>> GetMarketSummaries(string quoteCurrency)
         {
-            Global.Logger.Information($"Starting GetMarketSummaries {quoteCurrency}");
-            var watch1 = System.Diagnostics.Stopwatch.StartNew();
-
-            var result = new List<MarketSummary>();
+             var result = new List<MarketSummary>();
 
             if (_exchange == Exchange.Huobi || _exchange == Exchange.Okex || _exchange == Exchange.Gdax || _exchange == Exchange.GdaxSimulation)
             {
@@ -177,9 +173,6 @@ namespace MachinaTrader.Exchanges
                     }
                 }
             }
-
-            watch1.Stop();
-            Global.Logger.Warning($"Ended GetMarketSummaries {quoteCurrency} in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return result;
         }
@@ -511,9 +504,6 @@ namespace MachinaTrader.Exchanges
 
         private async Task<List<MarketSummary>> GetExtendedMarketSummaries(string quoteCurrency)
         {
-            Global.Logger.Information($"Starting GetExtendedMarketSummaries");
-            var watch1 = System.Diagnostics.Stopwatch.StartNew();
-
             var summaries = new List<MarketSummary>();
 
             var symbolsCacheKey = this._exchange + "Markets";
@@ -555,9 +545,6 @@ namespace MachinaTrader.Exchanges
                     });
                 }
             });
-
-            watch1.Stop();
-            Global.Logger.Error($"Ended GetExtendedMarketSummaries in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return summaries;
         }

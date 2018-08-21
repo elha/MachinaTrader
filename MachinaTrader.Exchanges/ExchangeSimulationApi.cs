@@ -16,12 +16,15 @@ namespace MachinaTrader.Exchanges
 
         private readonly ExchangeAPI _realApi;
 
+        private Dictionary<DateTime, decimal> _wallet = new Dictionary<DateTime, decimal>();
+        private List<ExchangeOrderResult> _orders = new List<ExchangeOrderResult>();
+
         public ExchangeSimulationApi(ExchangeAPI realApi)
         {
             _realApi = realApi;
 
 #warning TODO: get from configuration
-            wallet.Add(DateTime.UtcNow, 500);
+            _wallet.Add(DateTime.UtcNow, 500);
         }
 
         protected override async Task<IEnumerable<KeyValuePair<string, ExchangeTicker>>> OnGetTickersAsync()
@@ -55,8 +58,8 @@ namespace MachinaTrader.Exchanges
 
         protected override async Task<IEnumerable<MarketCandle>> OnGetCandlesAsync(string symbol, int periodSeconds, DateTime? startDate = null, DateTime? endDate = null, int? limit = null)
         {
-            Global.Logger.Information($"Starting OnGetCandlesAsync {symbol}");
-            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+            //Global.Logger.Information($"Starting OnGetCandlesAsync {symbol}");
+            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
             var candles = new List<MarketCandle>();
 
@@ -91,23 +94,23 @@ namespace MachinaTrader.Exchanges
                 }
             }
 
-            watch1.Stop();
-            Global.Logger.Warning($"Ended OnGetCandlesAsync {symbol} in #{watch1.Elapsed.TotalSeconds} seconds");
+            //watch1.Stop();
+            //Global.Logger.Warning($"Ended OnGetCandlesAsync {symbol} in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return candles;
         }
 
         protected override async Task<IEnumerable<ExchangeMarket>> OnGetSymbolsMetadataAsync()
         {
-            Global.Logger.Information($"Starting OnGetSymbolsMetadataAsync");
-            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+            //Global.Logger.Information($"Starting OnGetSymbolsMetadataAsync");
+            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
             var markets = Global.AppCache.GetOrAdd(_realApi.Name, async (a) => await _realApi.GetSymbolsMetadataAsync());
             if (markets.Result.Count() == 0)
                 throw new Exception();
 
-            watch1.Stop();
-            Global.Logger.Warning($"Ended OnGetSymbolsMetadataAsync in #{watch1.Elapsed.TotalSeconds} seconds");
+            //watch1.Stop();
+            //Global.Logger.Warning($"Ended OnGetSymbolsMetadataAsync in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return markets.Result;
         }
@@ -119,8 +122,8 @@ namespace MachinaTrader.Exchanges
 
         private ExchangeTicker GetExchangeTicker(string symbol)
         {
-            Global.Logger.Information($"Starting GetExchangeTicker {symbol}");
-            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+            //Global.Logger.Information($"Starting GetExchangeTicker {symbol}");
+            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
             var candles = Global.AppCache.Get<List<Candle>>(_realApi.Name + symbol + "1");
             if (candles == null)
@@ -149,8 +152,8 @@ namespace MachinaTrader.Exchanges
                 }
             };
 
-            watch1.Stop();
-            Global.Logger.Warning($"Ended GetExchangeTicker {symbol} in #{watch1.Elapsed.TotalSeconds} seconds");
+            //watch1.Stop();
+            //Global.Logger.Warning($"Ended GetExchangeTicker {symbol} in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return ticker;
         }
@@ -158,35 +161,29 @@ namespace MachinaTrader.Exchanges
         public override string ExchangeSymbolToGlobalSymbol(string symbol)
         {
             string[] pieces = symbol.Split('-');
-
             return pieces.First() + pieces.Last();
         }
 
-
-
-
-        private Dictionary<DateTime, decimal> wallet = new Dictionary<DateTime, decimal>();
-        private List<ExchangeOrderResult> orders = new List<ExchangeOrderResult>();
-
+     
         protected override async Task<ExchangeOrderResult> OnGetOrderDetailsAsync(string orderId, string symbol = null)
         {
-            return orders.Where(o => o.OrderId == orderId).FirstOrDefault();
+            return _orders.Where(o => o.OrderId == orderId).FirstOrDefault();
         }
 
         protected override async Task OnCancelOrderAsync(string orderId, string symbol = null)
         {
-            orders.RemoveAll(o => o.OrderId == orderId);
+            _orders.RemoveAll(o => o.OrderId == orderId);
         }
 
         protected override async Task<ExchangeOrderResult> OnPlaceOrderAsync(ExchangeOrderRequest order)
         {
             if (order.IsBuy)
             {
-                wallet.Add(DateTime.UtcNow, -(order.Price * order.Amount));
+                _wallet.Add(DateTime.UtcNow, -(order.Price * order.Amount));
             }
             else
             {
-                wallet.Add(DateTime.UtcNow, order.Price * order.Amount);
+                _wallet.Add(DateTime.UtcNow, order.Price * order.Amount);
             }
 
             var orderResult = new ExchangeOrderResult()
@@ -205,7 +202,7 @@ namespace MachinaTrader.Exchanges
                 FeesCurrency = ""
             };
 
-            orders.Add(orderResult);
+            _orders.Add(orderResult);
 
             return orderResult;
         }
@@ -215,40 +212,13 @@ namespace MachinaTrader.Exchanges
             var balances = new Dictionary<string, decimal>();
 
             decimal balance = 0m;
-            foreach (var item in wallet)
+            foreach (var item in _wallet)
             {
                 balance = balance + item.Value;
             }
 
             balances.Add(Global.Configuration.TradeOptions.QuoteCurrency, balance);
             return balances;
-        }
-
-
-
-
-
-
-        public async Task<IEnumerable<ExchangeOrderResult>> GetOpenOrderDetailsAsync(string symbol = null)
-        {
-            var orders = new List<ExchangeOrderResult>();
-
-            var o = new ExchangeOrderResult()
-            {
-
-            };
-
-            return orders;
-        }
-
-        public async Task<ExchangeOrderBook> GetOrderBookAsync(string symbol, int maxCount = 100)
-        {
-            var result = new ExchangeOrderBook()
-            {
-
-            };
-
-            return result;
         }
     }
 }
