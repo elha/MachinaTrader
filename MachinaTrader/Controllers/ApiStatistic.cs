@@ -68,8 +68,7 @@ namespace MachinaTrader.Controllers
 
             for (int i = 0; i < items.Count; i++)
             {
-#warning TODO: get from configuration
-                decimal balance = 500m;
+                decimal balance = Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationStartingWallet;
                 for (int j = i; j >= 0; j--)
                 {
                     balance = balance + items[j].Amount;

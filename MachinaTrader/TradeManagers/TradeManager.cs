@@ -35,7 +35,7 @@ namespace MachinaTrader.TradeManagers
                 strategy = Activator.CreateInstance(type) as ITradingStrategy ?? new TheScalper();
             }
 
-            Global.Logger.Information($"Looking for trades using {strategy.Name}");
+            //Global.Logger.Information($"Looking for trades using {strategy.Name}");
 
             // Check active trades against our strategy.
             await SellActiveTrades(strategy);
@@ -178,7 +178,7 @@ namespace MachinaTrader.TradeManagers
 
                     await Global.DataStore.SaveTradeAsync(trade);
 
-                    await SendNotification($"Opened a Selling Order by signal: profit {currentProfit} for {this.TradeToString(trade)}");
+                    await SendNotification($"Opened a Selling Order by signal: profit {currentProfit.ToString("p1")} for {this.TradeToString(trade)}");
                 }
             }
             //watch1.Stop();
@@ -250,11 +250,11 @@ namespace MachinaTrader.TradeManagers
             //        TradeAdvice = TradeAdvice.StrongBuy,
             //        SignalCandle = externalCandle
             //    }, strategy);
-            //    Global.Logger.Information("Match signal -> Buying " + "LINKBTC");
+            //    //Global.Logger.Information("Match signal -> Buying " + "LINKBTC");
             //}
             //else
             //{
-            //    Global.Logger.Information("Too Many Trades: Ignore Match signal " + "LINKBTC");
+            //    //Global.Logger.Information("Too Many Trades: Ignore Match signal " + "LINKBTC");
             //}
             /******************************/
 
@@ -323,6 +323,9 @@ namespace MachinaTrader.TradeManagers
 
             //Global.Logger.Information("Checking signal for market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
 
+            if (!candles.Any())
+                return null;
+
             int k = 1;
 
             //on simulation, if we dont have candles we have to re-check our DB data..
@@ -332,10 +335,13 @@ namespace MachinaTrader.TradeManagers
                 Thread.Sleep(1000 * k);
 
                 candles = await Global.ExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate, endDate);
-                //Global.Logger.Information("R Checking signal for market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
+                Global.Logger.Information("R Checking signal for market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
             }
 
             //Global.Logger.Information("Checking signal for market {Market} lastCandleTime: {last} , close: {close}", market, candles.Last().Timestamp, candles.Last().Close);
+
+            if (!candles.Any())
+                return null;
 
             // We eliminate all candles that aren't needed for the dataset incl. the last one (if it's the current running candle).
             candles = candles.Where(x => x.Timestamp >= minimumDate && x.Timestamp < candleDate).ToList();
@@ -343,7 +349,7 @@ namespace MachinaTrader.TradeManagers
             // Not enough candles to perform what we need to do.
             if (candles.Count < strategy.MinimumAmountOfCandles)
             {
-                Global.Logger.Warning("Not enough candle data for {Market}...", market);
+                //Global.Logger.Warning("Not enough candle data for {Market}...", market);
                 return new TradeSignal
                 {
                     TradeAdvice = TradeAdvice.Hold,
@@ -429,14 +435,13 @@ namespace MachinaTrader.TradeManagers
                 currentQuoteBalance = exchangeQuoteBalance.Available;
             }
 
-            // Do we even have enough funds to invest?
-            if (currentQuoteBalance < Global.Configuration.TradeOptions.AmountToInvestPerTrader)
+            // Do we even have enough funds to invest? (only for SetAside; if you choose Reinvest we push a %) 
+            if (Global.Configuration.TradeOptions.ProfitStrategy == ProfitType.SetAside && currentQuoteBalance < Global.Configuration.TradeOptions.AmountToInvestPerTrader)
             {
                 Global.Logger.Warning("Insufficient funds ({Available}) to perform a {MarketName} trade. Skipping this trade.", currentQuoteBalance, signal.MarketName);
                 return;
             }
 
-            //var trade = await CreateBuyOrder(signal.MarketName, signal.SignalCandle, strategy);
             var trade = await CreateBuyOrder(signal, strategy);
 
             // We found a trade and have set it all up!
@@ -475,7 +480,7 @@ namespace MachinaTrader.TradeManagers
             if (Global.Configuration.TradeOptions.ProfitStrategy == ProfitType.Reinvest)
             {
                 var exchangeQuoteBalance = Global.ExchangeApi.GetBalance(signal.QuoteCurrency).Result.Available;
-                fichesToSpend = exchangeQuoteBalance * 25 / 100;
+                fichesToSpend = exchangeQuoteBalance * Global.Configuration.TradeOptions.AmountToReinvestPercentage / 100;
             }
 
             // The amount here is an indication and will probably not be precisely what you get.
@@ -489,8 +494,7 @@ namespace MachinaTrader.TradeManagers
 
             if (orderId == null)
             {
-                Global.Logger.Information($"Error to open a BUY Order for: {pair} {amount} {openRate}");
-
+                Global.Logger.Error($"Error to open a BUY Order for: {pair} {amount} {openRate}");
                 return null;
             }
 
@@ -827,7 +831,7 @@ namespace MachinaTrader.TradeManagers
             // Let's not do a stoploss for now...
             if (currentProfit < Global.Configuration.TradeOptions.StopLossPercentage)
             {
-                Global.Logger.Information("Stop loss hit: {StopLoss}%", Global.Configuration.TradeOptions.StopLossPercentage);
+                //Global.Logger.Information("Stop loss hit: {StopLoss}%", Global.Configuration.TradeOptions.StopLossPercentage);
                 return SellType.StopLoss;
             }
 
@@ -843,7 +847,7 @@ namespace MachinaTrader.TradeManagers
 
                     if (timeDiff > item.Duration && currentProfit > item.Profit)
                     {
-                        Global.Logger.Information("Timer hit: {TimeDifference} mins, profit {Profit}%", timeDiff, item.Profit.ToString("0.00"));
+                        //Global.Logger.Information("Timer hit: {TimeDifference} mins, profit {Profit}%", timeDiff, item.Profit.ToString("0.00"));
                         return SellType.Timed;
                     }
                 }

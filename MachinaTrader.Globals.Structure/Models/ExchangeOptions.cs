@@ -13,5 +13,7 @@ namespace MachinaTrader.Globals.Structure.Models
         public DateTime SimulationCurrentDate { get; set; }
         public bool IsSimulation { get; set; }
         public string SimulationCandleSize { get; set; } = "15";
+
+        public decimal SimulationStartingWallet { get; set; } = 0.2m;
     }
 }

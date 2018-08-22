@@ -53,8 +53,13 @@ namespace MachinaTrader.Backtester
             var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
             var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == Global.Configuration.TradeOptions.QuoteCurrency);
+
+            // If there are items on the only trade list remove the rest
+            if (Global.Configuration.TradeOptions.OnlyTradeList.Count > 0)
+                exchangeCoins = exchangeCoins.Where(m => Global.Configuration.TradeOptions.OnlyTradeList.Any(c => c.Contains(m.MarketName))).ToList();
+
             var currentExchangeOption = Global.Configuration.ExchangeOptions.FirstOrDefault();
-            
+
             IExchangeAPI realExchange = ExchangeAPI.GetExchangeAPI(api.Name);
 
             foreach (var coin in exchangeCoins)
@@ -71,6 +76,11 @@ namespace MachinaTrader.Backtester
                     Coin = symbol,
                     CandlePeriod = Int32.Parse(currentExchangeOption.SimulationCandleSize)
                 };
+
+                var key1 = api.Name + backtestOptions.Coin + backtestOptions.CandlePeriod;
+                if (Global.AppCache.Get<List<Candle>>(key1) != null)
+                    continue;
+
                 Candle databaseFirstCandle = Global.DataStoreBacktest.GetBacktestFirstCandle(backtestOptions).Result;
                 Candle databaseLastCandle = Global.DataStoreBacktest.GetBacktestLastCandle(backtestOptions).Result;
 
@@ -86,9 +96,14 @@ namespace MachinaTrader.Backtester
                 Global.AppCache.Remove(backtestOptions.Coin + backtestOptions.CandlePeriod);
                 Global.AppCache.Add(api.Name + backtestOptions.Coin + backtestOptions.CandlePeriod, _candle15, new MemoryCacheEntryOptions());
 
-
+                Global.Logger.Information($"   Cached {key1}");
 
                 backtestOptions.CandlePeriod = 1;
+
+                var key2 = api.Name + backtestOptions.Coin + backtestOptions.CandlePeriod;
+                if (Global.AppCache.Get<List<Candle>>(key2) != null)
+                    continue;
+
                 Candle database1FirstCandle = Global.DataStoreBacktest.GetBacktestFirstCandle(backtestOptions).Result;
                 Candle database1LastCandle = Global.DataStoreBacktest.GetBacktestLastCandle(backtestOptions).Result;
 
@@ -102,6 +117,8 @@ namespace MachinaTrader.Backtester
 
                 Global.AppCache.Remove(backtestOptions.Coin + backtestOptions.CandlePeriod);
                 Global.AppCache.Add(api.Name + backtestOptions.Coin + backtestOptions.CandlePeriod, _candle1, new MemoryCacheEntryOptions());
+
+                Global.Logger.Information($"   Cached {key2}");
             }
 
             watch1.Stop();

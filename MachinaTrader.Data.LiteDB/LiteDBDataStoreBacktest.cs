@@ -181,7 +181,7 @@ namespace MachinaTrader.Data.LiteDB
         {
             var itemCollection = DataStoreBacktest.GetInstance(GetDatabase(backtestOptions)).GetTable<TradeSignalAdapter>("Signals_" + backtestOptions.CandlePeriod);
             itemCollection.EnsureIndex("StrategyName");
-            var items = itemCollection.Find(Query.Where("StrategyName", s => s.AsString == strategy)).ToList();
+            var items = itemCollection.Find(Query.Where("StrategyName", s => s.AsString == strategy), Query.Descending).ToList();
             var result = Mapping.Mapper.Map<List<TradeSignal>>(items);
             return result;
         }

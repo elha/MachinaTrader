@@ -154,13 +154,20 @@ namespace MachinaTrader.Exchanges
             }
             else
             {
+                Global.Logger.Information($"Starting GetMarketSummaries _api.GetTickersAsync()");
+                var watch1 = System.Diagnostics.Stopwatch.StartNew();
+
                 var summaries = _api.GetTickersAsync().Result;
+
+                watch1.Stop();
+                Global.Logger.Warning($"Ended GetMarketSummaries _api.GetTickersAsync() in #{watch1.Elapsed.TotalSeconds} seconds");
 
                 if (summaries.Any())
                 {
                     foreach (var summary in summaries)
                     {
                         var info = await GetSymbolInfo(summary.Key);
+
                         result.Add(new MarketSummary()
                         {
                             CurrencyPair = new CurrencyPair() { BaseCurrency = info.MarketCurrency, QuoteCurrency = info.BaseCurrency },
@@ -263,16 +270,19 @@ namespace MachinaTrader.Exchanges
 
         public async Task<List<Candle>> GetTickerHistory(string market, Period period, DateTime startDate, DateTime? endDate = null)
         {
-            IEnumerable<MarketCandle> ticker = new List<MarketCandle>();
+            IEnumerable<MarketCandle> tickers = new List<MarketCandle>();
 
             int k = 1;
 
-            while (ticker.Count() <= 0 && k < 20)
+            if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+                k = 19;
+
+            while (tickers.Count() <= 0 && k < 20)
             {
                 k++;
                 try
                 {
-                    ticker = await _api.GetCandlesAsync(market, period.ToMinutesEquivalent() * 60, startDate, endDate);
+                    tickers = await _api.GetCandlesAsync(market, period.ToMinutesEquivalent() * 60, startDate, endDate);
                 }
                 catch (Exception ex)
                 {
@@ -281,18 +291,37 @@ namespace MachinaTrader.Exchanges
                 }
             }
 
-            if (ticker.Any())
-                return ticker.Select(x => new Candle
-                {
-                    Close = x.ClosePrice,
-                    High = x.HighPrice,
-                    Low = x.LowPrice,
-                    Open = x.OpenPrice,
-                    Timestamp = x.Timestamp,
-                    Volume = (decimal)x.ConvertedVolume
-                }).ToList();
+            var candles = new List<Candle>();
 
-            return new List<Candle>();
+            foreach (var item in tickers)
+            {
+                if (item != null)
+                {
+                    try
+                    {
+                        var candle = new Candle();
+
+                        candle.Close = item.ClosePrice;
+                        candle.High = item.HighPrice;
+                        candle.Low = item.LowPrice;
+                        candle.Open = item.OpenPrice;
+                        candle.Timestamp = item.Timestamp;
+                        candle.Volume = (decimal)item.ConvertedVolume;
+
+                        candles.Add(candle);
+                    }
+                    catch (Exception ex)
+                    {
+                        Global.Logger.Error(ex, $"Error on GetTickerHistory {item} {tickers}");
+                    }
+                }
+                else
+                {
+                    Global.Logger.Warning($"Error ticker is null {tickers}");
+                }
+            }
+
+            return candles;
         }
 
         public async Task<List<Candle>> GetTickerHistory(string market, Period period, int length)
@@ -479,7 +508,9 @@ namespace MachinaTrader.Exchanges
                 var result = (await _api.GetSymbolsMetadataAsync()).ToList();
                 _exchangeInfo = result;
             }
+
             var eSymbol = _api.GlobalSymbolToExchangeSymbol(symbol);
+
             return _exchangeInfo.FirstOrDefault(x => x.MarketName == eSymbol);
         }
 
@@ -523,28 +554,28 @@ namespace MachinaTrader.Exchanges
             var list = await _api.GetSymbolsAsync();
             var filteredList = list.Where(x => x.ToLower().EndsWith(quoteCurrency.ToLower(), StringComparison.Ordinal));
 
-            await filteredList.ForEachAsync(async item =>
+            foreach (var item in filteredList)
             {
                 var ticker = await _api.GetTickerAsync(item);
 
-                if (ticker == null)
-                    return;
-
-                var symbol = symbols.FirstOrDefault(x => x.MarketName == item);
-
-                if (symbol != null)
+                if (ticker != null)
                 {
-                    summaries.Add(new MarketSummary()
+                    var symbol = symbols.FirstOrDefault(x => x.MarketName == item);
+
+                    if (symbol != null)
                     {
-                        CurrencyPair = new CurrencyPair() { BaseCurrency = symbol.MarketCurrency, QuoteCurrency = symbol.BaseCurrency },
-                        MarketName = item,
-                        Ask = ticker.Ask,
-                        Bid = ticker.Bid,
-                        Last = ticker.Last,
-                        Volume = ticker.Volume.ConvertedVolume,
-                    });
+                        summaries.Add(new MarketSummary()
+                        {
+                            CurrencyPair = new CurrencyPair() { BaseCurrency = symbol.MarketCurrency, QuoteCurrency = symbol.BaseCurrency },
+                            MarketName = item,
+                            Ask = ticker.Ask,
+                            Bid = ticker.Bid,
+                            Last = ticker.Last,
+                            Volume = ticker.Volume.ConvertedVolume,
+                        });
+                    }
                 }
-            });
+            }
 
             return summaries;
         }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MachinaTrader.Globals.Structure.Models;
+using MachinaTrader.Globals.Helpers;
 
 namespace MachinaTrader.Exchanges
 {
@@ -23,8 +24,7 @@ namespace MachinaTrader.Exchanges
         {
             _realApi = realApi;
 
-#warning TODO: get from configuration
-            _wallet.Add(DateTime.UtcNow, 500);
+            _wallet.Add(DateTime.UtcNow, Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationStartingWallet);
         }
 
         protected override async Task<IEnumerable<KeyValuePair<string, ExchangeTicker>>> OnGetTickersAsync()
@@ -35,18 +35,20 @@ namespace MachinaTrader.Exchanges
             var listOfMakert = new List<string>();
 
             var exchangeCoins = this.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == Global.Configuration.TradeOptions.QuoteCurrency);
-            foreach (var coin in exchangeCoins)
+            foreach (var item in exchangeCoins)
             {
-                listOfMakert.Add(this.ExchangeSymbolToGlobalSymbol(coin.MarketName));
+                listOfMakert.Add(this.ExchangeSymbolToGlobalSymbol(item.MarketName));
             }
 
-            foreach (var symbol in listOfMakert)
-            {
-                var ticker = GetExchangeTicker(symbol);
-                if (ticker == null)
-                    continue;
+            var currentDate = Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
 
-                tickers.Add(new KeyValuePair<string, ExchangeTicker>(symbol, ticker));
+            foreach (var item in listOfMakert)
+            {
+                var ticker = GetExchangeTicker(item, currentDate);
+                if (ticker != null)
+                {
+                    tickers.Add(new KeyValuePair<string, ExchangeTicker>(item, ticker));
+                }
             }
 
             return tickers;
@@ -59,9 +61,6 @@ namespace MachinaTrader.Exchanges
 
         protected override async Task<IEnumerable<MarketCandle>> OnGetCandlesAsync(string symbol, int periodSeconds, DateTime? startDate = null, DateTime? endDate = null, int? limit = null)
         {
-            //Global.Logger.Information($"Starting OnGetCandlesAsync {symbol}");
-            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
-
             var candles = new List<MarketCandle>();
 
             var cachedCandles = Global.AppCache.Get<List<Candle>>(_realApi.Name + symbol + Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCandleSize);
@@ -70,70 +69,50 @@ namespace MachinaTrader.Exchanges
 
             var items = cachedCandles.Where(c => c.Timestamp > startDate.Value && c.Timestamp <= endDate.Value).ToList();
 
-            foreach (Candle item in items)
+            Global.Logger.Information($"Starting OnGetCandlesAsync {symbol} {items.Count()}");
+            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+
+            var tasks = new List<Task>();
+            foreach (var item in items)
             {
-                try
-                {
-                    var marketCandle = new MarketCandle();
-                    marketCandle.ClosePrice = item.Close.ConvertInvariant<decimal>();
-                    marketCandle.ExchangeName = Name;
-                    marketCandle.HighPrice = item.High.ConvertInvariant<decimal>();
-                    marketCandle.LowPrice = item.Low.ConvertInvariant<decimal>();
-                    marketCandle.Name = symbol;
-                    marketCandle.OpenPrice = item.Open.ConvertInvariant<decimal>();
-                    marketCandle.PeriodSeconds = periodSeconds;
-                    marketCandle.Timestamp = item.Timestamp;
-                    marketCandle.BaseVolume = item.Volume.ConvertInvariant<double>();
-                    marketCandle.ConvertedVolume = (item.Volume * item.Close).ConvertInvariant<double>();
-                    marketCandle.WeightedAverage = 0m;
+                //tasks.Add(Task.Run(async () =>
+                //{
+                    try
+                    {
+                        var marketCandle = new MarketCandle();
+                        marketCandle.ClosePrice = item.Close.ConvertInvariant<decimal>();
+                        marketCandle.ExchangeName = Name;
+                        marketCandle.HighPrice = item.High.ConvertInvariant<decimal>();
+                        marketCandle.LowPrice = item.Low.ConvertInvariant<decimal>();
+                        marketCandle.Name = symbol;
+                        marketCandle.OpenPrice = item.Open.ConvertInvariant<decimal>();
+                        marketCandle.PeriodSeconds = periodSeconds;
+                        marketCandle.Timestamp = item.Timestamp;
+                        marketCandle.BaseVolume = item.Volume.ConvertInvariant<double>();
+                        marketCandle.ConvertedVolume = (item.Volume * item.Close).ConvertInvariant<double>();
+                        marketCandle.WeightedAverage = 0m;
 
-                    candles.Add(marketCandle);
-                }
-                catch (Exception ex)
-                {
-                    throw;
-                }
+                        candles.Add(marketCandle);
+                    }
+                    catch (Exception ex)
+                    {
+                        Global.Logger.Error(ex, $"Error on create MarketCandle {item}");
+                    }
+                //}));
             }
+            //await Task.WhenAll(tasks);           
 
-            //watch1.Stop();
-            //Global.Logger.Warning($"Ended OnGetCandlesAsync {symbol} in #{watch1.Elapsed.TotalSeconds} seconds");
+            watch1.Stop();
+            Global.Logger.Warning($"Ended OnGetCandlesAsync {symbol} {candles.Count()} in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return candles;
         }
 
         protected override async Task<IEnumerable<ExchangeMarket>> OnGetSymbolsMetadataAsync()
         {
-            ////Global.Logger.Information($"Starting OnGetSymbolsMetadataAsync");
-            ////var watch1 = System.Diagnostics.Stopwatch.StartNew();
-
-            //var markets = Global.AppCache.GetOrAdd(_realApi.Name, (a) =>
-            //{
-            //    var dd = _realApi.GetSymbolsMetadataAsync().Result;
-
-            //    foreach (var item in dd)
-            //    {
-            //        item.MarketName = (item.MarketCurrency + '-' + item.BaseCurrency);
-            //    }
-            //    return dd;
-            //});
-
-            //if (markets.Count() == 0)
-            //    throw new Exception();
-
-            ////watch1.Stop();
-            ////Global.Logger.Warning($"Ended OnGetSymbolsMetadataAsync in #{watch1.Elapsed.TotalSeconds} seconds");
-
-            //return markets;
-
-
-
-
             var markets = Global.AppCache.GetOrAdd(_realApi.Name, async (a) => await _realApi.GetSymbolsMetadataAsync());
             if (markets.Result.Count() == 0)
                 throw new Exception();
-
-            //watch1.Stop();
-            //Global.Logger.Warning($"Ended OnGetSymbolsMetadataAsync in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return markets.Result;
         }
@@ -143,21 +122,17 @@ namespace MachinaTrader.Exchanges
             return (await GetSymbolsMetadataAsync()).Select(market => market.MarketName);
         }
 
-        private ExchangeTicker GetExchangeTicker(string symbol)
-        {
-            //Global.Logger.Information($"Starting GetExchangeTicker {symbol}");
-            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
+        private ExchangeTicker GetExchangeTicker(string symbol, DateTime? currentDate = null)
+        {
             var candles = Global.AppCache.Get<List<Candle>>(_realApi.Name + symbol + "1");
             if (candles == null)
                 return null;
 
-            candles = candles.Where(c => c.Timestamp <= Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate).ToList();
+            if (currentDate == null)
+                currentDate = Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
 
-            if (candles == null || !candles.Any())
-                return null;
-
-            var lastCandle = candles.Last();
+            var lastCandle = candles.LastOrDefault(c => c.Timestamp <= currentDate);
 
             if (lastCandle == null)
                 return null;
@@ -177,9 +152,6 @@ namespace MachinaTrader.Exchanges
                     Timestamp = lastCandle.Timestamp
                 }
             };
-
-            //watch1.Stop();
-            //Global.Logger.Warning($"Ended GetExchangeTicker {symbol} in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return ticker;
         }
@@ -206,11 +178,11 @@ namespace MachinaTrader.Exchanges
 
             return symbol;
         }
-        
+
 
         protected override async Task<ExchangeOrderResult> OnGetOrderDetailsAsync(string orderId, string symbol = null)
         {
-            return _orders.Where(o => o.OrderId == orderId).FirstOrDefault();
+            return _orders.FirstOrDefault(o => o.OrderId == orderId);
         }
 
         protected override async Task OnCancelOrderAsync(string orderId, string symbol = null)

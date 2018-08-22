@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MachinaTrader.Globals;
 using MachinaTrader.Globals.Structure.Interfaces;
@@ -70,8 +71,10 @@ namespace MachinaTrader.Data.MongoDB
             {
                 IMongoCollection<CandleAdapter> candleCollection = DataStoreBacktest.GetInstance(MongoDbBaseName + backtestOptions.CandlePeriod).GetTable<CandleAdapter>(backtestOptions.Exchange + "_" + backtestOptions.Coin);
                 List<CandleAdapter> candles = await candleCollection.Find(entry => entry.Timestamp >= backtestOptions.StartDate && entry.Timestamp <= backtestOptions.EndDate).ToListAsync();
-                var items = Mapping.Mapper.Map<List<Candle>>(candles);
 
+#warning TODO: Sort operation used more than the maximum 33554432 bytes of RAM. Add an index, or specify a smaller limit=> temporarly order by LINQ
+
+                var items = Mapping.Mapper.Map<List<Candle>>(candles).OrderBy(c=>c.Timestamp).ToList();
                 return items;
             }
             catch (Exception ex)
@@ -167,7 +170,10 @@ namespace MachinaTrader.Data.MongoDB
         {
             IMongoCollection<TradeSignalAdapter> itemCollection = DataStoreBacktest.GetInstance("Signals_" + MongoDbBaseName + backtestOptions.CandlePeriod).GetTable<TradeSignalAdapter>(backtestOptions.Exchange + "_" + backtestOptions.Coin);
             var items = await itemCollection.Find(entry => entry.StrategyName == strategy).ToListAsync();
-            var result = Mapping.Mapper.Map<List<TradeSignal>>(items);
+
+#warning TODO: Sort operation used more than the maximum 33554432 bytes of RAM. Add an index, or specify a smaller limit=> temporarly order by LINQ
+
+            var result = Mapping.Mapper.Map<List<TradeSignal>>(items).OrderBy(c => c.Timestamp).ToList();
             return result;
         }
 

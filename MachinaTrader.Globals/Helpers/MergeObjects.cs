@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -58,13 +59,28 @@ namespace MachinaTrader.Globals.Helpers
 
     public static class ParallelUtility
     {
-        //public static Task ForEachAsync<T>(this IEnumerable<T> sequence, Func<T, Task> action)
-        //{
-        //    return Task.WhenAll(sequence.Select(action));
-        //}
         public static Task ForEachAsync<T>(this IEnumerable<T> sequence, Func<T, Task> action)
         {
-            return Task.WhenAll(from item in sequence select Task.Run(() => action(item)));
+            return Task.WhenAll(from item in sequence select Task.Run(async () => await action(item)));
+        }
+
+        public static Task ForEachAsync<T>(this IEnumerable<T> source, int numberOfThreads, Action<T> body)
+        {
+            return Task.WhenAll(
+            Partitioner.Create(source).GetPartitions(numberOfThreads).
+            Select((p) =>
+            {
+                return Task.Run(() =>
+                {
+                    using (p)
+                    {
+                        while (p.MoveNext())
+                        {
+                            body(p.Current);
+                        }
+                    }
+                });
+            }));
         }
     }
 }

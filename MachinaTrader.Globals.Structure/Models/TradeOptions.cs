@@ -26,6 +26,7 @@ namespace MachinaTrader.Globals.Structure.Models
         public int MaxNumberOfConcurrentTrades { get; set; } = 10;
         public decimal AmountToInvestPerTrader { get; set; } = 0.005m;
         public ProfitType ProfitStrategy { get; set; } = ProfitType.Reinvest;
+        public decimal AmountToReinvestPercentage { get; set; } = 0.25m; //25% of wallet
 
         // If we go below this profit percentage, we sell immediately.
         public decimal StopLossPercentage
