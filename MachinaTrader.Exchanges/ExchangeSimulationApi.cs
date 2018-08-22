@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MachinaTrader.Globals.Structure.Models;
 using MachinaTrader.Globals.Helpers;
+using System.Threading;
 
 namespace MachinaTrader.Exchanges
 {
@@ -69,41 +70,72 @@ namespace MachinaTrader.Exchanges
 
             var items = cachedCandles.Where(c => c.Timestamp > startDate.Value && c.Timestamp <= endDate.Value).ToList();
 
-            Global.Logger.Information($"Starting OnGetCandlesAsync {symbol} {items.Count()}");
+            //Global.Logger.Information($"Starting OnGetCandlesAsync {symbol} {items.Count()}");
             var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
-            var tasks = new List<Task>();
             foreach (var item in items)
             {
-                //tasks.Add(Task.Run(async () =>
-                //{
-                    try
-                    {
-                        var marketCandle = new MarketCandle();
-                        marketCandle.ClosePrice = item.Close.ConvertInvariant<decimal>();
-                        marketCandle.ExchangeName = Name;
-                        marketCandle.HighPrice = item.High.ConvertInvariant<decimal>();
-                        marketCandle.LowPrice = item.Low.ConvertInvariant<decimal>();
-                        marketCandle.Name = symbol;
-                        marketCandle.OpenPrice = item.Open.ConvertInvariant<decimal>();
-                        marketCandle.PeriodSeconds = periodSeconds;
-                        marketCandle.Timestamp = item.Timestamp;
-                        marketCandle.BaseVolume = item.Volume.ConvertInvariant<double>();
-                        marketCandle.ConvertedVolume = (item.Volume * item.Close).ConvertInvariant<double>();
-                        marketCandle.WeightedAverage = 0m;
+                try
+                {
+                    var marketCandle = new MarketCandle();
+                    marketCandle.ClosePrice = item.Close.ConvertInvariant<decimal>();
+                    marketCandle.ExchangeName = Name;
+                    marketCandle.HighPrice = item.High.ConvertInvariant<decimal>();
+                    marketCandle.LowPrice = item.Low.ConvertInvariant<decimal>();
+                    marketCandle.Name = symbol;
+                    marketCandle.OpenPrice = item.Open.ConvertInvariant<decimal>();
+                    marketCandle.PeriodSeconds = periodSeconds;
+                    marketCandle.Timestamp = item.Timestamp;
+                    marketCandle.BaseVolume = item.Volume.ConvertInvariant<double>();
+                    marketCandle.ConvertedVolume = (item.Volume * item.Close).ConvertInvariant<double>();
+                    marketCandle.WeightedAverage = 0m;
 
-                        candles.Add(marketCandle);
-                    }
-                    catch (Exception ex)
-                    {
-                        Global.Logger.Error(ex, $"Error on create MarketCandle {item}");
-                    }
-                //}));
+                    candles.Add(marketCandle);
+                }
+                catch (Exception ex)
+                {
+                    Global.Logger.Error(ex, $"Error on create MarketCandle {item}");
+                }
             }
-            //await Task.WhenAll(tasks);           
+
+            //var tasks = new Task[items.Count()];
+            //var cts = new CancellationTokenSource();
+            //var po = new ParallelOptions
+            //{
+            //    CancellationToken = cts.Token,
+            //    MaxDegreeOfParallelism = Environment.ProcessorCount
+            //};
+            //Parallel.ForEach(items, po, (item, state, index) =>
+            //{
+            //    tasks[(int)index] = Task.Run(() =>
+            //    {
+            //        try
+            //        {
+            //            var marketCandle = new MarketCandle();
+            //            marketCandle.ClosePrice = item.Close.ConvertInvariant<decimal>();
+            //            marketCandle.ExchangeName = Name;
+            //            marketCandle.HighPrice = item.High.ConvertInvariant<decimal>();
+            //            marketCandle.LowPrice = item.Low.ConvertInvariant<decimal>();
+            //            marketCandle.Name = symbol;
+            //            marketCandle.OpenPrice = item.Open.ConvertInvariant<decimal>();
+            //            marketCandle.PeriodSeconds = periodSeconds;
+            //            marketCandle.Timestamp = item.Timestamp;
+            //            marketCandle.BaseVolume = item.Volume.ConvertInvariant<double>();
+            //            marketCandle.ConvertedVolume = (item.Volume * item.Close).ConvertInvariant<double>();
+            //            marketCandle.WeightedAverage = 0m;
+
+            //            candles.Add(marketCandle);
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            Global.Logger.Error(ex, $"Error on create MarketCandle {item}");
+            //        }
+            //    });
+            //});
+            //Task.WaitAll(tasks);           
 
             watch1.Stop();
-            Global.Logger.Warning($"Ended OnGetCandlesAsync {symbol} {candles.Count()} in #{watch1.Elapsed.TotalSeconds} seconds");
+            Global.Logger.Information($"Ended OnGetCandlesAsync {symbol} {items.Count()}>>{candles.Count()} in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return candles;
         }

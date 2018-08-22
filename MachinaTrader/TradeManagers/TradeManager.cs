@@ -221,7 +221,7 @@ namespace MachinaTrader.TradeManagers
             foreach (var market in Global.Configuration.TradeOptions.MarketBlackList)
                 markets.RemoveAll(x => x.MarketName == market);
 
-            // Buy from external - Currently for Debug -> This will buy on each tick !
+            #region test Buy from external - Currently for Debug -> This will buy on each tick !
             /******************************/
             //var externalTicker = await Global.ExchangeApi.GetTicker("LINKBTC");
             //Candle externalCandle = new Candle();
@@ -257,6 +257,7 @@ namespace MachinaTrader.TradeManagers
             //    //Global.Logger.Information("Too Many Trades: Ignore Match signal " + "LINKBTC");
             //}
             /******************************/
+            #endregion
 
             foreach (var market in markets.Distinct().OrderByDescending(x => x.Volume).ToList())
             {
@@ -831,7 +832,7 @@ namespace MachinaTrader.TradeManagers
             // Let's not do a stoploss for now...
             if (currentProfit < Global.Configuration.TradeOptions.StopLossPercentage)
             {
-                //Global.Logger.Information("Stop loss hit: {StopLoss}%", Global.Configuration.TradeOptions.StopLossPercentage);
+                Global.Logger.Information("Stop loss hit: {StopLoss}%", Global.Configuration.TradeOptions.StopLossPercentage);
                 return SellType.StopLoss;
             }
 
@@ -847,7 +848,7 @@ namespace MachinaTrader.TradeManagers
 
                     if (timeDiff > item.Duration && currentProfit > item.Profit)
                     {
-                        //Global.Logger.Information("Timer hit: {TimeDifference} mins, profit {Profit}%", timeDiff, item.Profit.ToString("0.00"));
+                        Global.Logger.Information("Timer hit: {TimeDifference} mins, profit {Profit}%", timeDiff, item.Profit.ToString("0.00"));
                         return SellType.Timed;
                     }
                 }

@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MachinaTrader.Globals;
-using MachinaTrader.Globals.Helpers;
 using MachinaTrader.Globals.Structure.Enums;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Models;
@@ -53,9 +52,9 @@ namespace MachinaTrader.Exchanges
 
     public class BaseExchange : IExchangeApi
     {
-        private readonly ExchangeSharp.ExchangeAPI _api;
+        private readonly ExchangeAPI _api;
         private readonly Exchange _exchange;
-        private List<ExchangeSharp.ExchangeMarket> _exchangeInfo;
+        private List<ExchangeMarket> _exchangeInfo;
 
         public BaseExchange(ExchangeOptions options)
         {
@@ -116,6 +115,7 @@ namespace MachinaTrader.Exchanges
                 Price = rate,
                 Symbol = market
             };
+
             try
             {
                 var order = await _api.PlaceOrderAsync(request);
@@ -123,7 +123,7 @@ namespace MachinaTrader.Exchanges
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Global.Logger.Error(ex, $"Error on PlaceOrderAsync");
             }
 
             return null;
@@ -154,30 +154,55 @@ namespace MachinaTrader.Exchanges
             }
             else
             {
-                Global.Logger.Information($"Starting GetMarketSummaries _api.GetTickersAsync()");
-                var watch1 = System.Diagnostics.Stopwatch.StartNew();
+                //Global.Logger.Information($"Starting GetMarketSummaries _api.GetTickersAsync()");
+                //var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
                 var summaries = _api.GetTickersAsync().Result;
 
-                watch1.Stop();
-                Global.Logger.Warning($"Ended GetMarketSummaries _api.GetTickersAsync() in #{watch1.Elapsed.TotalSeconds} seconds");
+                //watch1.Stop();
+                //Global.Logger.Warning($"Ended GetMarketSummaries _api.GetTickersAsync() in #{watch1.Elapsed.TotalSeconds} seconds");
 
-                if (summaries.Any())
+                //if (summaries.Any())
+                //{
+                //    var tasks = new Task[summaries.Count()];
+                //    var cts = new CancellationTokenSource();
+                //    var po = new ParallelOptions
+                //    {
+                //        CancellationToken = cts.Token,
+                //        MaxDegreeOfParallelism = Environment.ProcessorCount
+                //    };
+                //    Parallel.ForEach(summaries, po, (summary, state, index) =>
+                //    {
+                //        tasks[(int)index] = Task.Run(() =>
+                //        {
+                //            var info = GetSymbolInfo(summary.Key).Result;
+
+                //            result.Add(new MarketSummary()
+                //            {
+                //                CurrencyPair = new CurrencyPair() { BaseCurrency = info.MarketCurrency, QuoteCurrency = info.BaseCurrency },
+                //                MarketName = summary.Key,
+                //                Ask = summary.Value.Ask,
+                //                Bid = summary.Value.Bid,
+                //                Last = summary.Value.Last,
+                //                Volume = summary.Value.Volume.ConvertedVolume,
+                //            });
+                //        });
+                //    });
+                //    Task.WaitAll(tasks);
+
+                foreach (var summary in summaries)
                 {
-                    foreach (var summary in summaries)
-                    {
-                        var info = await GetSymbolInfo(summary.Key);
+                    var info = await GetSymbolInfo(summary.Key);
 
-                        result.Add(new MarketSummary()
-                        {
-                            CurrencyPair = new CurrencyPair() { BaseCurrency = info.MarketCurrency, QuoteCurrency = info.BaseCurrency },
-                            MarketName = summary.Key,
-                            Ask = summary.Value.Ask,
-                            Bid = summary.Value.Bid,
-                            Last = summary.Value.Last,
-                            Volume = summary.Value.Volume.ConvertedVolume,
-                        });
-                    }
+                    result.Add(new MarketSummary()
+                    {
+                        CurrencyPair = new CurrencyPair() { BaseCurrency = info.MarketCurrency, QuoteCurrency = info.BaseCurrency },
+                        MarketName = summary.Key,
+                        Ask = summary.Value.Ask,
+                        Bid = summary.Value.Bid,
+                        Last = summary.Value.Last,
+                        Volume = summary.Value.Volume.ConvertedVolume,
+                    });
                 }
             }
 
@@ -217,8 +242,7 @@ namespace MachinaTrader.Exchanges
             }
             catch (Exception ex)
             {
-                Console.WriteLine(orderId.ToString());
-                Console.WriteLine(ex.ToString());
+                Global.Logger.Error(ex, $"Error on GetOrder");
             }
 
             if (order != null)
@@ -286,8 +310,9 @@ namespace MachinaTrader.Exchanges
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
-                    Thread.Sleep(5000);
+                    Global.Logger.Error(ex, $"Error on GetCandlesAsync");
+
+                    Thread.Sleep(1000 * k);
                 }
             }
 
@@ -317,7 +342,7 @@ namespace MachinaTrader.Exchanges
                 }
                 else
                 {
-                    Global.Logger.Warning($"Error ticker is null {tickers}");
+                    Global.Logger.Error(new Exception(), $"Error ticker is null {tickers}");
                 }
             }
 
@@ -339,8 +364,8 @@ namespace MachinaTrader.Exchanges
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
-                    Thread.Sleep(5000);
+                    Global.Logger.Error(ex, $"Error on GetCandlesAsync");
+                    Thread.Sleep(1000 * k);
                 }
             }
 
@@ -384,14 +409,16 @@ namespace MachinaTrader.Exchanges
                 while (ticker.Count() <= 0 && k < 10)
                 {
                     k++;
-                    Console.WriteLine("GetCandlesAsync:" + market + " / " + startDate + " / " + cendDate);
+                    Global.Logger.Information($"GetCandlesAsync {market} {startDate} {cendDate}");
+
                     try
                     {
                         ticker = await _api.GetCandlesAsync(market, period.ToMinutesEquivalent() * 60, startDate, cendDate);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("ERROR GetCandlesAsync:" + market + " / " + startDate + " / " + cendDate + " / " + ex);
+                        Global.Logger.Error(ex, $"Error on GetCandlesAsync {market} {startDate} {cendDate}");
+
                         Thread.Sleep(2000);
                     }
                 }
@@ -495,7 +522,7 @@ namespace MachinaTrader.Exchanges
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Global.Logger.Error(ex, $"Error on PlaceOrderAsync");
             }
 
             return null;
@@ -553,6 +580,40 @@ namespace MachinaTrader.Exchanges
 
             var list = await _api.GetSymbolsAsync();
             var filteredList = list.Where(x => x.ToLower().EndsWith(quoteCurrency.ToLower(), StringComparison.Ordinal));
+
+            //var tasks = new Task[summaries.Count()];
+            //var cts = new CancellationTokenSource();
+            //var po = new ParallelOptions
+            //{
+            //    CancellationToken = cts.Token,
+            //    MaxDegreeOfParallelism = Environment.ProcessorCount
+            //};
+            //Parallel.ForEach(filteredList, po, (item, state, index) =>
+            //{
+            //    tasks[(int)index] = Task.Run(() =>
+            //    {
+            //        var ticker = _api.GetTickerAsync(item).Result;
+
+            //        if (ticker != null)
+            //        {
+            //            var symbol = symbols.FirstOrDefault(x => x.MarketName == item);
+
+            //            if (symbol != null)
+            //            {
+            //                summaries.Add(new MarketSummary()
+            //                {
+            //                    CurrencyPair = new CurrencyPair() { BaseCurrency = symbol.MarketCurrency, QuoteCurrency = symbol.BaseCurrency },
+            //                    MarketName = item,
+            //                    Ask = ticker.Ask,
+            //                    Bid = ticker.Bid,
+            //                    Last = ticker.Last,
+            //                    Volume = ticker.Volume.ConvertedVolume,
+            //                });
+            //            }
+            //        }
+            //    });
+            //});
+            //Task.WaitAll(tasks);
 
             foreach (var item in filteredList)
             {

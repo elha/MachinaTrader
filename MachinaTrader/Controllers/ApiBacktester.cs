@@ -199,14 +199,13 @@ namespace MachinaTrader.Controllers
                 }
             }
 
-            BacktestOptions backtestOptions = new BacktestOptions
+            var backtestOptions = new BacktestOptions
             {
                 DataFolder = Global.DataPath,
                 Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true),
                 Coins = coins,
                 CandlePeriod = Int32.Parse(candleSize)
             };
-            //backtestOptions.StakeAmount = 150;
 
             var cts = new CancellationTokenSource();
             var parallelOptions = new ParallelOptions
@@ -310,12 +309,16 @@ namespace MachinaTrader.Controllers
 
             while (currentExchangeOption.SimulationCurrentDate <= simulationEndingDate)
             {
-                Global.Logger.Information($"------SimulationCurrentDate: {currentExchangeOption.SimulationCurrentDate}");
+                Global.Logger.Information($"------ SimulationCurrentDate start: {currentExchangeOption.SimulationCurrentDate}");
+                var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
                 await tradeManager.LookForNewTrades(strategy);
                 await tradeManager.UpdateExistingTrades();
 
                 currentExchangeOption.SimulationCurrentDate = currentExchangeOption.SimulationCurrentDate.AddMinutes(5);
+
+                watch1.Stop();
+                Global.Logger.Information($"------SimulationCurrentDate end: {currentExchangeOption.SimulationCurrentDate} in #{watch1.Elapsed.TotalSeconds} seconds");
             }
 
             return true;
