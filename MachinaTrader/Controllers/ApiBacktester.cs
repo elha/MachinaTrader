@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using MachinaTrader.Backtester;
+using MachinaTrader.Globals.Structure.Extensions;
 
 namespace MachinaTrader.Controllers
 {
@@ -323,7 +324,5 @@ namespace MachinaTrader.Controllers
 
             return true;
         }
-
     }
-
 }

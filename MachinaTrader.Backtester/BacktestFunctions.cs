@@ -62,6 +62,16 @@ namespace MachinaTrader.Backtester
                     jArrayResult.Add(currentResult);
                 }
             }
+
+            //var results2 = new List<BackTestStrategyResult>();
+
+            //foreach (var item in GetTradingStrategies())
+            //{
+            //    var stratResult = new BackTestStrategyResult() { Strategy = item.Name };
+            //    stratResult.Results.AddRange(await runner.RunSingleStrategy(item, backtestOptions, dataStore));
+            //    results2.Add(stratResult);
+            //}
+
             return jArrayResult;
         }
 

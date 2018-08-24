@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MachinaTrader.Globals.Helpers;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Extensions;
+using System.Linq;
 
 namespace MachinaTrader.Backtester
 {
@@ -23,6 +24,11 @@ namespace MachinaTrader.Backtester
 
                 // This creates a list of buy signals.
                 var candles = await candleProvider.GetCandles(backtestOptions, dataStore);
+                if (candles == null || !candles.Any())
+                    continue;
+
+                candles = await candles.FillCandleGaps((Period)Enum.Parse(typeof(Period), backtestOptions.CandlePeriod.ToString(), true));
+
                 var backTestResult = new BackTestResult { Market = globalSymbol };
 
                 try
@@ -115,10 +121,10 @@ namespace MachinaTrader.Backtester
 
         private SellType ShouldSell(double tradeOpenRate, double currentRateBid, DateTime utcNow)
         {
-            var currentProfit = (currentRateBid - tradeOpenRate) / tradeOpenRate;
+            //var currentProfit = (currentRateBid - tradeOpenRate) / tradeOpenRate;
 
-            if (currentProfit < -0.07) //stopLossPercentage
-                return SellType.StopLoss;
+            //if (currentProfit < -0.07) //stopLossPercentage
+            //    return SellType.StopLoss;
 
             //if (currentProfit >= 0.08)
             //    return SellType.Immediate;
