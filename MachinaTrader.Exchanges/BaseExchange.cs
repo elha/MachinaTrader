@@ -312,7 +312,7 @@ namespace MachinaTrader.Exchanges
                 {
                     Global.Logger.Error(ex, $"Error on GetCandlesAsync");
 
-                    Thread.Sleep(1000 * k);
+                    await Task.Delay(1000);
                 }
             }
 
@@ -346,7 +346,9 @@ namespace MachinaTrader.Exchanges
                 }
             }
 
-            return candles;
+            candles = await candles.FillCandleGaps(period);
+
+            return candles.OrderBy(x => x.Timestamp).ToList();
         }
 
         public async Task<List<Candle>> GetTickerHistory(string market, Period period, int length)
@@ -365,12 +367,13 @@ namespace MachinaTrader.Exchanges
                 catch (Exception ex)
                 {
                     Global.Logger.Error(ex, $"Error on GetCandlesAsync");
-                    Thread.Sleep(1000 * k);
+                    await Task.Delay(1000);
                 }
             }
 
             if (ticker.Any())
-                return ticker.Select(x => new Candle
+            {
+                var candles = ticker.Select(x => new Candle
                 {
                     Close = x.ClosePrice,
                     High = x.HighPrice,
@@ -379,6 +382,10 @@ namespace MachinaTrader.Exchanges
                     Timestamp = x.Timestamp,
                     Volume = (decimal)x.ConvertedVolume
                 }).ToList();
+
+                candles = await candles.FillCandleGaps(period);
+                return candles.OrderBy(x => x.Timestamp).ToList();
+            }
 
             return new List<Candle>();
         }
@@ -419,7 +426,7 @@ namespace MachinaTrader.Exchanges
                     {
                         Global.Logger.Error(ex, $"Error on GetCandlesAsync {market} {startDate} {cendDate}");
 
-                        Thread.Sleep(2000);
+                        await Task.Delay(1000);
                     }
                 }
 
@@ -441,7 +448,7 @@ namespace MachinaTrader.Exchanges
                     Volume = (decimal)x.ConvertedVolume
                 }).ToList();
 
-                // totalCandles = await FillCandleGaps(totalCandles, period);
+                totalCandles = await totalCandles.FillCandleGaps(period);
 
                 return totalCandles.OrderBy(x => x.Timestamp).ToList();
             }

@@ -225,9 +225,16 @@ namespace MachinaTrader.Controllers
                     }
                 }
                 var result = await BacktestFunctions.BackTestJson(tradingStrategy, backtestOptions, Global.DataStoreBacktest);
-                foreach (var item in result)
+                for (int i = 0; i < result.Count(); i++)
                 {
-                    await Runtime.GlobalHubBacktest.Clients.All.SendAsync("Send", JsonConvert.SerializeObject(item));
+                    if (i == 0)
+                    {
+                        await Runtime.GlobalHubBacktest.Clients.All.SendAsync("SendSummary", JsonConvert.SerializeObject(result[i]));
+                    }
+                    else
+                    {
+                        await Runtime.GlobalHubBacktest.Clients.All.SendAsync("Send", JsonConvert.SerializeObject(result[i]));
+                    }
                 }
             });
 

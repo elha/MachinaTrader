@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MachinaTrader.Globals;
 using MachinaTrader.Globals.Structure.Models;
 
 namespace MachinaTrader.Indicators
@@ -38,8 +39,12 @@ namespace MachinaTrader.Indicators
                         minH = highLowAverages.Skip(i + 1 - period).Take(period).Min();
                     }
 
+                    //found frequently same value and can divide by zero errors...
+                    if (maxH == minH)
+                        maxH = maxH + 0.000001m;
+
                     var nValue1 = 0.33m * 2 * ((highLowAverages[i] - minH) / (maxH - minH) - 0.5m) +
-                                  0.67m * nValues1[i - 1];
+                            0.67m * nValues1[i - 1];
                     nValues1.Add(nValue1);
 
                     var nValue2 = nValue1 > 0.99m ? .999m : (nValue1 < -.99m ? -.999m : nValue1);
@@ -53,7 +58,9 @@ namespace MachinaTrader.Indicators
                         result.Add(-1);
                     else
                         result.Add(0);
+
                 }
+
             }
 
             return result;

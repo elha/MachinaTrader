@@ -58,5 +58,29 @@ namespace MachinaTrader.Indicators
 
             throw new Exception("Could not calculate SMA!");
         }
+
+        public static List<decimal?> Sma(this List<decimal?> source, int period = 30)
+        {
+            int outBegIdx, outNbElement;
+            double[] smaValues = new double[source.Count];
+            List<double?> outValues = new List<double?>();
+
+            var sourceNullCount = source.Count(x => x == null);
+            var sourceFix = source.Where(x => x != null).Select(x => Convert.ToDouble(x)).ToArray();
+
+            var sma = TicTacTec.TA.Library.Core.Sma(0, source.Count - 1 - sourceNullCount, sourceFix, period, out outBegIdx, out outNbElement, smaValues);
+
+            if (sma == TicTacTec.TA.Library.Core.RetCode.Success)
+            {
+                var smas = FixIndicatorOrdering(smaValues.ToList(), outBegIdx, outNbElement);
+
+                for (int i = 0; i < sourceNullCount; i++)
+                    smas.Insert(0, null);
+
+                return smas;
+            }
+
+            throw new Exception("Could not calculate SMA!");
+        }
     }
 }
