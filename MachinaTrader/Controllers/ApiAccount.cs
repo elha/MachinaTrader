@@ -1,142 +1,133 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using MachinaTrader.Models;
-using ExchangeSharp;
+using AspNetCore.Identity.LiteDB.Models;
 using MachinaTrader.Globals;
+using MachinaTrader.Globals.Models.AccountViewModels;
+using MachinaTrader.Globals.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 
 namespace MachinaTrader.Controllers
 {
     [Authorize, Route("api/account/")]
-    public class ApiAccounts : Controller
+    public class AccountController : Controller
     {
-        /// <summary>
-        /// Gets the balance for 1 Exchange
-        /// Convert it so
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet]
-        [Route("balance")]
-        public async Task<IActionResult> GetBalance()
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+
+        public AccountController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager)
         {
-            //Account
-            var account = new List<BalanceEntry>();
+            _userManager = userManager;
+            _signInManager = signInManager;
+        }
 
-            // Some Options
-            var displayOptions = Global.Configuration.DisplayOptions;
+        // Token based Auth -> Needed for nodejs and signalr
+        // GET: /api/auth/token  
+        [HttpGet]
+        [AllowAnonymous, Route("token")]
+        public async Task<string> Token(string returnUrl = null)
+        {
+            LoginViewModel model = new LoginViewModel();
+            model.UserName = HttpContext.Request.Query["email"];
+            model.Password = HttpContext.Request.Query["password"];
+            model.RememberMe = true;
 
-            // Get Exchange account
-            var fullApi = Global.ExchangeApi.GetFullApi().Result;
-
-            try
+            var user = await _userManager.FindByNameAsync(model.UserName);
+            if (user != null)
             {
-                if (fullApi.PublicApiKey.Length > 0 && fullApi.PrivateApiKey.Length > 0)
+                if (!user.AccountEnabled)
                 {
-                    // Get Tickers & Balances
-                    var tickers = await fullApi.GetTickersAsync();
-                    var balances = await fullApi.GetAmountsAsync();
-                    
-                    if (tickers.Count() > 1)
-                    {
-                        var tickerUsd = tickers.Where(t => t.Key.ToUpper().Contains("USD") && t.Key.ToUpper().Contains("BTC")).ToList();
-                        var tickerDisplayCurrency = tickers.Where(t => t.Key.ToUpper().Contains(displayOptions.DisplayFiatCurrency) && t.Key.ToUpper().Contains("BTC")).ToList();
-                        var usdToBtcTicker = tickerUsd.First(t => t.Key.EndsWith("BTC"));
-                        var btcToUsdTicker = tickerUsd.First(t => t.Key.StartsWith("BTC"));
-
-                        var dcTicker = new KeyValuePair<string,ExchangeTicker>();
-                        if (tickerDisplayCurrency.Count == 0)
-                            Global.Logger.Information("Account: Display currency at this exchange not available!");
-                        else
-                            dcTicker = tickerDisplayCurrency.First(t => t.Key.StartsWith("BTC"));
-
-                        // Calculate stuff
-                        foreach (var balance in balances)
-                        {
-                            // Get selected tickers for Balances
-                            var ticker = new List<KeyValuePair<string, ExchangeTicker>>();
-
-                            // Create balanceEntry
-                            var balanceEntry = new BalanceEntry()
-                            {
-                                DisplayCurrency = displayOptions.DisplayFiatCurrency,
-                                Market = balance.Key,
-                                TotalCoins = balance.Value,
-                                BalanceInUsd = 0,
-                                BalanceInBtc = 0,
-                                BalanceInDisplayCurrency = 0
-                            };
-
-                            // Calculate to BTC or USD and check if crypto or not
-                            if (!balance.Key.ToUpper().Contains("USD") && !balance.Key.ToUpper().Contains("EUR"))
-                            {
-                                // Calculate to btc
-                                if (!balance.Key.ToUpper().Contains("BTC"))
-                                    ticker = tickers.Where(t =>
-                                            t.Key.ToUpper().StartsWith(balance.Key) &&
-                                            t.Key.ToUpper().Contains("BTC"))
-                                        .ToList();
-                            }
-                            // Calculate to btc
-                            else
-                                ticker = tickers.Where(t =>
-                                        t.Key.ToUpper().StartsWith(balance.Key) && t.Key.ToUpper().Contains("BTC"))
-                                    .ToList();
-
-                            // Calculate special market USD, EUR, BTC
-                            if (balanceEntry.Market.ToUpper().Contains("USD") ||
-                                balanceEntry.Market.ToUpper().Contains("EUR") ||
-                                balanceEntry.Market.ToUpper().Contains("BTC"))
-                            {
-                                if (balanceEntry.Market.ToUpper().Contains("USD"))
-                                {
-                                    balanceEntry.BalanceInUsd = balance.Value;
-                                    balanceEntry.BalanceInBtc = balanceEntry.BalanceInUsd * usdToBtcTicker.Value.Last;
-                                }
-
-                                if (balanceEntry.Market.ToUpper().Contains("EUR"))
-                                {
-                                    var t = "";
-                                }
-
-                                if (balanceEntry.Market.ToUpper().Contains("BTC"))
-                                {
-                                    balanceEntry.BalanceInBtc = balance.Value;
-                                    balanceEntry.BalanceInUsd = balanceEntry.BalanceInBtc * btcToUsdTicker.Value.Last;
-                                }
-
-                                if (tickerDisplayCurrency.Count >= 1)
-                                    balanceEntry.BalanceInDisplayCurrency =
-                                        balanceEntry.BalanceInBtc * dcTicker.Value.Last;
-                            }
-                            // Calculate cryptos without btc
-                            else
-                            {
-                                balanceEntry.BalanceInBtc = (balance.Value * ticker[0].Value.Last);
-                                balanceEntry.BalanceInUsd = balanceEntry.BalanceInBtc * btcToUsdTicker.Value.Last;
-                                if (tickerDisplayCurrency.Count >= 1)
-                                    balanceEntry.BalanceInDisplayCurrency =
-                                        balanceEntry.BalanceInBtc * dcTicker.Value.Last;
-                            }
-
-                            // Add to list
-                            account.Add(balanceEntry);
-                        }
-                    }
-                    else
-                        Global.Logger.Information("Possible problem with API, cuz we got no tickers!");
+                    Global.Logger.Information("User account locked out.");
+                    return null;
                 }
-                else
-                    Global.Logger.Information("No api under configuration");
             }
-            catch (Exception e)
+
+            var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
+            if (result.Succeeded)
             {
-                Global.Logger.Error(e.InnerException.Message);
+                var claims = new[] { new Claim(ClaimTypes.NameIdentifier, model.UserName) };
+                var credentials = new SigningCredentials(Startup.SecurityKey, SecurityAlgorithms.HmacSha256);
+                var token = new JwtSecurityToken("MachinaTrader", "MachinaTrader", claims, expires: DateTime.UtcNow.AddSeconds(30), signingCredentials: credentials);
+                return Startup.JwtTokenHandler.WriteToken(token);
             }
-            
-            return new JsonResult(account);
+            return null;
+        }
+
+        // Token based Auth -> Needed for nodejs and signalr
+        // GET: /api/auth/tokenJson 
+        [HttpPost]
+        [AllowAnonymous, Route("tokenJson")]
+        public async Task<string> TokenJson([FromBody] JObject data)
+        {
+            LoginViewModel model = new LoginViewModel();
+            model.UserName = (string)data["email"];
+            model.Password = (string)data["password"];
+            model.RememberMe = true;
+
+            var user = await _userManager.FindByNameAsync(model.UserName);
+            if (user != null)
+            {
+                if (!user.AccountEnabled)
+                {
+                    Global.Logger.Information("User account locked out.");
+                    return null;
+                }
+            }
+
+            var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
+            if (result.Succeeded)
+            {
+                //Console.WriteLine((string)data["email"]);
+                //Console.WriteLine((string)data["password"]);
+                var claims = new[] { new Claim(ClaimTypes.NameIdentifier, model.UserName) };
+                var credentials = new SigningCredentials(Startup.SecurityKey, SecurityAlgorithms.HmacSha256);
+                var token = new JwtSecurityToken("MachinaTrader", "MachinaTrader", claims, expires: DateTime.UtcNow.AddSeconds(30), signingCredentials: credentials);
+                return Startup.JwtTokenHandler.WriteToken(token);
+            }
+            return null;
+        }
+
+        // GET: /api/auth/check
+        [HttpGet]
+        [AllowAnonymous, Route("check")]
+        public IActionResult Check()
+        {
+            dynamic checkLoginResult = new JObject();
+            checkLoginResult.success = false;
+            if (User.Identity.IsAuthenticated)
+            {
+                checkLoginResult.success = true;
+            }
+            return new JsonResult(checkLoginResult);
+        }
+
+        //
+        // POST: /api/auth/logout
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Route("logout")]
+        public async Task<IActionResult> LogOff()
+        {
+            JObject checkLoginResult = new JObject();
+            checkLoginResult["success"] = false;
+            if (HttpContext.User.Identity.IsAuthenticated)
+            {
+                await _signInManager.SignOutAsync();
+                Global.Logger.Information("User logged out.");
+                checkLoginResult["success"] = true;
+            }
+            // Clear the principal to ensure the user does not retain any authentication
+            HttpContext.User = new GenericPrincipal(new GenericIdentity(string.Empty), null);
+            Console.WriteLine("User logged out.");
+            return new JsonResult(checkLoginResult);
         }
     }
 }

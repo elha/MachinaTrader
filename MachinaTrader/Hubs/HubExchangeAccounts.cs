@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 namespace MachinaTrader.Hubs
 {
     [Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
-    public class HubAccounts : Hub
+    public class HubExchangeAccounts : Hub
     {
     }
 }

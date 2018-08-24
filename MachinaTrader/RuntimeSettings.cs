@@ -29,7 +29,7 @@ namespace MachinaTrader
         public static IHubContext<HubTraders> GlobalHubTraders;
         public static IHubContext<HubStatistics> GlobalHubStatistics;
         public static IHubContext<HubBacktest> GlobalHubBacktest;
-        public static IHubContext<HubAccounts> GlobalHubAccounts;
+        public static IHubContext<HubExchangeAccounts> GlobalHubAccounts;
         public static TelegramNotificationOptions GlobalTelegramNotificationOptions { get; set; }
         public static List<INotificationManager> NotificationManagers;
         public static OrderBehavior GlobalOrderBehavior;
@@ -88,7 +88,7 @@ namespace MachinaTrader
             Runtime.GlobalHubTraders = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubTraders>>();
             Runtime.GlobalHubStatistics = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubStatistics>>();
             Runtime.GlobalHubBacktest = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubBacktest>>();
-            Runtime.GlobalHubAccounts = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubAccounts>>();
+            Runtime.GlobalHubAccounts = Global.ServiceScope.ServiceProvider.GetService<IHubContext<HubExchangeAccounts>>();
 
             //Run Cron
             IScheduler scheduler = Global.QuartzTimer;
