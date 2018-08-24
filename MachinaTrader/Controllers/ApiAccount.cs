@@ -15,24 +15,18 @@ using Newtonsoft.Json.Linq;
 
 namespace MachinaTrader.Controllers
 {
-    [Authorize, Route("api/auth/")]
+    [Authorize, Route("api/account/")]
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly IEmailSender _emailSender;
-        private readonly ISmsSender _smsSender;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
-            IEmailSender emailSender,
-            ISmsSender smsSender)
+            SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _emailSender = emailSender;
-            _smsSender = smsSender;
         }
 
         // Token based Auth -> Needed for nodejs and signalr
@@ -91,8 +85,8 @@ namespace MachinaTrader.Controllers
             var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
             if (result.Succeeded)
             {
-                Console.WriteLine((string)data["email"]);
-                Console.WriteLine((string)data["password"]);
+                //Console.WriteLine((string)data["email"]);
+                //Console.WriteLine((string)data["password"]);
                 var claims = new[] { new Claim(ClaimTypes.NameIdentifier, model.UserName) };
                 var credentials = new SigningCredentials(Startup.SecurityKey, SecurityAlgorithms.HmacSha256);
                 var token = new JwtSecurityToken("MachinaTrader", "MachinaTrader", claims, expires: DateTime.UtcNow.AddSeconds(30), signingCredentials: credentials);
