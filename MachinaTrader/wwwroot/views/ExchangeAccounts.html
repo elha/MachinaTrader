@@ -107,7 +107,7 @@
     $(document).ready(function () {
         table = $('#accountsTableId').DataTable({
             ajax: {
-                url: '/api/account/balance',
+                url: '/api/exchange/account/balance',
                 dataSrc: ''
             },
             "oLanguage": {
@@ -201,7 +201,7 @@
         methods: {
             connectSignalr: function () {
                 var self = this;
-                let hubRoute = "/signalr/HubAccounts";
+                let hubRoute = "/signalr/HubExchangeAccounts";
                 let protocol = new signalR.JsonHubProtocol();
                 var options = {};
 
@@ -233,7 +233,7 @@
                 connection.on('Send', function (msg) {
                     console.log("Msg from signalR: " + msg);
 
-                    table.ajax.url('/api/account/balance').load();
+                    table.ajax.url('/api/exchange/account/balance').load();
                     //self.updateData();
                 });
 
@@ -253,7 +253,7 @@
 
             fetchData: function () {
                 var self = this;
-                $.get("/api/account/balance", function (data) {
+                $.get("/api/exchange/account/balance", function (data) {
                     self.myntLogsData = data;
                     self.$nextTick(function () {
                         pagefunction();
@@ -261,7 +261,7 @@
                 });
             },
             updateData: function () {
-                $.get("/api/account/balance", function (data) {
+                $.get("/api/exchange/account/balance", function (data) {
                     self.myntLogsData = data;
                 });
             },

@@ -65,7 +65,7 @@ namespace MachinaTrader
             hubRouteBuilder.MapHub<HubTraders>("/signalr/HubTraders");
             hubRouteBuilder.MapHub<HubStatistics>("/signalr/HubStatistics");
             hubRouteBuilder.MapHub<HubBacktest>("/signalr/HubBacktest");
-            hubRouteBuilder.MapHub<HubAccounts>("/signalr/HubAccounts");
+            hubRouteBuilder.MapHub<HubExchangeAccounts>("/signalr/HubExchangeAccounts");
             //Hub Log is located in Globals because we need to wire up with serilog
             hubRouteBuilder.MapHub<HubLogs>("/signalr/HubLogs");
             return hubRouteBuilder;

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace MachinaTrader.Controllers
 {
-    [Authorize, Route("api/account/")]
+    [Authorize, Route("api/exchange/account/")]
     public class ApiAccounts : Controller
     {
         /// <summary>
