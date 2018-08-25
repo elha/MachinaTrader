@@ -14,6 +14,6 @@ namespace MachinaTrader.Globals.Structure.Models
         public bool IsSimulation { get; set; }
         public string SimulationCandleSize { get; set; } = "15";
 
-        public decimal SimulationStartingWallet { get; set; } = 0.2m;
+        public decimal SimulationStartingWallet { get; set; } = 0.3m;
     }
 }

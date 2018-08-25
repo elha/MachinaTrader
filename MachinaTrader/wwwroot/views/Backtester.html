@@ -153,7 +153,7 @@
                 </div>
             </div>
 
-            <div class="row card-body-header">
+            <div class="row card-body-header" style="max-height:200px; overflow-y:scroll;">
                 <div class="col-6">
                     <template v-if="candleAgeData.length !== 0">
                         <div class="form-group row">
@@ -181,6 +181,7 @@
             </div>
 
             <div class="card-body" id="backtesterBody">
+                <table class="table table-striped p-0 table-hover" id="backtesterSummaryTableId"></table>
                 <table class="table table-striped p-0 table-hover" id="backtesterTableId"></table>
             </div>
 
@@ -208,6 +209,11 @@
     var initDatatable;
     var dataArray = new Array();
     var backtestData = null;
+
+    var tableSummary = null;
+    var initDatatableSummary;
+    var dataArraySummary = new Array();
+    var backtestDataSummary = null;
 
     function selectPickerImage(opt) {
         if (!opt.id) {
@@ -298,6 +304,11 @@
             dataArray = new Array();
         }
 
+        if (tableSummary != null) {
+            tableSummary.clear().draw();
+            dataArraySummary = new Array();
+        }
+
         axios.get('/api/backtester/backtesterResults?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&strategy=' + $("#tradingStrategy").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val()).then((response) => {
         }).catch((error) => {
             console.log(error);
@@ -349,6 +360,114 @@
                         "title": "AmountOfTrades",
                         "mDataProp": "AmountOfTrades",
                         "sWidth": "120px",
+                        "sType": "alt-string",
+                        "sClass": "center",
+                        responsivePriority: 2,
+                        mRender: function (data, type, full, meta) {
+                            var formatted = full.AmountOfTrades + " <span style='color: #008000'>(" + full.AmountOfProfitableTrades + "</span>/<span  style='color: #ff0000'>" + (full.AmountOfTrades - full.AmountOfProfitableTrades) + "</span>)";
+                            return formatted;
+                        }
+                    },
+                    {
+                        "title": "SuccessRate",
+                        "mDataProp": "SuccessRate",
+                        "sWidth": "120px",
+                        "sType": "alt-string",
+                        "sClass": "center",
+                        responsivePriority: 2,
+                        mRender: function (data, type, row) {
+                            var formatted = (row.SuccessRate).toFixed(2) + " %";
+                            return formatted;
+                        }
+                    },
+                    {
+                        "title": "TotalProfit",
+                        "mDataProp": "TotalProfit",
+                        "sWidth": "120px",
+                        "sType": "alt-string",
+                        "sClass": "center",
+                        responsivePriority: 2,
+                        mRender: function (data, type, row) {
+                            var formatted = (row.TotalProfit).toFixed(3) + " BTC";
+                            return formatted;
+                        },
+                        createdCell: function (td, cellData, rowData, row, col) {
+                            if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
+                            if (rowData.TotalProfit < 0) $(td).addClass('redCell');
+                        }
+                    },
+                    {
+                        "title": "TotalProfitPercentage",
+                        "mDataProp": "TotalProfitPercentage",
+                        "sWidth": "120px",
+                        "sType": "alt-string",
+                        "sClass": "center",
+                        responsivePriority: 2,
+                        mRender: function (data, type, row) {
+                            var formatted = (row.TotalProfitPercentage).toFixed(2) + " %";
+                            return formatted;
+                        },
+                        createdCell: function (td, cellData, rowData, row, col) {
+                            if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
+                            if (rowData.TotalProfit < 0) $(td).addClass('redCell');
+                        }
+                    },
+                    {
+                        "title": "AverageDuration",
+                        "mDataProp": "AverageDuration",
+                        "sWidth": "120px",
+                        "sType": "alt-string",
+                        "sClass": "center",
+                        responsivePriority: 2,
+                        mRender: function (data, type, row) {
+                            var formatted = (row.AverageDuration).toFixed(2) + " hours";
+                            return formatted;
+                        }
+                    },
+                    {
+                        "title": "DataPeriod",
+                        "mDataProp": "DataPeriod",
+                        "sWidth": "120px",
+                        "sType": "alt-string",
+                        "sClass": "center",
+                        responsivePriority: 2,
+                        mRender: function (data, type, row) {
+                            var formatted = row.DataPeriod + " days";
+                            return formatted;
+                        }
+                    }
+                ]
+            });
+        };
+
+        initDatatableSummary = function () {
+            tableSummary = $('#backtesterSummaryTableId').DataTable({
+                aaData: backtestDataSummary,
+                responsive: true,
+                "autoWidth": false,
+                "iDisplayLength": 100,
+                'columnDefs': [{
+                    'targets': 0,
+                    'searchable': true,
+                    'orderable': true,
+                    'className': 'dt-body-center'
+                }],
+                'order': [0, 'asc'],
+                "createdRow": function (row, data, dataIndex) {
+                    /*if (data.market == true) {
+                        $(row).addClass('yellowCell');
+                    }*/
+                },
+                "columns": [
+                    {
+                        "title": "Strategy",
+                        "mDataProp": "Strategy",
+                        responsivePriority: 0,
+                    },                                      
+                    {
+                        "title": "AmountOfTrades",
+                        "mDataProp": "AmountOfTrades",
+                        "sWidth": "160px",
                         "sType": "alt-string",
                         "sClass": "center",
                         responsivePriority: 2,
@@ -483,6 +602,18 @@
                         } else {
                             dataArray.push(JSON.parse(msg));
                             table.clear().rows.add(dataArray).draw();
+                        }
+                    });
+
+                connectionBacktester.on('SendSummary',
+                    function (msg) {
+                        if (backtestDataSummary == null) {
+                            dataArraySummary.push(JSON.parse(msg));
+                            backtestDataSummary = dataArraySummary;
+                            initDatatableSummary();
+                        } else {
+                            dataArraySummary.push(JSON.parse(msg));
+                            tableSummary.clear().rows.add(dataArraySummary).draw();
                         }
                     });
 

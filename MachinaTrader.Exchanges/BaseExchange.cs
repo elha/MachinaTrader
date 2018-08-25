@@ -312,7 +312,7 @@ namespace MachinaTrader.Exchanges
                 {
                     Global.Logger.Error(ex, $"Error on GetCandlesAsync");
 
-                    Thread.Sleep(1000 * k);
+                    await Task.Delay(1000);
                 }
             }
 
@@ -346,7 +346,9 @@ namespace MachinaTrader.Exchanges
                 }
             }
 
-            return candles;
+            candles = await candles.FillCandleGaps(period);
+
+            return candles.OrderBy(x => x.Timestamp).ToList();
         }
 
         public async Task<List<Candle>> GetTickerHistory(string market, Period period, int length)
@@ -365,12 +367,13 @@ namespace MachinaTrader.Exchanges
                 catch (Exception ex)
                 {
                     Global.Logger.Error(ex, $"Error on GetCandlesAsync");
-                    Thread.Sleep(1000 * k);
+                    await Task.Delay(1000);
                 }
             }
 
             if (ticker.Any())
-                return ticker.Select(x => new Candle
+            {
+                var candles = ticker.Select(x => new Candle
                 {
                     Close = x.ClosePrice,
                     High = x.HighPrice,
@@ -379,6 +382,10 @@ namespace MachinaTrader.Exchanges
                     Timestamp = x.Timestamp,
                     Volume = (decimal)x.ConvertedVolume
                 }).ToList();
+
+                candles = await candles.FillCandleGaps(period);
+                return candles.OrderBy(x => x.Timestamp).ToList();
+            }
 
             return new List<Candle>();
         }
@@ -419,7 +426,7 @@ namespace MachinaTrader.Exchanges
                     {
                         Global.Logger.Error(ex, $"Error on GetCandlesAsync {market} {startDate} {cendDate}");
 
-                        Thread.Sleep(2000);
+                        await Task.Delay(1000);
                     }
                 }
 
@@ -441,67 +448,12 @@ namespace MachinaTrader.Exchanges
                     Volume = (decimal)x.ConvertedVolume
                 }).ToList();
 
-                // totalCandles = await FillCandleGaps(totalCandles, period);
+                totalCandles = await totalCandles.FillCandleGaps(period);
 
                 return totalCandles.OrderBy(x => x.Timestamp).ToList();
             }
 
             return new List<Candle>();
-        }
-
-        /// <summary>
-        /// For candle data with inconsistent intervals 
-        ///   (ie., for coins that don't have activity between two periods),
-        ///   filling the gaps by extending the candle preceeding the gap until the next candle.
-        /// This is usually more of an issue with low volume coins and shortewr time intervals.
-        /// </summary>
-        /// <param name="candles">Candle list containing time gaps.</param>
-        /// <param name="period">Period of candle.</param>
-        /// <returns></returns>
-        public async Task<List<Candle>> FillCandleGaps(List<Candle> candles, Period period)
-        {
-            // Candle response
-            var filledCandles = new List<Candle>();
-            var orderedCandles = candles.OrderBy(x => x.Timestamp).ToList();
-
-            // Datetime variables
-            DateTime nextTime;
-            DateTime startDate = orderedCandles.First().Timestamp;
-            DateTime endDate = DateTime.UtcNow;
-
-            // Walk through the candles and fill any gaps
-            for (int i = 0; i < orderedCandles.Count() - 1; i++)
-            {
-                var c1 = orderedCandles[i];
-                var c2 = orderedCandles[i + 1];
-                filledCandles.Add(c1);
-                nextTime = c1.Timestamp.AddMinutes(period.ToMinutesEquivalent());
-                while (nextTime < c2.Timestamp)
-                {
-                    var cNext = c1;
-                    cNext.Timestamp = nextTime;
-                    filledCandles.Add(cNext);
-                    nextTime = cNext.Timestamp.AddMinutes(period.ToMinutesEquivalent());
-                }
-            }
-
-            // Fill "extend" the last candle gap
-            var cLast = candles.Last();
-            filledCandles.Add(cLast);
-            nextTime = cLast.Timestamp.AddMinutes(period.ToMinutesEquivalent());
-            while (nextTime < endDate)
-            {
-                var cNext = cLast;
-                cNext.Timestamp = nextTime;
-                filledCandles.Add(cNext);
-                nextTime = cNext.Timestamp.AddMinutes(period.ToMinutesEquivalent());
-            }
-
-            // Debugging. Don't need when running for real.
-            await Task.Delay(10);
-
-            // Return the no-gap candles
-            return filledCandles;
         }
 
         public async Task<string> Sell(string market, decimal quantity, decimal rate)

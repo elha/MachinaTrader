@@ -43,13 +43,28 @@ namespace MachinaTrader.Backtester
         public static async Task<JArray> BackTestJson(ITradingStrategy strategy, BacktestOptions backtestOptions, IDataStoreBacktest dataStore)
         {
             List<BackTestResult> results = await BackTest(strategy, backtestOptions, dataStore);
-            JArray jArrayResult = new JArray();
+            var jArrayResult = new JArray();
 
             if (results.Count > 0)
             {
+                var resultsSummary = new BackTestStrategyResult();
+                resultsSummary.Results = results;
+                resultsSummary.Strategy = strategy.Name;
+
+                var currentResult1 = new JObject();
+                currentResult1["Strategy"] = resultsSummary.Strategy;
+                currentResult1["AmountOfTrades"] = resultsSummary.AmountOfTrades;
+                currentResult1["AmountOfProfitableTrades"] = resultsSummary.AmountOfProfitableTrades;
+                currentResult1["SuccessRate"] = resultsSummary.SuccessRate;
+                currentResult1["TotalProfit"] = resultsSummary.TotalProfit;
+                currentResult1["TotalProfitPercentage"] = resultsSummary.TotalProfitPercentage;
+                currentResult1["AverageDuration"] = resultsSummary.AverageDuration;
+                currentResult1["DataPeriod"] = resultsSummary.DataPeriod;
+                jArrayResult.Add(currentResult1);
+
                 foreach (var result in results)
                 {
-                    JObject currentResult = new JObject();
+                    var currentResult = new JObject();
                     currentResult["Market"] = result.Market;
                     currentResult["Strategy"] = strategy.Name;
                     currentResult["AmountOfTrades"] = result.AmountOfTrades;
@@ -59,9 +74,11 @@ namespace MachinaTrader.Backtester
                     currentResult["TotalProfitPercentage"] = result.TotalProfitPercentage;
                     currentResult["AverageDuration"] = result.AverageDuration;
                     currentResult["DataPeriod"] = result.DataPeriod;
+
                     jArrayResult.Add(currentResult);
                 }
             }
+
             return jArrayResult;
         }
 

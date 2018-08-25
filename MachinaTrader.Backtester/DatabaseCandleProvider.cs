@@ -8,6 +8,7 @@ using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals;
 using MachinaTrader.Globals.Structure.Enums;
 using Microsoft.Extensions.Caching.Memory;
+using MachinaTrader.Globals.Structure.Extensions;
 
 namespace MachinaTrader.Backtester
 {
@@ -92,6 +93,7 @@ namespace MachinaTrader.Backtester
 
                 var candleProvider = new DatabaseCandleProvider();
                 var _candle15 = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest).Result;
+                _candle15 = await _candle15.FillCandleGaps((Period)Enum.Parse(typeof(Period), backtestOptions.CandlePeriod.ToString(), true));
 
                 Global.AppCache.Remove(backtestOptions.Coin + backtestOptions.CandlePeriod);
                 Global.AppCache.Add(api.Name + backtestOptions.Coin + backtestOptions.CandlePeriod, _candle15, new MemoryCacheEntryOptions());
@@ -114,6 +116,7 @@ namespace MachinaTrader.Backtester
                 backtestOptions.EndDate = database1LastCandle.Timestamp;
 
                 var _candle1 = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest).Result;
+                _candle1 = await _candle1.FillCandleGaps((Period)Enum.Parse(typeof(Period), backtestOptions.CandlePeriod.ToString(), true));
 
                 Global.AppCache.Remove(backtestOptions.Coin + backtestOptions.CandlePeriod);
                 Global.AppCache.Add(api.Name + backtestOptions.Coin + backtestOptions.CandlePeriod, _candle1, new MemoryCacheEntryOptions());

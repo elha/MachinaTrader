@@ -333,7 +333,7 @@ namespace MachinaTrader.TradeManagers
             while (candles.Last().Timestamp < desiredLastCandleTime && k < 20 && !Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
             {
                 k++;
-                Thread.Sleep(1000 * k);
+                await Task.Delay(1000);
 
                 candles = await Global.ExchangeApi.GetTickerHistory(market, strategy.IdealPeriod, minimumDate, endDate);
                 Global.Logger.Information("R Checking signal for market {Market} lastCandleTime {a} - desiredLastCandleTime {b}", market, candles.Last().Timestamp, desiredLastCandleTime);
