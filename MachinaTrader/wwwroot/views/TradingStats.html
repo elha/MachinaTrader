@@ -48,6 +48,17 @@
 <div class="animated fadeIn" id="myntStatistics" v-if="myntStatisticsData">
     <!-- Performance -->
     <h1 class="mt-5">Performance</h1>
+    <div class="col-3">
+        <div class="form-group row">
+            <label for="statisticModeId" class="col-4 col-form-label">Statistic:</label>
+            <div class='col-8 input-group date' id='statisticModeId'>
+                <select name="display" id="modeSelect" class="selectpicker">
+                    <option value="paper" data-icon="fas fa-paper-plane">Papertrade</option>
+                    <option value="live" data-icon="fas fa-dollar-sign">Livetrade</option>
+                </select>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <!-- Quotecurrency -->
         <div v-if="myntStatisticsData.stat.profitLoss != null" class="col-lg-3 col-md-3 col-sm-3">
@@ -158,12 +169,24 @@
 
 <script type="text/javascript">
     var pagefunction = function () {
+
+        $(".selectpicker").select2({
+            theme: "bootstrap",
+            templateResult: selectPickerImage,
+            templateSelection: selectPickerImage,
+            width: "100%"
+        });
+
+        $('#modeSelect').change(function () {
+            myntStatistics.updateData();
+            $('#statisticTableId').DataTable().ajax.reload();
+        });
     };
 
     $(document).ready(function () {
         table = $('#statisticTableId').DataTable({
             ajax: {
-                url: '/api/statistics/overview',
+                url: '/api/statistics/overview?mode=' + $("#modeSelect").val(),
                 dataSrc: 'stat.coinPerformances'
             },
             responsive: true,
@@ -318,7 +341,7 @@
 
                 connection.on('Send', function (msg) {
                     console.log("Msg from signalR: " + msg);
-                    table.ajax.url('/api/statistics/overview').load();
+                    table.ajax.url('/api/statistics/overview?mode=' + $("#modeSelect").val()).load();
 
                     self.updateData();
                 });
@@ -339,7 +362,7 @@
 
             fetchData: function () {
                 var self = this;
-                $.get("/api/statistics/overview", function (data) {
+                $.get('/api/statistics/overview?mode=' + $("#modeSelect").val(), function (data) {
                     self.myntStatisticsData = data;
                     self.$nextTick(function () {
                         pagefunction();
@@ -348,8 +371,9 @@
             },
             updateData: function () {
                 var self = this;
-                $.get("/api/statistics/overview", function (data) {
+                $.get('/api/statistics/overview?mode=' + $("#modeSelect").val(), function (data) {
                     self.myntStatisticsData = data;
+                    table.ajax.url('/api/statistics/overview?mode=' + $("#modeSelect").val()).load();
                 });
             },
         }
