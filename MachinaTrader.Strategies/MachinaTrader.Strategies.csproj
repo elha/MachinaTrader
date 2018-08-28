@@ -5,6 +5,66 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="AdxMomentum.cs" />
+    <Compile Remove="AdxSmas.cs" />
+    <Compile Remove="AwesomeMacd.cs" />
+    <Compile Remove="AwesomeSma.cs" />
+    <Compile Remove="Base150.cs" />
+    <Compile Remove="BbandRsi.cs" />
+    <Compile Remove="BigThree.cs" />
+    <Compile Remove="BollingerAwe.cs" />
+    <Compile Remove="BreakoutMa.cs" />
+    <Compile Remove="BullishEngulfing.cs" />
+    <Compile Remove="BuyAndHold.cs" />
+    <Compile Remove="CciEma.cs" />
+    <Compile Remove="CciRsi.cs" />
+    <Compile Remove="CciScalper.cs" />
+    <Compile Remove="DerivativeOscillator.cs" />
+    <Compile Remove="DoubleVolatility.cs" />
+    <Compile Remove="EmaAdx.cs" />
+    <Compile Remove="EmaAdxF.cs" />
+    <Compile Remove="EmaAdxMacd.cs" />
+    <Compile Remove="EmaAdxSmall.cs" />
+    <Compile Remove="EmaCross.cs" />
+    <Compile Remove="EmaCrossShort.cs" />
+    <Compile Remove="EmaStochRsi.cs" />
+    <Compile Remove="FaMaMaMa.cs" />
+    <Compile Remove="FifthElement.cs" />
+    <Compile Remove="FisherTransform.cs" />
+    <Compile Remove="Fractals.cs" />
+    <Compile Remove="FreqModded.cs" />
+    <Compile Remove="FreqTradeEvo.cs" />
+    <Compile Remove="MacdSma.cs" />
+    <Compile Remove="MacdTema.cs" />
+    <Compile Remove="Momentum.cs" />
+    <Compile Remove="PatternTrading.cs" />
+    <Compile Remove="PivotMaestro.cs" />
+    <Compile Remove="PowerRanger.cs" />
+    <Compile Remove="QuickSma.cs" />
+    <Compile Remove="RedWedding.cs" />
+    <Compile Remove="Replex.cs" />
+    <Compile Remove="RsiBbands.cs" />
+    <Compile Remove="RsiMacd.cs" />
+    <Compile Remove="RsiMacdAwesome.cs" />
+    <Compile Remove="RsiMacdMfi.cs" />
+    <Compile Remove="RsiSarAwesome.cs" />
+    <Compile Remove="SarAwesome.cs" />
+    <Compile Remove="SarRsi.cs" />
+    <Compile Remove="SarStoch.cs" />
+    <Compile Remove="SimpleBearBull.cs" />
+    <Compile Remove="SmaCrossover.cs" />
+    <Compile Remove="SmaCrossoverEvo.cs" />
+    <Compile Remove="SmaSar.cs" />
+    <Compile Remove="SmaStochRsi.cs" />
+    <Compile Remove="StochAdx.cs" />
+    <Compile Remove="ThreeMAgos.cs" />
+    <Compile Remove="TripleMa.cs" />
+    <Compile Remove="Wvf.cs" />
+    <Compile Remove="WvfEmaCrossover.cs" />
+    <Compile Remove="WvfExtended.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\MachinaTrader.Globals.Structure\MachinaTrader.Globals.Structure.csproj" />
     <ProjectReference Include="..\MachinaTrader.Globals\MachinaTrader.Globals.csproj" />
     <ProjectReference Include="..\MachinaTrader.Indicators\MachinaTrader.Indicators.csproj" />
