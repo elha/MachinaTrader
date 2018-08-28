@@ -11,7 +11,9 @@ namespace AspNetCore.Identity.LiteDB.Data
         public LiteDbContext(IHostingEnvironment environment, string fileName)
         {
             HostingEnvironment = environment;
-            LiteDatabase = new LiteDatabase(fileName);
+
+            var conn = new ConnectionString { Filename = fileName, Mode = FileMode.Exclusive };
+            LiteDatabase = new LiteDatabase(conn);
         }
     }
 }

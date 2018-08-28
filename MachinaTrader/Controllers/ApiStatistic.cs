@@ -19,14 +19,17 @@ namespace MachinaTrader.Controllers
     {
         [HttpGet]
         [Route("overview")]
-        public async Task<IActionResult> Statistics()
+        public async Task<IActionResult> Statistics(string mode)
         {
+            // Check mode
+            var paperTrade = mode != "live";
+
             // Create Statistic model
             var stat = new Statistics();
 
             // Get closed trades
             var closedTrades = await Global.DataStore.GetClosedTradesAsync();
-            var closedTradesClean = closedTrades.Where(c => c.SellOrderId != null);
+            var closedTradesClean = closedTrades.Where(c => c.SellOrderId != null && c.PaperTrade == paperTrade);
 
             // Coins Profit-loss
             var sortedList = closedTradesClean.GroupBy(x => x.Market);
