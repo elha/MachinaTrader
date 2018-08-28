@@ -8,11 +8,11 @@ namespace MachinaTrader.Indicators
 {
     public static partial class Extensions
     {
-        public static List<int?> Fisher(this List<Candle> source, int period = 10)
+        public static List<decimal?> Fisher(this List<Candle> source, int period = 10, bool rawValues = false)
         {
             var nValues1 = new List<decimal>();
-            var fishers = new List<decimal>();
-            var result = new List<int?>();
+            var fishers = new List<decimal?>();
+            var result = new List<decimal?>();
             var highLowAverages = source.Select(x => (x.High + x.Low) / 2).ToList();
 
             for (int i = 0; i < source.Count; i++)
@@ -58,11 +58,12 @@ namespace MachinaTrader.Indicators
                         result.Add(-1);
                     else
                         result.Add(0);
-
                 }
-
             }
 
+            if (rawValues)
+                return fishers;
+            
             return result;
         }
     }
