@@ -90,8 +90,8 @@ namespace MachinaTrader.Backtester
                 {
                     try
                     {
-                        List<Candle> candles = await baseExchangeApi.GetChunkTickerHistory(exchangeSymbol, backtestOptions.CandlePeriod.FromMinutesEquivalent(), startDate, endDate.RoundDown(TimeSpan.FromMinutes(backtestOptions.CandlePeriod)));
-                        //List<Candle> candles = await baseExchangeApi.(exchangeSymbol, backtestOptions.CandlePeriod.FromMinutesEquivalent(), startDate, endDate.RoundDown(TimeSpan.FromMinutes(backtestOptions.CandlePeriod)));
+                        //List<Candle> candles = await baseExchangeApi.GetChunkTickerHistory(exchangeSymbol, backtestOptions.CandlePeriod.FromMinutesEquivalent(), startDate, endDate.RoundDown(TimeSpan.FromMinutes(backtestOptions.CandlePeriod)));
+                        List<Candle> candles = await baseExchangeApi.GetTickerHistory(exchangeSymbol, backtestOptions.CandlePeriod.FromMinutesEquivalent(), startDate, endDate.RoundDown(TimeSpan.FromMinutes(backtestOptions.CandlePeriod)));
 
                         if (candles.Count == 0 || candles.Last().Timestamp.ToUniversalTime() == startDate)
                         {

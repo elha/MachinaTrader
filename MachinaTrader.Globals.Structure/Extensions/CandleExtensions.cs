@@ -52,6 +52,9 @@ namespace MachinaTrader.Globals.Structure.Extensions
         /// <returns></returns>
         public static async Task<List<Candle>> FillCandleGaps(this List<Candle> candles, Period period)
         {
+            if (!candles.Any())
+                return candles;
+
             // Candle response
             var filledCandles = new List<Candle>();
             var orderedCandles = candles.OrderBy(x => x.Timestamp).ToList();
@@ -87,19 +90,19 @@ namespace MachinaTrader.Globals.Structure.Extensions
             }
 
             // Fill "extend" the last candle gap
-            var cLast = candles.Last();
-            filledCandles.Add(cLast);
-            nextTime = cLast.Timestamp.AddMinutes(period.ToMinutesEquivalent());
-            while (nextTime < endDate)
-            {
-                var cNext = cLast;
-                cNext.Timestamp = nextTime;
-                filledCandles.Add(cNext);
-                nextTime = cNext.Timestamp.AddMinutes(period.ToMinutesEquivalent());
-            }
+            //var cLast = candles.Last();
+            //filledCandles.Add(cLast);
+            //nextTime = cLast.Timestamp.AddMinutes(period.ToMinutesEquivalent());
+            //while (nextTime < endDate)
+            //{
+            //    var cNext = cLast;
+            //    cNext.Timestamp = nextTime;
+            //    filledCandles.Add(cNext);
+            //    nextTime = cNext.Timestamp.AddMinutes(period.ToMinutesEquivalent());
+            //}
 
             // Debugging. Don't need when running for real.
-            await Task.Delay(10);
+           // await Task.Delay(10);
 
             // Return the no-gap candles
             return filledCandles;

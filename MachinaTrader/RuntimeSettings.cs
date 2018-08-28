@@ -50,8 +50,8 @@ namespace MachinaTrader
 
             Runtime.NotificationManagers = new List<INotificationManager>()
             {
-                new SignalrNotificationManager(),
-                new TelegramNotificationManager(Runtime.GlobalTelegramNotificationOptions)
+                new SignalrNotificationManager()
+               // new TelegramNotificationManager(Runtime.GlobalTelegramNotificationOptions)
             };
 
             if (Global.Configuration.SystemOptions.Database == "MongoDB")

@@ -71,7 +71,7 @@ namespace MachinaTrader.Exchanges
             var items = cachedCandles.Where(c => c.Timestamp > startDate.Value && c.Timestamp <= endDate.Value).ToList();
 
             //Global.Logger.Information($"Starting OnGetCandlesAsync {symbol} {items.Count()}");
-            var watch1 = System.Diagnostics.Stopwatch.StartNew();
+            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
             foreach (var item in items)
             {
@@ -134,8 +134,8 @@ namespace MachinaTrader.Exchanges
             //});
             //Task.WaitAll(tasks);           
 
-            watch1.Stop();
-            Global.Logger.Information($"Ended OnGetCandlesAsync {symbol} {items.Count()}>>{candles.Count()} in #{watch1.Elapsed.TotalSeconds} seconds");
+           // watch1.Stop();
+            //Global.Logger.Information($"Ended OnGetCandlesAsync {symbol} {items.Count()}>>{candles.Count()} in #{watch1.Elapsed.TotalSeconds} seconds");
 
             return candles;
         }
