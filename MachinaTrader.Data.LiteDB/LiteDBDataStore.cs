@@ -17,7 +17,8 @@ namespace MachinaTrader.Data.LiteDB
 
         public LiteDbDataStore(LiteDbOptions options)
         {
-            _database = new LiteDatabase(options.LiteDbName);
+            var conn = new ConnectionString { Filename = options.LiteDbName, Mode = FileMode.Exclusive };
+            _database = new LiteDatabase(conn);
             _ordersAdapter = _database.GetCollection<TradeAdapter>("Orders");
             _traderAdapter = _database.GetCollection<TraderAdapter>("Traders");
             _walletTransactionsAdapter = _database.GetCollection<WalletTransactionAdapter>("WalletTransactions");

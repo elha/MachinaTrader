@@ -5,10 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using LiteDB;
+using LDB = LiteDB;
 using MachinaTrader.Globals;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Models;
+using LiteDB;
 
 namespace MachinaTrader.Data.LiteDB
 {
@@ -19,7 +20,8 @@ namespace MachinaTrader.Data.LiteDB
 
         public LiteDbDataStoreBacktest(LiteDbOptions options)
         {
-            _database = new LiteDatabase(options.LiteDbName);
+            var conn = new ConnectionString { Filename = options.LiteDbName, Mode = LDB.FileMode.Exclusive };
+            _database = new LiteDatabase(conn);
             GetDatabase(new BacktestOptions());
         }
 
