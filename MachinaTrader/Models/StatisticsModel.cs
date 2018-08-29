@@ -6,6 +6,7 @@ namespace MachinaTrader.Models
 {
     public class Statistics
     {
+        public decimal? InvestedCoins { get; set; } = 0;
         public decimal? ProfitLoss { get; set; } = 0;
         public decimal? ProfitLossPercentage { get; set; } = 0;
 
@@ -15,6 +16,7 @@ namespace MachinaTrader.Models
     public class CoinPerformance
     {
         public string Coin { get; set; }
+        public decimal? InvestedCoins { get; set; } = 0;
         public decimal? Performance { get; set; } = 0;
         public decimal? PerformancePercentage { get; set; } = 0;
         public int? PositiveTrades { get; set; }
@@ -24,9 +26,7 @@ namespace MachinaTrader.Models
     public class WalletStatistic
     {
         public List<DateTime> Dates { get; set; }
-
         public List<decimal> Amounts { get; set; }
-
         public List<decimal> Balances { get; set; }
     }
 }

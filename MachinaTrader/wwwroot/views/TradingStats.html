@@ -7,148 +7,190 @@
 <script src="/vendors/moment/js/moment-with-locales.min.js"></script>
 <script src="/vendors/axios/js/axios.min.js"></script>
 <script src="/vendors/bootbox/js/bootbox.min.js"></script>
+<script src="/vendors/bootstrap4-datetimepicker/js/bootstrap-datetimepicker.js"></script>
+
 
 <script src="/vendors/chart.js/js/Chart.min.js"></script>
 <script src="/vendors/@coreui/coreui-plugin-chartjs-custom-tooltips/js/custom-tooltips.min.js"></script>
-
 <style>
-    .greenCell { background: rgba(0, 255, 0, 0.2) !important; }
+    .greenCell {
+        background: rgba(0, 255, 0, 0.2) !important;
+    }
 
-    .orangeCell { background: rgba(0, 255, 152, 0.1) !important; }
+    .orangeCell {
+        background: rgba(0, 255, 152, 0.1) !important;
+    }
 
-    .redCell { background: rgba(255, 0, 0, 0.20) !important; }
+    .redCell {
+        background: rgba(255, 0, 0, 0.20) !important;
+    }
 
-    .small-text { font-size: 10px; line-height: 24px; }
+    .small-text {
+        font-size: 10px;
+        line-height: 24px;
+    }
 
-    .table-round > .box-body { padding: 0; }
+    .table-round > .box-body {
+        padding: 0;
+    }
 
-    .table th, .table td { padding: 0.75rem; vertical-align: top; border-top: 0; }
+    .table th, .table td {
+        padding: 0.75rem;
+        vertical-align: top;
+        border-top: 0;
+    }
 
-    .table thead th { vertical-align: bottom; border-bottom: 0; }
+    .table thead th {
+        vertical-align: bottom;
+        border-bottom: 0;
+    }
 
-    table.dataTable { margin-top: 0 !important; margin-bottom: 0 !important; border-collapse: collapse !important; }
+    table.dataTable {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        border-collapse: collapse !important;
+    }
 
-    .dataTables_wrapper .row .col-sm-12 { padding: 0 !important; }
+    .dataTables_wrapper .row .col-sm-12 {
+        padding: 0 !important;
+    }
 
-    div.dataTables_wrapper div.dataTables_info { padding: 1.8em; }
+    div.dataTables_wrapper div.dataTables_info {
+        padding: 1.8em;
+    }
 
-    div.dataTables_wrapper div.dataTables_paginate { padding: 1em; }
+    div.dataTables_wrapper div.dataTables_paginate {
+        padding: 1em;
+    }
 
-    .card-body-header { margin-right: 0; margin-left: 0; padding-top: 15px; background-color: rgba(198, 198, 198, 0.5); box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12); }
+    .card-body-header {
+        margin-right: 0;
+        margin-left: 0;
+        padding-top: 15px;
+        background-color: rgba(198, 198, 198, 0.5);
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+    }
 
-    .table-bordered { border: 0; }
+    .table-bordered {
+        border: 0;
+    }
 
-    .select2-selection { width: 100%; }
+    .select2-selection {
+        width: 100%;
+    }
 
-    .dataTables_length { margin-left: 20px; }
+    .dataTables_length {
+        margin-left: 20px;
+    }
 
-    .dataTables_filter { margin-right: 20px; }
+    .dataTables_filter {
+        margin-right: 20px;
+    }
 </style>
 
-<div class="animated fadeIn" id="myntStatistics" v-if="myntStatisticsData">
+<div class="animated fadeIn">
     <!-- Performance -->
-    <h1 class="mt-5">Performance</h1>
-    <div class="col-3">
-        <div class="form-group row">
-            <label for="statisticModeId" class="col-4 col-form-label">Statistic:</label>
-            <div class='col-8 input-group date' id='statisticModeId'>
-                <select name="display" id="modeSelect" class="selectpicker">
-                    <option value="paper" data-icon="fas fa-paper-plane">Papertrade</option>
-                    <option value="live" data-icon="fas fa-dollar-sign">Livetrade</option>
-                </select>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <!-- Quotecurrency -->
-        <div v-if="myntStatisticsData.stat.profitLoss != null" class="col-lg-3 col-md-3 col-sm-3">
-            <div class="card text-white bg-primary ">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">Quote Currency</h4>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">{{myntStatisticsData.tradeOptions.quoteCurrency}}</h4>
-                        </div>
-                    </div>
-                    <br />
-                </div>
-            </div>
-        </div>
-        <!-- Profit in quotecurrency -->
-        <div v-if="myntStatisticsData.stat.profitLoss != null" class="col-lg-3 col-md-3 col-sm-3">
-            <div class="card text-white bg-info ">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">Profit in {{myntStatisticsData.tradeOptions.quoteCurrency}}</h4>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">{{parseFloat(myntStatisticsData.stat.profitLoss).toFixed(7)}} {{myntStatisticsData.tradeOptions.quoteCurrency}}</h4>
-                        </div>
-                    </div>
-                    <br />
-                </div>
-            </div>
-        </div>
-        <!-- Profit in precentage -->
-        <div v-if="myntStatisticsData.stat.profitLossPercentage != null" class="col-lg-3 col-md-3 col-sm-3">
-            <div class="card text-white bg-success ">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">Profit in %</h4>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">{{parseFloat(myntStatisticsData.stat.profitLossPercentage).toFixed(3)}}%</h4>
-                        </div>
-                    </div>
-                    <br />
-                </div>
-            </div>
-        </div>
-        <!-- Strategy -->
-        <div v-if="myntStatisticsData.stat.profitLoss != null" class="col-lg-3 col-md-3 col-sm-3">
-            <div class="card text-white bg-warning ">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">Used Stategy</h4>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">{{myntStatisticsData.tradeOptions.defaultStrategy}}</h4> <!-- TODO there has to be the used strategy not the default one... -->
-                        </div>
-                    </div>
-                    <br />
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="animated fadeIn" id="myntLogs">
-    <div class="row" id="widgetCoinsperformance">
+    <div class="row animated fadeIn" id="tradingSignals">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <i class="fas fa-history"></i>&nbsp;Coins performance
+                    <i class="fab fa-btc"></i><span id="tourName">Performance</span>
+
+                    <!--<div class="card-actions">
+                        <a href="#" class="btn-minimize" data-widget="collapse"><i class="fal fa-angle-up"></i></a>
+                        <a href="#" class="btn-close" data-widget="remove"><i class="fal fa-times-circle"></i></a>
+                    </div>-->
                 </div>
-                <div class="card-body" id="coinsPerformanceTable">
-                    <table class="table table-striped p-0 table-hover" id="statisticTableId"></table>
+                <div class="row card-body-header">
+
+                    <label for="statisticModeId" class="col-1 col-form-label">Statistic:</label>
+                    <div class='col-2 input-group date' id='statisticModeId'>
+                        <select name="display" id="modeSelect" class="selectpicker">
+                            <option value="paper" data-icon="fas fa-paper-plane">Papertrade</option>
+                            <option value="live" data-icon="fas fa-dollar-sign">Livetrade</option>
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-group row">
+                            <label for="inputFromDate" class="col-2 col-form-label  d-none d-lg-block">From</label>
+                            <div class='col-10 input-group date' id='datetimepicker1'>
+                                <input type='text' id="inputFromDate" class="form-control" />
+                                <span class="input-group-append">
+                                    <i class="fal fa-calendar-alt"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-group row">
+                            <label for="inputToDate" class="col-2 col-form-label  d-none d-lg-block">To</label>
+                            <div class='col-10 input-group date' id='datetimepicker2'>
+                                <input type='text' id="inputToDate" class="form-control" />
+                                <span class="input-group-append">
+                                    <i class="fal fa-calendar-alt"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body" id="erpsubmit">
+                    <div id="myntStatistics" v-if="myntStatisticsData">
+                        <div class="row">
+                            <!-- Quotecurrency -->
+                            <div class="col-3">
+                                <div class="callout">
+                                    <small class="text-muted">Quote Currency</small>
+                                    <br>
+                                    <strong class="h4">{{myntStatisticsData.tradeOptions.quoteCurrency}}</strong>
+                                </div>
+                            </div>
+                            <!-- Profit in quotecurrency -->
+                            <div class="col-3" v-if="myntStatisticsData.stat.profitLoss != null">
+                                <div class="callout">
+                                    <small class="text-muted">{{myntStatisticsData.tradeOptions.quoteCurrency}} Invested</small>
+                                    <br>
+                                    <strong class="h4">{{parseFloat(myntStatisticsData.stat.investedCoins).toFixed(7)}}</strong>
+                                </div>
+                            </div>
+                            <!-- Profit in precentage -->
+                            <div class="col-3" v-if="myntStatisticsData.stat.profitLossPercentage != null">
+                                <div class="callout">
+                                    <small class="text-muted">Total BTC returns</small>
+                                    <br>
+                                    <strong class="h4">{{parseFloat(myntStatisticsData.stat.profitLoss).toFixed(7)}} ({{parseFloat(myntStatisticsData.stat.profitLossPercentage).toFixed(2)}}%)</strong>
+                                </div>
+                            </div>
+                            <!-- Strategy -->
+                            <div class="col-3">
+                                <div class="callout">
+                                    <small class="text-muted">Used Stategy</small>
+                                    <br>
+                                    <strong class="h4">{{myntStatisticsData.tradeOptions.defaultStrategy}}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" id="widgetCoinsperformance">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <i class="fas fa-history"></i>&nbsp;Coins performance
+                                </div>
+                                <div class="card-body" id="coinsPerformanceTable">
+                                    <table class="table table-striped p-0 table-hover" id="statisticTableId"></table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+
 </div>
+
 
 <div class="animated fadeIn">
     <div class="row">
@@ -169,6 +211,21 @@
 
 <script type="text/javascript">
     var pagefunction = function () {
+        var momentDateNow = new Date(moment().locale("en").format("YYYY-MM-DD"));
+        var momentDateNowMinusOneWeek = new Date(moment().locale("en").subtract(7, 'd').format("YYYY-MM-DD"));
+        var momentDateNowMinusOneMonth = new Date(moment().locale("en").subtract(1, 'M').format("YYYY-MM-DD"));
+        $('#datetimepicker1').datetimepicker({
+            defaultDate: momentDateNowMinusOneMonth,
+            format: 'YYYY-MM-DD'
+        }).on('dp.change', function () {
+            myntStatistics.updateData();
+        });
+        $('#datetimepicker2').datetimepicker({
+            defaultDate: momentDateNow,
+            format: 'YYYY-MM-DD'
+        }).on('dp.change', function () {
+            myntStatistics.updateData();
+        });
 
         $(".selectpicker").select2({
             theme: "bootstrap",
@@ -179,25 +236,64 @@
 
         $('#modeSelect').change(function () {
             myntStatistics.updateData();
-            $('#statisticTableId').DataTable().ajax.reload();
+        });
+
+        $(document).ready(function () {
+            $.ajax({
+                url: "/api/statistics/wallet",
+                type: "GET",
+                dataType: 'json',
+                success: function (rtnData) {
+                    console.log(rtnData);
+
+                    var arr = jQuery.map(rtnData.stat.dates, function (value, i) {
+                        return (moment(value).format("YYYY-MM-DD HH:mm:ss"));
+                    });
+
+                    var config = {
+                        type: 'line',
+                        data: {
+                            datasets: [{
+                                label: 'Balances',
+                                backgroundColor: 'rgba(220, 220, 220, 0.2)',
+                                borderColor: 'rgba(220, 220, 220, 1)',
+                                pointBackgroundColor: 'rgba(220, 220, 220, 1)',
+                                pointBorderColor: '#fff',
+                                data: rtnData.stat.balances
+                            }],
+                            labels: arr
+                        },
+                        options: {
+                            responsive: true
+                        }
+                    };
+
+                    var lineChart = new Chart($('#canvas-1'), config);
+                },
+                error: function (rtnData) {
+                    alert('error' + rtnData);
+                }
+            });
         });
     };
 
-    $(document).ready(function () {
+    var initDtCoinPerform = function() {
         table = $('#statisticTableId').DataTable({
             ajax: {
-                url: '/api/statistics/overview?mode=' + $("#modeSelect").val(),
+                url: '/api/statistics/overview?mode=' +$("#modeSelect").val() +'&fromDate=' +$('#inputFromDate').val() +'&toDate=' +$('#inputToDate').val(),
                 dataSrc: 'stat.coinPerformances'
             },
             responsive: true,
             "autoWidth": false,
             "iDisplayLength": 100,
-            'columnDefs': [{
-                'targets': 0,
-                'searchable': true,
-                'orderable': true,
-                'className': 'dt-body-center'
-            }],
+            'columnDefs': [
+                {
+                    'targets': 0,
+                    'searchable': true,
+                    'orderable': true,
+                    'className': 'dt-body-center'
+                }
+            ],
             'order': [2, 'desc'],
             "createdRow": function (row, data, dataIndex) {
                 if (data.LogState === "Warning") $(row).addClass('orangeCell');
@@ -250,49 +346,20 @@
                     mRender: function (data, type, full, meta) {
                         var posT = full.positiveTrades;
                         var posN = full.negativeTrade;
-                        var formatted = '<span class="btn btn-success btn-sm" style="min-width: 30px;">' + posT + '</span>&nbsp;' + '<span class="btn btn-danger btn-sm" style="min-width: 30px;">' + posN + '</span>&nbsp;';
+                        var formatted = '<span class="btn btn-success btn-sm" style="min-width: 30px;">' +
+                            posT +
+                            '</span>&nbsp;' +
+                            '<span class="btn btn-danger btn-sm" style="min-width: 30px;">' +
+                            posN +
+                            '</span>&nbsp;';
                         return formatted;
                     }
-                },
+                }
             ]
         });
 
-        $.ajax({
-            url: "/api/statistics/wallet",
-            type: "GET",
-            dataType: 'json',
-            success: function (rtnData) {
-                console.log(rtnData);
+    }
 
-                var arr = jQuery.map(rtnData.stat.dates, function (value, i) {
-                    return (moment(value).format("YYYY-MM-DD HH:mm:ss"));
-                });
-
-                var config = {
-                    type: 'line',
-                    data: {
-                        datasets: [{
-                            label: 'Balances',
-                            backgroundColor: 'rgba(220, 220, 220, 0.2)',
-                            borderColor: 'rgba(220, 220, 220, 1)',
-                            pointBackgroundColor: 'rgba(220, 220, 220, 1)',
-                            pointBorderColor: '#fff',
-                            data: rtnData.stat.balances
-                        }],
-                        labels: arr
-                    },
-                    options: {
-                        responsive: true
-                    }
-                };
-
-                var lineChart = new Chart($('#canvas-1'), config);  
-            },
-            error: function (rtnData) {
-                alert('error' + rtnData);
-            }
-        });
-    });
 
     var myntStatistics = new Vue({
         el: '#myntStatistics',
@@ -341,9 +408,7 @@
 
                 connection.on('Send', function (msg) {
                     console.log("Msg from signalR: " + msg);
-                    table.ajax.url('/api/statistics/overview?mode=' + $("#modeSelect").val()).load();
-
-                    self.updateData();
+                    table.ajax.url('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val()).load();
                 });
 
                 connection.onclose(function (e) {
@@ -362,18 +427,20 @@
 
             fetchData: function () {
                 var self = this;
-                $.get('/api/statistics/overview?mode=' + $("#modeSelect").val(), function (data) {
+                $.get('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val(), function (data) {
                     self.myntStatisticsData = data;
-                    self.$nextTick(function () {
-                        pagefunction();
-                    });
                 });
+                self.$nextTick(function () {
+                    initDtCoinPerform();
+                    pagefunction();
+                });
+
             },
             updateData: function () {
                 var self = this;
-                $.get('/api/statistics/overview?mode=' + $("#modeSelect").val(), function (data) {
+                $.get('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val(), function (data) {
                     self.myntStatisticsData = data;
-                    table.ajax.url('/api/statistics/overview?mode=' + $("#modeSelect").val()).load();
+                    table.ajax.url('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val()).load();
                 });
             },
         }

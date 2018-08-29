@@ -18,18 +18,23 @@ namespace MachinaTrader.Controllers
     public class ApiStatistic : Controller
     {
         [HttpGet]
-        [Route("overview")]
-        public async Task<IActionResult> Statistics(string mode)
+        [Authorize, Route("overview")]
+        public async Task<IActionResult> Statistics(string mode = "paper", DateTime? fromDate = null, DateTime? toDate = null)
         {
             // Check mode
             var paperTrade = mode != "live";
-
+            
             // Create Statistic model
             var stat = new Statistics();
 
             // Get closed trades
             var closedTrades = await Global.DataStore.GetClosedTradesAsync();
-            var closedTradesClean = closedTrades.Where(c => c.SellOrderId != null && c.PaperTrade == paperTrade);
+            var closedTradesClean = closedTrades.Where(c => c.CloseDate != null &&
+                                                            (fromDate != null && toDate != null &&
+                                                             (c.SellOrderId != null &&
+                                                                c.PaperTrade == paperTrade &&
+                                                                c.CloseDate.Value.Date >= fromDate.Value.Date &&
+                                                                c.CloseDate.Value.Date <= toDate.Value.Date)));
 
             // Coins Profit-loss
             var sortedList = closedTradesClean.GroupBy(x => x.Market);
@@ -37,11 +42,16 @@ namespace MachinaTrader.Controllers
             var coins = sortedList.Select(coinGroup => new CoinPerformance()
             {
                 Coin = coinGroup.Key,
+                InvestedCoins = coinGroup.Sum(x => x.StakeAmount),
                 Performance = coinGroup.Sum(x => x.CloseProfit),
+                //TODO performance korrekt berechnen
                 PerformancePercentage = coinGroup.Sum(x => x.CloseProfitPercentage),
                 PositiveTrades = coinGroup.Count(c => c.CloseProfit > 0),
                 NegativeTrade = coinGroup.Count(c => c.CloseProfit < 0)
             }).ToList();
+
+            // Invested amout
+            stat.InvestedCoins = coins.Sum(c => c.InvestedCoins);
 
             // General Profit-loss
             stat.ProfitLoss = coins.Sum(c => c.Performance);

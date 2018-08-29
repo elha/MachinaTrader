@@ -132,7 +132,7 @@ namespace MachinaTrader.Controllers
                 strategies[strategy.Name] = new JObject
                 {
                     ["Name"] = strategy.Name,
-                    ["ClassName"] = strategy.ToString().Replace("Mynt.Core.Strategies.", ""),
+                    ["ClassName"] = strategy.ToString().Replace("MachinaTrader.Strategies.", ""),
                     ["IdealPeriod"] = strategy.IdealPeriod.ToString(),
                     ["MinimumAmountOfCandles"] = strategy.MinimumAmountOfCandles.ToString()
                 };
