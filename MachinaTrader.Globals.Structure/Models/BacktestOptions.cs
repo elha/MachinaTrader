@@ -10,6 +10,7 @@ namespace MachinaTrader.Globals.Structure.Models
 		public Exchange Exchange { get; set; } = Exchange.Binance;
         public string DataFolder { get; set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data");
         public decimal StakeAmount { get; set; } = 0.005m;
+        public decimal StartingWallet { get; set; } = 1m;
         public bool OnlyStartNewTradesWhenSold { get; set; } = true;
         public List<string> Coins { get; set; } = new List<string>();
         public string Coin { get; set; } = null;

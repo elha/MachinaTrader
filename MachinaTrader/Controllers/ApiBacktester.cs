@@ -176,7 +176,7 @@ namespace MachinaTrader.Controllers
 
         [HttpGet]
         [Route("backtesterResults")]
-        public ActionResult BacktesterResults(string exchange, string coinsToBuy, string baseCurrency, string candleSize = "5", string strategy = "all")
+        public ActionResult BacktesterResults(string exchange, string coinsToBuy, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount, DateTime? from = null, DateTime? to = null, string candleSize = "5", string strategy = "all")
         {
             JObject strategies = new JObject();
 
@@ -205,8 +205,14 @@ namespace MachinaTrader.Controllers
                 DataFolder = Global.DataPath,
                 Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true),
                 Coins = coins,
-                CandlePeriod = Int32.Parse(candleSize)
+                CandlePeriod = Int32.Parse(candleSize)                
             };
+
+            if (from.HasValue)
+                backtestOptions.StartDate = from.Value;
+
+            if (to.HasValue)
+                backtestOptions.EndDate = to.Value;
 
             var cts = new CancellationTokenSource();
             var parallelOptions = new ParallelOptions
@@ -224,7 +230,7 @@ namespace MachinaTrader.Controllers
                         return;
                     }
                 }
-                var result = await BacktestFunctions.BackTestJson(tradingStrategy, backtestOptions, Global.DataStoreBacktest);
+                var result = await BacktestFunctions.BackTestJson(tradingStrategy, backtestOptions, Global.DataStoreBacktest, saveSignals, startingWallet, tradeAmount);
                 for (int i = 0; i < result.Count(); i++)
                 {
                     if (i == 0)

@@ -12,9 +12,10 @@ namespace MachinaTrader.Backtester
 {
     public class BackTestRunner
     {
-        public async Task<List<BackTestResult>> RunSingleStrategy(ITradingStrategy strategy, BacktestOptions backtestOptions, IDataStoreBacktest dataStore)
+        public async Task<List<BackTestResult>> RunSingleStrategy(ITradingStrategy strategy, BacktestOptions backtestOptions, IDataStoreBacktest dataStore, bool saveSignals, decimal startingWallet, decimal tradeAmount)
         {
             var results = new List<BackTestResult>();
+            var allSignals = new List<TradeSignal>();
 
             // Go through our coinpairs and backtest them.
             foreach (string globalSymbol in backtestOptions.Coins)
@@ -105,7 +106,10 @@ namespace MachinaTrader.Backtester
                         }
                     }
 
-                    //await candleProvider.SaveTradeSignals(backtestOptions, dataStore, signals);
+                    if (saveSignals)
+                        await candleProvider.SaveTradeSignals(backtestOptions, dataStore, signals);
+
+                    allSignals.AddRange(signals);
                 }
                 catch (Exception ex)
                 {
@@ -115,6 +119,65 @@ namespace MachinaTrader.Backtester
 
                 results.Add(backTestResult);
             }
+
+            allSignals = allSignals.OrderBy(t => t != null).ThenBy(t => t.Timestamp).ToList();
+
+            #region wallet trend
+
+
+            var strategyTrades = new List<BackTestTradeResult>();
+            foreach (var marketResult in results)
+            {
+                strategyTrades.AddRange(marketResult.Trades);
+            }
+            strategyTrades = strategyTrades.OrderBy(t => t.StartDate).ToList();
+
+            if (tradeAmount == 0m)
+                tradeAmount = backtestOptions.StakeAmount;
+
+            if (startingWallet == 0m)
+                startingWallet = backtestOptions.StartingWallet;
+
+            decimal wallet = startingWallet;
+            decimal orgWallet = startingWallet;
+
+            int cct = 0;
+            int mct = 0;
+
+            foreach (var signal in allSignals)
+            {
+                //var trade = strategyTrades.FirstOrDefault(s => s.Id == signal.Id);
+                //if (trade == null)
+                //    continue;
+
+                if (signal.TradeAdvice == TradeAdvice.Buy)
+                {
+                    cct = cct + 1;
+
+                    if (cct > mct)
+                        mct = cct;
+
+                    wallet = wallet - tradeAmount;
+
+                    //trade.Wallet = wallet.ToString();
+                }
+                else if (signal.TradeAdvice == TradeAdvice.Sell)
+                {
+                    cct = cct - 1;
+                    wallet = wallet + Math.Round((tradeAmount + (tradeAmount * signal.PercentageProfit / 100)), 6);
+
+                    //trade.Wallet = trade.Wallet + "    " + wallet.ToString() + "    " + (wallet - orgWallet);
+                }
+            }
+
+            var ff = results.FirstOrDefault();
+            if (ff != null)
+            {
+                results.FirstOrDefault().ConcurrentTrades = mct;
+                results.FirstOrDefault().Wallet = wallet;
+            }
+
+            #endregion
 
             return results;
         }

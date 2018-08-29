@@ -18,6 +18,9 @@ namespace MachinaTrader.Globals.Structure.Models
 
         public List<BackTestTradeResult> Trades { get; set; }
 
+        public int ConcurrentTrades { get; set; }
+        public decimal Wallet { get; set; }
+
         public BackTestResult()
         {
             Trades = new List<BackTestTradeResult>();
