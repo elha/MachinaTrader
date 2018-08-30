@@ -1,0 +1,610 @@
+<!-- DATA TABLES -->
+<script src="/vendors/datatables.net/js/jquery.dataTables.js"></script>
+<script src="/vendors/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+<script src="/vendors/datatables.net-bs4/js/dataTables.bootstrap4.js"></script>
+<link href="/vendors/datatables.net-bs4/css/dataTables.bootstrap4.css" rel="stylesheet" />
+<link href="/vendors/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css" rel="stylesheet" />
+<script src="/vendors/moment/js/moment-with-locales.min.js"></script>
+<script src="/vendors/axios/js/axios.min.js"></script>
+<script src="/vendors/bootstrap4-datetimepicker/js/bootstrap-datetimepicker.js"></script>
+
+<script src="/vendors/chart.js/js/Chart.min.js"></script>
+<script src="/vendors/@coreui/coreui-plugin-chartjs-custom-tooltips/js/custom-tooltips.min.js"></script>
+
+<style>
+    .greenCell { background: rgba(0, 255, 0, 0.2) !important; }
+
+    .redCell { background: rgba(255, 0, 0, 0.20) !important; }
+</style>
+
+<style>
+    .small-text { font-size: 10px; line-height: 24px; }
+
+    .table-round > .box-body { padding: 0; }
+
+    .table th, .table td { padding: 0.75rem; vertical-align: top; border-top: 0; }
+
+    .table thead th { vertical-align: bottom; border-bottom: 0; }
+
+    table.dataTable { margin-top: 0 !important; margin-bottom: 0 !important; border-collapse: collapse !important; }
+
+    .dataTables_wrapper .row .col-sm-12 { padding: 0 !important; }
+
+    div.dataTables_wrapper div.dataTables_info { padding: 1.8em; }
+
+    div.dataTables_wrapper div.dataTables_paginate { padding: 1em; }
+
+    .card-body-header { margin-right: 0; margin-left: 0; padding-top: 15px; background-color: rgba(198, 198, 198, 0.5); box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12); }
+
+    .table-bordered { border: 0; }
+
+    .select2-selection { width: 100%; }
+</style>
+
+<div class="row animated fadeIn" id="widgetBackendTester">
+
+    <div class="col-md-12">
+        <div class="card">
+
+            <div class="card-header">
+                <i class="fas fa-history"></i>&nbsp;Simulation
+            </div>
+
+            <div class="row card-body-header">
+                <div class="col-11">
+                    <div class="form-group row">
+                        <label for="exchangeCoinsId" class="col-1 col-form-label">Strategy</label>
+                        <div class='col-11 input-group date'>
+                            <select id="tradingStrategy" name="tradingStrategy" class="selectpicker">
+                                <!--<option value="all" data-icon="fas fa-star">&nbsp;&nbsp;Test all Strategies</option>-->
+                                <option v-for="(value, key) in allStrategiesData" v-bind:value="toBase64(allStrategiesData[key]['Name'])" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{allStrategiesData[key]['Name']}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-1">
+                    <button type="button" class="btn btn-success" style="width: 100%;" id="startButton" onclick="runStrategy();">Start</button>
+                </div>
+            </div>
+
+            <div class="row card-body-header">
+                <div class="col-4">
+                    <div class="form-group row">
+                        <label for="candleAge" class="col-3 col-form-label">Candles Size:</label>
+                        <div class='col-9 input-group date' id='candleAge'>
+                            <select name="display" id="candleSize" class="selectpicker" data-width="auto">
+                                <!--<option value="1" data-icon="fas fa-clock">&nbsp;&nbsp;1 minute</option>-->
+                                <option value="5" data-icon="fas fa-clock">&nbsp;&nbsp;5 minutes</option>
+                                <option value="15" data-icon="fas fa-clock">&nbsp;&nbsp;15 minutes</option>
+                                <option value="30" data-icon="fas fa-clock">&nbsp;&nbsp;30 minutes</option>
+                                <option value="60" data-icon="fas fa-clock">&nbsp;&nbsp;1 hour</option>
+                                <option value="120" data-icon="fas fa-clock">&nbsp;&nbsp;2 hours</option>
+                                <option value="240" data-icon="fas fa-clock">&nbsp;&nbsp;4 hours</option>
+                                <option value="1440" data-icon="fas fa-clock">&nbsp;&nbsp;1 day</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-group row">
+                        <label for="inputFromDate" class="col-3 col-form-label  d-none d-lg-block">From</label>
+                        <div class='col-9 input-group date' id='datetimepicker1'>
+                            <input type='text' id="inputFromDate" class="form-control" />
+                            <span class="input-group-append">
+                                <i class="fal fa-calendar-alt"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-3">
+                    <div class="form-group row">
+                        <label for="inputToDate" class="col-3 col-form-label  d-none d-lg-block">To</label>
+                        <div class='col-9 input-group date' id='datetimepicker2'>
+                            <input type='text' id="inputToDate" class="form-control" />
+                            <span class="input-group-append">
+                                <i class="fal fa-calendar-alt"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-1"></div>
+            </div>
+
+            <div class="row card-body-header">
+                <div class="col-4">
+                    <div class="form-group row">
+                        <label for="exchangeCoinsId" class="col-3 col-form-label">Coin:</label>
+                        <div class='col-9 input-group date' id='exchangeCoinsId'>
+                            <select name="display" id="currencyToCheck" class="select2-multiple" data-live-search="true" data-size="10" data-width="auto">
+                                <option v-for="(value, key) in exchangeCoinsData" v-bind:value="value" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{value}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-group row">
+                        <label for="exchangeBaseCurrencyId" class="col-3 col-form-label">Currency:</label>
+                        <div class='col-9 input-group date' id='exchangeBaseCurrencyId'>
+                            <select name="display" id="baseCurrencyToCheck" class="selectpicker">
+                                <option v-for="(value, key) in exchangeBaseCurrenciesData" v-bind:value="value" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{value}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-3">
+                    <div class="form-group row">
+                        <label for="exchangeExchangeId" class="col-3 col-form-label">Exchange:</label>
+                        <div class='col-9 input-group date' id='exchangeExchangeId'>
+                            <select name="display" id="exchangeSelect" class="selectpicker">
+                                <option value="binance" data-image="/img/exchange/binance.png">Binance</option>
+                                <option value="gdax" data-image="/img/exchange/gdax.png">Gdax</option>
+                                <option value="bittrex" data-image="/img/exchange/bittrex.png">Bittrex</option>
+                                <option value="poloniex" data-image="/img/exchange/poloniex.png">Poloniex</option>
+                                <option value="kucoin" data-image="/img/exchange/kucoin.png">KuCoin</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-1">
+                    <!--<button type="button" class="btn btn-warning" style="width: 100%;" id="refreshButton" onclick="refeshCandles();">Refresh Candles</button>-->
+                    <button type="button" class="btn btn-danger" style="width: 100%;" id="stopButton" onclick="stopStrategy();">Stop</button>
+                </div>
+            </div>
+
+            <div class="row card-body-header">
+                <div class="col-4">
+                    <div class="form-group row">
+                        <label for="startingWalletId" class="col-3 col-form-label">Starting wallet:</label>
+                        <div class='col-9 input-group date'>
+                            <input type='text' id="startingWalletId" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-4">
+                    <div class="form-group row">
+                        <label for="tradeAmountId" class="col-3 col-form-label">Trade amount:</label>
+                        <div class='col-9 input-group date'>
+                            <input type='text' id="tradeAmountId" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-3">
+                    <div class="form-group row">
+                        <label for="saveSignalsId" class="col-3 col-form-label">Save signals:</label>
+                        <div class='col-9 input-group date' id='saveSignalsId'>
+                            <select name="display" id="saveSignalsSelect" class="selectpicker">
+                                <option value="false">no</option>
+                                <option value="true">yes</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row card-body-header" style="max-height:200px; overflow-y:auto;">
+                <div class="col-6">
+                    <template v-if="candleAgeData.length !== 0">
+                        <div class="form-group row">
+                            <label for="exchangeCoinsAvailableData" class="col-2 col-form-label">Available Data:</label>
+                            <div class='col-10 col-form-label' id='exchangeCoinsAvailableData'>
+                                <template v-for="(value, key) in candleAgeData">
+                                    {{candleAgeData[key]["Coin"]}}: {{formatDate(candleAgeData[key]["FirstCandleDate"])}} to {{formatDate(candleAgeData[key]["LastCandleDate"])}}
+                                    <br />
+                                </template>
+
+                            </div>
+                        </div>
+                    </template>
+
+                    <template v-if="candleAgeData.length === 0">
+                        <div class="form-group row">
+                            <label for="exchangeCoinsNoAvailableData" class="col-2 col-form-label">Available Data:</label>
+                            <div class='col-10 col-form-label' id='exchangeCoinsNoAvailableData'>
+                                No available Data please refresh first or select other coin
+                            </div>
+                        </div>
+                    </template>
+
+                </div>
+            </div>
+
+            <div class="card-body" id="backtesterBody">
+                <table class="table table-striped p-0 table-hover" id="backtesterTableId"></table>
+            </div>
+
+            <div class="animated fadeIn">
+                <div class="row">
+                    <div class="col-md-12">
+                        <canvas id="canvas-1"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    var table = null;
+    var initDatatable;
+    var dataArray = new Array();
+    var backtestData = null;
+
+    var simulationStatusArray = new Array();
+
+    function selectPickerImage(opt) {
+        if (!opt.id) {
+            return opt.text;
+        }
+        var optimage = $(opt.element).data('image');
+        var opticon = $(opt.element).data('icon');
+        if (!optimage && !opticon) {
+            return opt.text;
+        }
+        if (optimage) {
+            var $opt = $(
+                '<span class="userName"><img style="width: 16px;" src="' + optimage + '" class="dropdownImage" />&nbsp;&nbsp;' + $(opt.element).text() + '</span>'
+            );
+            return $opt;
+        }
+        if (opticon) {
+            var $opt = $(
+                '<span class="userName"><i class="' + opticon + '"/></i>&nbsp;&nbsp;' + $(opt.element).text() + '</span>'
+            );
+            return $opt;
+        }
+    };
+
+    var pagefunction = function () {
+
+        $(".selectpicker").select2({
+            theme: "bootstrap",
+            templateResult: selectPickerImage,
+            templateSelection: selectPickerImage,
+            width: "100%"
+        });
+
+        $('.select2-multiple').select2({
+            multiple: true,
+            theme: "bootstrap",
+            templateResult: selectPickerImage,
+            templateSelection: selectPickerImage,
+            width: "100%"
+        })
+
+        $('#exchangeSelect').change(function () {
+            widgetBackendTester.updateSymbols();
+        });
+
+        $('#baseCurrencyToCheck').change(function () {
+            widgetBackendTester.updateSymbolsByCurrency();
+            widgetBackendTester.updateCandleAge();
+        });
+
+        $('#currencyToCheck').change(function () {
+            widgetBackendTester.updateCandleAge();
+        });
+
+        $('#candleSize').change(function () {
+            widgetBackendTester.updateCandleAge();
+        });
+
+        $('#datetimepicker1').datetimepicker({
+            format: 'YYYY-MM-DD'
+        });
+
+        $('#datetimepicker2').datetimepicker({
+            format: 'YYYY-MM-DD'
+        });
+
+        $(document).ready(function () {
+            $.ajax({
+                url: "/api/statistics/wallet",
+                type: "GET",
+                dataType: 'json',
+                success: function (rtnData) {
+                    console.log(rtnData);
+
+                    var arr = jQuery.map(rtnData.stat.dates, function (value, i) {
+                        return (moment(value).format("YYYY-MM-DD HH:mm:ss"));
+                    });
+
+                    var config = {
+                        type: 'line',
+                        data: {
+                            datasets: [{
+                                label: 'Balances',
+                                backgroundColor: 'rgba(220, 220, 220, 0.2)',
+                                borderColor: 'rgba(220, 220, 220, 1)',
+                                pointBackgroundColor: 'rgba(220, 220, 220, 1)',
+                                pointBorderColor: '#fff',
+                                data: rtnData.stat.balances
+                            }],
+                            labels: arr
+                        },
+                        options: {
+                            responsive: true
+                        }
+                    };
+
+                    var lineChart = new Chart($('#canvas-1'), config);
+                },
+                error: function (rtnData) {
+                    alert('error' + rtnData);
+                }
+            });
+        });
+    };
+
+    var stopStrategy = function () {
+        axios.get('/api/backtester/stopSimulation').then((response) => {
+        }).catch((error) => {
+            console.log(error);
+        });
+    };
+    
+    var runStrategy = function () {
+        if (table != null) {
+            table.clear().draw();
+            dataArray = new Array();
+            simulationStatusArray = new Array();
+        }
+
+        axios.get('/api/backtester/simulation?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&strategy=' + $("#tradingStrategy").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val() + '&from=' + $('#inputFromDate').val() + '&to=' + $('#inputToDate').val() + '&saveSignals=' + $("#saveSignalsSelect").val() + '&startingWallet=' + $("#startingWalletId").val() + '&tradeAmount=' + $("#tradeAmountId").val()).then((response) => {
+        }).catch((error) => {
+            console.log(error);
+        });
+
+        initDatatable = function () {
+            table = $('#backtesterTableId').DataTable({
+                aaData: backtestData,
+                responsive: true,
+                "autoWidth": false,
+                "iDisplayLength": 100,
+                "lengthMenu": [[10, 25, 50, 100, 250, 500, 1000, -1], [10, 25, 50, 100, 250, 500, 1000, "All"]],
+                'columnDefs': [{
+                    'targets': 0,
+                    'searchable': true,
+                    'orderable': true,
+                    'className': 'dt-body-center'
+                }],
+                'order': [0, 'asc'],
+                "createdRow": function (row, data, dataIndex) {
+                    /*if (data.market == true) {
+                        $(row).addClass('yellowCell');
+                    }*/
+                },
+                "columns": [
+                    {
+                        "title": "Strategy",
+                        "mDataProp": "Strategy",
+                        responsivePriority: 0,
+                    },
+                    {
+                        "title": "Market",
+                        "mDataProp": "Market",
+                        "bVisible": true
+                    },
+                    {
+                        "title": "Signals",
+                        "mDataProp": "Signals",
+                        "sWidth": "60px",
+                        "sType": "alt-string",
+                        "sClass": "center",
+                        responsivePriority: 2,
+                        mRender: function (data, type, full, meta) {
+                            var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadSignalsViewModal(\'/views/SignalsWidget.html\', \'' + $("#exchangeSelect").val() + '\', \'' + full.Market + '\', \'' + $("#candleSize").val() + '\', \'' + full.Strategy + '\' )">signals</a>';
+                            return formatted;
+                        }
+                    },
+                    {
+                        "title": "AmountOfTrades",
+                        "mDataProp": "AmountOfTrades",
+                        "sWidth": "120px",
+                        "sType": "alt-string",
+                        "sClass": "center",
+                        responsivePriority: 2,
+                        mRender: function (data, type, full, meta) {
+                            var formatted = full.AmountOfTrades + " <span style='color: #008000'>(" + full.AmountOfProfitableTrades + "</span>/<span  style='color: #ff0000'>" + (full.AmountOfTrades - full.AmountOfProfitableTrades) + "</span>)";
+                            return formatted;
+                        }
+                    },
+                    {
+                        "title": "SuccessRate",
+                        "mDataProp": "SuccessRate",
+                        "sWidth": "120px",
+                        "sType": "alt-string",
+                        "sClass": "center",
+                        responsivePriority: 2,
+                        mRender: function (data, type, row) {
+                            var formatted = (row.SuccessRate).toFixed(2) + " %";
+                            return formatted;
+                        }
+                    },
+                    {
+                        "title": "TotalProfit",
+                        "mDataProp": "TotalProfit",
+                        "sWidth": "120px",
+                        "sType": "alt-string",
+                        "sClass": "center",
+                        responsivePriority: 2,
+                        mRender: function (data, type, row) {
+                            var formatted = (row.TotalProfit).toFixed(3) + " BTC";
+                            return formatted;
+                        },
+                        createdCell: function (td, cellData, rowData, row, col) {
+                            if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
+                            if (rowData.TotalProfit < 0) $(td).addClass('redCell');
+                        }
+                    },
+                    {
+                        "title": "TotalProfitPercentage",
+                        "mDataProp": "TotalProfitPercentage",
+                        "sWidth": "120px",
+                        "sType": "alt-string",
+                        "sClass": "center",
+                        responsivePriority: 2,
+                        mRender: function (data, type, row) {
+                            var formatted = (row.TotalProfitPercentage).toFixed(2) + " %";
+                            return formatted;
+                        },
+                        createdCell: function (td, cellData, rowData, row, col) {
+                            if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
+                            if (rowData.TotalProfit < 0) $(td).addClass('redCell');
+                        }
+                    },
+                    {
+                        "title": "AverageDuration",
+                        "mDataProp": "AverageDuration",
+                        "sWidth": "120px",
+                        "sType": "alt-string",
+                        "sClass": "center",
+                        responsivePriority: 2,
+                        mRender: function (data, type, row) {
+                            var formatted = (row.AverageDuration).toFixed(2) + " hours";
+                            return formatted;
+                        }
+                    },
+                    {
+                        "title": "DataPeriod",
+                        "mDataProp": "DataPeriod",
+                        "sWidth": "120px",
+                        "sType": "alt-string",
+                        "sClass": "center",
+                        responsivePriority: 2,
+                        mRender: function (data, type, row) {
+                            var formatted = row.DataPeriod + " days";
+                            return formatted;
+                        }
+                    }
+                ]
+            });
+        };
+    };
+
+    var widgetBackendTester = new Vue({
+        el: '#widgetBackendTester',
+        parent: vueMain,
+
+        data: {
+            allStrategiesData: null,
+            exchangeCoinsData: null,
+            exchangeBaseCurrenciesData: null,
+            candleAgeData: []
+        },
+
+        created: function () {
+            this.connectSignalr();
+            this.fetchData();
+        },
+
+        methods: {
+            connectSignalr: function () {
+                let hubRoute = "/signalr/HubBacktest";
+                let protocol = new signalR.JsonHubProtocol();
+                var options = {};
+
+                var connectionBacktester = new signalR.HubConnectionBuilder()
+                    //.configureLogging(signalR.LogLevel.Trace)
+                    .withUrl(hubRoute, options)
+                    .withHubProtocol(protocol)
+                    .build();
+
+                var connectSignalr = function () {
+                    connectionBacktester.start().then(function () {
+                        addSignalrClient(hubRoute, connectionBacktester);
+                    }).catch(function () {
+                    });
+                };
+
+                var reconnectSignalr = function () {
+                    if (signalrConnections[hubRoute] != null) {
+                        setTimeout(function () {
+                            console.log("reconnnect");
+                            connectSignalr();
+                        }, 5000);
+                    }
+                };
+
+                connectionBacktester.on('SendSimulationStatistc',
+                    function (msg) {
+                        if (backtestData == null) {
+                            dataArray.push(JSON.parse(msg));
+                            backtestData = dataArray;
+                            initDatatable();
+                        } else {
+                            dataArray.push(JSON.parse(msg));
+                            table.clear().rows.add(dataArray).draw();
+                        }
+                    });
+
+                connectionBacktester.on('SendSimulationStatus',
+                    function (msg) {
+                        simulationStatusArray.push(JSON.parse(msg));
+                        console.log(JSON.parse(msg));
+                    });
+
+                connectionBacktester.onclose(function () {
+                    console.log("disconnected");
+                    reconnectSignalr();
+                });
+
+                connectSignalr();
+            },
+            fetchData: function () {
+                var self = this;
+                $.get('/api/backtester/backtesterStrategy', function (data) {
+                    self.allStrategiesData = data;
+                    self.$nextTick(function () {
+                        pagefunction();
+                        self.updateSymbols();
+                    });
+                });
+            },
+            formatDate: function (date) {
+                return moment(date).format('YYYY-MM-DD HH:mm');
+            },
+            toBase64: function (date) {
+                return btoa(date);
+            },
+            updateSymbols: function () {
+                var self = this;
+                $.get('/api/backtester/exchangePairs?exchange=' + $("#exchangeSelect").val(), function (data) {
+                    self.exchangeCoinsData = data[0];
+                    self.exchangeBaseCurrenciesData = data[1];
+                    self.$nextTick(function () {
+                        //pagefunction();
+                        //self.updateCandleAge();
+                    });
+                });
+            },
+            updateSymbolsByCurrency: function () {
+                var self = this;
+                $.get('/api/backtester/exchangePairs?exchange=' + $("#exchangeSelect").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val(), function (data) {
+                    self.exchangeCoinsData = data[0];
+                });
+            },
+
+            updateCandleAge: function () {
+                var self = this;
+                $.get('/api/backtester/candlesAge?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val(), function (data) {
+                    self.candleAgeData = data["result"];
+                    if (data["result"].length === 0) {
+                        $("#startButton").prop("disabled", true);
+                    } else {
+                        $("#startButton").prop("disabled", false);
+                    }
+                });
+            }
+        }
+    });
+
+</script>

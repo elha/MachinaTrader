@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using MachinaTrader.Backtester;
 using MachinaTrader.Globals.Structure.Extensions;
+using MachinaTrader.Exchanges;
 
 namespace MachinaTrader.Controllers
 {
@@ -205,7 +206,7 @@ namespace MachinaTrader.Controllers
                 DataFolder = Global.DataPath,
                 Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true),
                 Coins = coins,
-                CandlePeriod = Int32.Parse(candleSize)                
+                CandlePeriod = Int32.Parse(candleSize)
             };
 
             if (from.HasValue)
@@ -306,34 +307,118 @@ namespace MachinaTrader.Controllers
 
         [HttpGet]
         [Route("simulation")]
-        public async Task<bool> Simulation(string coinToBuy, string strategy, string fromDate, string toDate)
+        public async Task<bool> Simulation(string exchange,
+                                           string coinsToBuy,
+                                           string baseCurrency,
+                                            bool saveSignals,
+                                           decimal startingWallet,
+                                           decimal tradeAmount,
+                                           DateTime? from,
+                                           DateTime? to,
+                                           string candleSize,
+                                           string strategy)
         {
-            var candleProvider = new DatabaseCandleProvider();
-            var globalFullApi = await Global.ExchangeApi.GetFullApi();
-            await candleProvider.CacheAllData(globalFullApi, Global.Configuration.ExchangeOptions.FirstOrDefault().Exchange);
+#warning //TODO: clone static objects configurations to restore after simulation
+
+            var exchangeEnum = (Exchange)Enum.Parse(typeof(Exchange), exchange, true);
 
             var currentExchangeOption = Global.Configuration.ExchangeOptions.FirstOrDefault();
+            currentExchangeOption.Exchange = exchangeEnum;
+            currentExchangeOption.IsSimulation = true;
+            currentExchangeOption.SimulationCandleSize = candleSize;
+            if (startingWallet != 0m)
+                currentExchangeOption.SimulationStartingWallet = startingWallet;
 
-            var simulationStartingDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(fromDate, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
-            var simulationEndingDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(toDate, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
+            Global.Configuration.TradeOptions.QuoteCurrency = baseCurrency;
+            Global.Configuration.TradeOptions.PaperTrade = false;
+            if (tradeAmount != 0m)
+                Global.Configuration.TradeOptions.AmountToInvestPerTrader = tradeAmount;
+
+            switch (exchangeEnum)
+            {
+                case Exchange.Gdax:
+                    Global.ExchangeApi = new BaseExchange(currentExchangeOption, new ExchangeSimulationApi(new ExchangeGdaxAPI()));
+                    break;
+
+                case Exchange.Binance:
+                    Global.ExchangeApi = new BaseExchange(currentExchangeOption, new ExchangeSimulationApi(new ExchangeBinanceAPI()));
+                    break;
+            }
+
+            Global.DataStore = new MemoryDataStore();
+
+            var candleProvider = new DatabaseCandleProvider();
+            var globalFullApi = await Global.ExchangeApi.GetFullApi();
+            if (!String.IsNullOrEmpty(coinsToBuy))
+            {
+                var coins = new List<string>();
+                Char delimiter = ',';
+                String[] coinsToBuyArray = coinsToBuy.Split(delimiter);
+                foreach (var coin in coinsToBuyArray)
+                {
+                    coins.Add(globalFullApi.GlobalSymbolToExchangeSymbol(coin.ToUpper()));
+                }
+
+                Global.Configuration.TradeOptions.OnlyTradeList = coins;
+            }
+
+            var firstAndLastCandleDates = await candleProvider.CacheAllData(globalFullApi, Global.Configuration.ExchangeOptions.FirstOrDefault().Exchange);
 
             var tradeManager = new TradeManager();
 
-            currentExchangeOption.SimulationCurrentDate = simulationStartingDate;
+            //var simulationStartingDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(from, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
+            //var simulationEndingDate = TimeZoneInfo.ConvertTimeToUtc(DateTime.ParseExact(to, "yyyy-MM-ddTHH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
+            var simulationStartingDate = firstAndLastCandleDates.Item1;
+            if (from.HasValue)
+                simulationStartingDate = TimeZoneInfo.ConvertTimeToUtc(from.Value);
 
-            while (currentExchangeOption.SimulationCurrentDate <= simulationEndingDate)
+            var simulationEndingDate = firstAndLastCandleDates.Item2;
+            if (to.HasValue)
+            {
+                simulationEndingDate = TimeZoneInfo.ConvertTimeToUtc(to.Value);
+                simulationEndingDate = simulationEndingDate.AddDays(1).AddMinutes(-1);
+            }
+
+            currentExchangeOption.SimulationCurrentDate = simulationStartingDate;
+            currentExchangeOption.SimulationEndDate = simulationEndingDate;
+
+            var base64EncodedBytes = Convert.FromBase64String(strategy);
+            var strategyName = Encoding.UTF8.GetString(base64EncodedBytes);
+            var strategyClassName = string.Empty;
+            foreach (var item in BacktestFunctions.GetTradingStrategies())
+            {
+                if (item.Name != strategyName)
+                {
+                    continue;
+                }
+                strategyClassName = item.ToString().Split('.').Last();
+            }
+           
+
+            while (currentExchangeOption.SimulationCurrentDate <= currentExchangeOption.SimulationEndDate)
             {
                 Global.Logger.Information($"------ SimulationCurrentDate start: {currentExchangeOption.SimulationCurrentDate}");
                 var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
-                await tradeManager.LookForNewTrades(strategy);
+                await tradeManager.LookForNewTrades(strategyClassName);
                 await tradeManager.UpdateExistingTrades();
 
                 currentExchangeOption.SimulationCurrentDate = currentExchangeOption.SimulationCurrentDate.AddMinutes(5);
 
                 watch1.Stop();
                 Global.Logger.Information($"------SimulationCurrentDate end: {currentExchangeOption.SimulationCurrentDate} in #{watch1.Elapsed.TotalSeconds} seconds");
+
+                await Runtime.GlobalHubBacktest.Clients.All.SendAsync("SendSimulationStatus", JsonConvert.SerializeObject(currentExchangeOption.SimulationCurrentDate));
             }
+
+            return true;
+        }
+
+        [Route("stopSimulation")]
+        public async Task<bool> StopSimulation()
+        {
+            var currentExchangeOption = Global.Configuration.ExchangeOptions.FirstOrDefault();
+            currentExchangeOption.SimulationEndDate = DateTime.MinValue;
 
             return true;
         }

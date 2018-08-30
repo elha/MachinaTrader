@@ -78,10 +78,11 @@ namespace MachinaTrader.Controllers
             stat.Amounts = items.Select(i => i.Amount).ToList();
 
             var balances = new List<decimal>();
+            var exchangeOption = Global.Configuration.ExchangeOptions.FirstOrDefault();
 
             for (int i = 0; i < items.Count; i++)
             {
-                decimal balance = Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationStartingWallet;
+                decimal balance = exchangeOption.SimulationStartingWallet;
                 for (int j = i; j >= 0; j--)
                 {
                     balance = balance + items[j].Amount;

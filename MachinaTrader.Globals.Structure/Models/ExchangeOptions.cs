@@ -11,6 +11,8 @@ namespace MachinaTrader.Globals.Structure.Models
         public string PassPhrase { get; set; }
 
         public DateTime SimulationCurrentDate { get; set; }
+        public DateTime SimulationEndDate { get; set; }
+
         public bool IsSimulation { get; set; }
         public string SimulationCandleSize { get; set; } = "15";
 

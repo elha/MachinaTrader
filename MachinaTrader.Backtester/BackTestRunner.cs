@@ -62,12 +62,9 @@ namespace MachinaTrader.Backtester
                                     || ShouldSell((double)candles[i].Close, (double)candles[j].Close, candles[j].Timestamp) != SellType.None
                                     )
                                 {
-                                    //if (candles[i].Close == 0 || candles[j].Close == 0)
-                                    //    continue;
-
                                     // We ignore fees for now. Goal of the backtester is to compare strategy efficiency.
                                     var currentProfitPercentage = ((candles[j].Close - candles[i].Close) / candles[i].Close) * 100;
-                                    var quantity = backtestOptions.StakeAmount / candles[i].Close; // We always trade with 0.1 BTC.
+                                    var quantity = tradeAmount / candles[i].Close;
                                     var currentProfit = (candles[j].Close - candles[i].Close) * quantity;
 
                                     backTestResult.Trades.Add(new BackTestTradeResult
@@ -124,7 +121,6 @@ namespace MachinaTrader.Backtester
 
             #region wallet trend
 
-
             var strategyTrades = new List<BackTestTradeResult>();
             foreach (var marketResult in results)
             {
@@ -139,17 +135,15 @@ namespace MachinaTrader.Backtester
                 startingWallet = backtestOptions.StartingWallet;
 
             decimal wallet = startingWallet;
-            decimal orgWallet = startingWallet;
+
+            var _wallet = new Dictionary<DateTime, decimal>();
+            _wallet.Add(DateTime.UtcNow, startingWallet);
 
             int cct = 0;
             int mct = 0;
 
             foreach (var signal in allSignals)
             {
-                //var trade = strategyTrades.FirstOrDefault(s => s.Id == signal.Id);
-                //if (trade == null)
-                //    continue;
-
                 if (signal.TradeAdvice == TradeAdvice.Buy)
                 {
                     cct = cct + 1;
@@ -158,15 +152,14 @@ namespace MachinaTrader.Backtester
                         mct = cct;
 
                     wallet = wallet - tradeAmount;
-
-                    //trade.Wallet = wallet.ToString();
+                    _wallet.Add(DateTime.UtcNow, -(signal.Price * tradeAmount));
                 }
                 else if (signal.TradeAdvice == TradeAdvice.Sell)
                 {
                     cct = cct - 1;
-                    wallet = wallet + Math.Round((tradeAmount + (tradeAmount * signal.PercentageProfit / 100)), 6);
 
-                    //trade.Wallet = trade.Wallet + "    " + wallet.ToString() + "    " + (wallet - orgWallet);
+                    wallet = wallet + (signal.Price * tradeAmount);
+                    _wallet.Add(DateTime.UtcNow, (signal.Price * tradeAmount));
                 }
             }
 
@@ -176,6 +169,8 @@ namespace MachinaTrader.Backtester
                 results.FirstOrDefault().ConcurrentTrades = mct;
                 results.FirstOrDefault().Wallet = wallet;
             }
+
+            
 
             #endregion
 

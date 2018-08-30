@@ -48,7 +48,7 @@ namespace MachinaTrader.Backtester
             return items;
         }
 
-        public async Task CacheAllData(ExchangeAPI api, Exchange exchange)
+        public async Task<Tuple<DateTime,DateTime>> CacheAllData(ExchangeAPI api, Exchange exchange)
         {
             Global.Logger.Information($"Starting CacheAllData");
             var watch1 = System.Diagnostics.Stopwatch.StartNew();
@@ -62,6 +62,8 @@ namespace MachinaTrader.Backtester
             var currentExchangeOption = Global.Configuration.ExchangeOptions.FirstOrDefault();
 
             IExchangeAPI realExchange = ExchangeAPI.GetExchangeAPI(api.Name);
+
+            var returns = new Tuple<DateTime, DateTime>(DateTime.MinValue,DateTime.MinValue);
 
             foreach (var coin in exchangeCoins)
             {
@@ -79,8 +81,12 @@ namespace MachinaTrader.Backtester
                 };
 
                 var key1 = api.Name + backtestOptions.Coin + backtestOptions.CandlePeriod;
-                if (Global.AppCache.Get<List<Candle>>(key1) != null)
+                var data1 = Global.AppCache.Get<List<Candle>>(key1);
+                if (data1 != null)
+                {
+                    returns = new Tuple<DateTime, DateTime>(data1.First().Timestamp, data1.Last().Timestamp);
                     continue;
+                }
 
                 Candle databaseFirstCandle = Global.DataStoreBacktest.GetBacktestFirstCandle(backtestOptions).Result;
                 Candle databaseLastCandle = Global.DataStoreBacktest.GetBacktestLastCandle(backtestOptions).Result;
@@ -122,10 +128,14 @@ namespace MachinaTrader.Backtester
                 Global.AppCache.Add(api.Name + backtestOptions.Coin + backtestOptions.CandlePeriod, _candle1, new MemoryCacheEntryOptions());
 
                 Global.Logger.Information($"   Cached {key2}");
+
+                returns = new Tuple<DateTime, DateTime>(backtestOptions.StartDate, backtestOptions.EndDate);
             }
 
             watch1.Stop();
             Global.Logger.Warning($"Ended CacheAllData in #{watch1.Elapsed.TotalSeconds} seconds");
+
+            return returns;
         }
     }
 }

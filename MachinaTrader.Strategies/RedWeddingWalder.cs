@@ -22,12 +22,13 @@ namespace MachinaTrader.Strategies
             {
                 var fastEnd = 0.666m;
 
-                var open = candles.Open().Sma(9);
-                var close = candles.Close().Sma(9);
-                var high = candles.High().Sma(9);
-                var low = candles.Low().Sma(9);
+                var open = candles.Open().Sma(6);
+                var close = candles.Close().Sma(6);
+                var high = candles.High().Sma(6);
+                var low = candles.Low().Sma(6);
 
                 var closes = candles.Close();
+                var highs = candles.High();
                 var opens = candles.Open();
 
                 // Calculate the vClose
@@ -70,7 +71,7 @@ namespace MachinaTrader.Strategies
                     else
                         snow_low.Add(null);
 
-                var fish = candles.Fisher();
+                var fish = candles.Fisher(9);
 
                 for (int i = 0; i < candles.Count; i++)
                 {
