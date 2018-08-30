@@ -23,6 +23,7 @@ namespace MachinaTrader.Globals.Structure.Models
         public bool PaperTrade { get; set; } = true;
 
         // Trader settings
+        public decimal StartAmount { get; set; } = 1m;
         public int MaxNumberOfConcurrentTrades { get; set; } = 10;
         public decimal AmountToInvestPerTrader { get; set; } = 0.005m;
         public ProfitType ProfitStrategy { get; set; } = ProfitType.Reinvest;

@@ -10,6 +10,7 @@ using MachinaTrader.Globals;
 using MachinaTrader.Globals.Structure.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json.Linq;
+using Trade = MachinaTrader.Globals.Structure.Models.Trade;
 
 namespace MachinaTrader.Controllers
 {
@@ -21,6 +22,8 @@ namespace MachinaTrader.Controllers
         [Authorize, Route("overview")]
         public async Task<IActionResult> Statistics(string mode = "paper", DateTime? fromDate = null, DateTime? toDate = null)
         {
+            var tradeOptions = Global.Configuration.TradeOptions;
+
             // Check mode
             var paperTrade = mode != "live";
             
@@ -29,12 +32,14 @@ namespace MachinaTrader.Controllers
 
             // Get closed trades
             var closedTrades = await Global.DataStore.GetClosedTradesAsync();
-            var closedTradesClean = closedTrades.Where(c => c.CloseDate != null &&
-                                                            (fromDate != null && toDate != null &&
-                                                             (c.SellOrderId != null &&
-                                                                c.PaperTrade == paperTrade &&
-                                                                c.CloseDate.Value.Date >= fromDate.Value.Date &&
-                                                                c.CloseDate.Value.Date <= toDate.Value.Date)));
+            IEnumerable<Trade> closedTradesClean;
+            if (fromDate != null && toDate != null)
+                closedTradesClean = closedTrades.Where(c =>
+                    c.CloseDate != null && (c.SellOrderId != null && c.PaperTrade == paperTrade &&
+                                            c.CloseDate.Value.Date >= fromDate.Value.Date &&
+                                            c.CloseDate.Value.Date <= toDate.Value.Date));
+            else
+                closedTradesClean = closedTrades.Where(c => c.CloseDate != null && c.SellOrderId != null && c.PaperTrade == paperTrade);
 
             // Coins Profit-loss
             var sortedList = closedTradesClean.GroupBy(x => x.Market);
@@ -44,25 +49,33 @@ namespace MachinaTrader.Controllers
                 Coin = coinGroup.Key,
                 InvestedCoins = coinGroup.Sum(x => x.StakeAmount),
                 Performance = coinGroup.Sum(x => x.CloseProfit),
-                //TODO performance korrekt berechnen
                 PerformancePercentage = coinGroup.Sum(x => x.CloseProfitPercentage),
                 PositiveTrades = coinGroup.Count(c => c.CloseProfit > 0),
-                NegativeTrade = coinGroup.Count(c => c.CloseProfit < 0)
+                NegativeTrades = coinGroup.Count(c => c.CloseProfit < 0)
             }).ToList();
-
-            // Invested amout
-            stat.InvestedCoins = coins.Sum(c => c.InvestedCoins);
 
             // General Profit-loss
             stat.ProfitLoss = coins.Sum(c => c.Performance);
             stat.ProfitLossPercentage = coins.Sum(c => c.PerformancePercentage);
 
+            // Invested amout
+            stat.InvestedCoins = coins.Sum(c => c.InvestedCoins);
+            stat.InvestedCoinsPerformance = ((tradeOptions.StartAmount * stat.ProfitLoss)/100)*100;
+            
             // Coin performance
             stat.CoinPerformances = coins;
 
+            // Trades amount
+            stat.PositiveTrades = coins.Sum(c => c.PositiveTrades);
+            stat.NegativeTrades = coins.Sum(c => c.NegativeTrades);
+
+            // Balances
+            stat.CurrentBalance = tradeOptions.StartAmount + stat.ProfitLoss;
+
             // Create some viewbags
-            ViewBag.tradeOptions = Global.Configuration.TradeOptions;
+            ViewBag.tradeOptions = tradeOptions;
             ViewBag.stat = stat;
+
 
             return new JsonResult(ViewBag);
         }

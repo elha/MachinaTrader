@@ -88,10 +88,81 @@
     }
 </style>
 
-<div class="animated fadeIn">
+<div class="animated fadeIn" id="statistics">
     <!-- Performance -->
+    <h1 class="mt-5">Performance</h1>
+    <div class="row" v-if="performanceData">
+        <!-- Quotecurrency -->
+        <div class="col-lg-3 col-md-3 col-sm-3">
+            <div class="card text-white bg-primary ">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">Quote Currency</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">{{performanceData.tradeOptions.quoteCurrency}}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-3">
+            <div class="card text-white bg-info ">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">Start amount</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">{{performanceData.tradeOptions.startAmount}} {{performanceData.tradeOptions.quoteCurrency}}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-3">
+        <div class="card text-white bg-success ">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h4 class="card-title">Current balance</h4>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h4 class="card-title">{{parseFloat(statisticsData.stat.currentBalance).toFixed(7)}} {{performanceData.tradeOptions.quoteCurrency}} ({{parseFloat(statisticsData.stat.investedCoinsPerformance).toFixed(4)}}%)</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        <div class="col-lg-3 col-md-3 col-sm-3">
+            <div class="card text-white bg-warning ">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">Used Stategy</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">{{performanceData.tradeOptions.defaultStrategy}}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div class="row animated fadeIn" id="tradingSignals">
+
+    <!-- Performance on date -->
+
+    <div class="row animated fadeIn">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
@@ -134,39 +205,31 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body" id="erpsubmit">
-                    <div id="myntStatistics" v-if="myntStatisticsData">
+                <div class="card-body">
+                    <div v-if="statisticsData">
                         <div class="row">
-                            <!-- Quotecurrency -->
-                            <div class="col-3">
-                                <div class="callout">
-                                    <small class="text-muted">Quote Currency</small>
-                                    <br>
-                                    <strong class="h4">{{myntStatisticsData.tradeOptions.quoteCurrency}}</strong>
-                                </div>
-                            </div>
                             <!-- Profit in quotecurrency -->
-                            <div class="col-3" v-if="myntStatisticsData.stat.profitLoss != null">
+                            <div class="col-3" v-if="statisticsData.stat.profitLoss != null">
                                 <div class="callout">
-                                    <small class="text-muted">{{myntStatisticsData.tradeOptions.quoteCurrency}} Invested</small>
+                                    <small class="text-muted">{{statisticsData.tradeOptions.quoteCurrency}} Invested</small>
                                     <br>
-                                    <strong class="h4">{{parseFloat(myntStatisticsData.stat.investedCoins).toFixed(7)}}</strong>
+                                    <strong class="h4">{{parseFloat(statisticsData.stat.investedCoins).toFixed(7)}}</strong>
                                 </div>
                             </div>
                             <!-- Profit in precentage -->
-                            <div class="col-3" v-if="myntStatisticsData.stat.profitLossPercentage != null">
+                            <div class="col-3" v-if="statisticsData.stat.profitLossPercentage != null">
                                 <div class="callout">
                                     <small class="text-muted">Total BTC returns</small>
                                     <br>
-                                    <strong class="h4">{{parseFloat(myntStatisticsData.stat.profitLoss).toFixed(7)}} ({{parseFloat(myntStatisticsData.stat.profitLossPercentage).toFixed(2)}}%)</strong>
+                                    <strong class="h4">{{parseFloat(statisticsData.stat.profitLoss).toFixed(7)}} ({{parseFloat(statisticsData.stat.investedCoinsPerformance).toFixed(4)}}%)</strong>
                                 </div>
                             </div>
                             <!-- Strategy -->
                             <div class="col-3">
                                 <div class="callout">
-                                    <small class="text-muted">Used Stategy</small>
+                                    <small class="text-muted">Trades</small>
                                     <br>
-                                    <strong class="h4">{{myntStatisticsData.tradeOptions.defaultStrategy}}</strong>
+                                    <strong class="h4">{{statisticsData.stat.positiveTrades}} / {{statisticsData.stat.negativeTrades}} ({{parseFloat(statisticsData.stat.profitLossPercentage).toFixed(2)}}%)</strong>
                                 </div>
                             </div>
                         </div>
@@ -218,13 +281,13 @@
             defaultDate: momentDateNowMinusOneMonth,
             format: 'YYYY-MM-DD'
         }).on('dp.change', function () {
-            myntStatistics.updateData();
+            statistics.updateData();
         });
         $('#datetimepicker2').datetimepicker({
             defaultDate: momentDateNow,
             format: 'YYYY-MM-DD'
         }).on('dp.change', function () {
-            myntStatistics.updateData();
+            statistics.updateData();
         });
 
         $(".selectpicker").select2({
@@ -235,7 +298,7 @@
         });
 
         $('#modeSelect').change(function () {
-            myntStatistics.updateData();
+            statistics.updateData();
         });
 
         $(document).ready(function () {
@@ -345,7 +408,7 @@
                     responsivePriority: 2,
                     mRender: function (data, type, full, meta) {
                         var posT = full.positiveTrades;
-                        var posN = full.negativeTrade;
+                        var posN = full.negativeTrades;
                         var formatted = '<span class="btn btn-success btn-sm" style="min-width: 30px;">' +
                             posT +
                             '</span>&nbsp;' +
@@ -361,12 +424,13 @@
     }
 
 
-    var myntStatistics = new Vue({
-        el: '#myntStatistics',
+    var statistics = new Vue({
+        el: '#statistics',
         parent: vueMain,
 
         data: {
-            myntStatisticsData: null
+            performanceData: null,
+            statisticsData: null
         },
 
         created: function () {
@@ -427,8 +491,11 @@
 
             fetchData: function () {
                 var self = this;
-                $.get('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val(), function (data) {
-                    self.myntStatisticsData = data;
+                $.get('/api/statistics/overview?mode=' + $("#modeSelect").val(), function (data) {
+                        self.performanceData = data;
+                        $.get('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val(), function (stat) {
+                            self.statisticsData = stat;
+                        });
                 });
                 self.$nextTick(function () {
                     initDtCoinPerform();
@@ -439,7 +506,7 @@
             updateData: function () {
                 var self = this;
                 $.get('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val(), function (data) {
-                    self.myntStatisticsData = data;
+                    self.statisticsData = data;
                     table.ajax.url('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val()).load();
                 });
             },

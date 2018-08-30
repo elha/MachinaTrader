@@ -371,10 +371,22 @@
                             </div>
                         </td>
                         <td>
-                            <input type="text" class="form-control integer" name="TradeOptions.MaxNumberOfConcurrentTrades" v-bind:value="apiMainConfigData['tradeOptions']['maxNumberOfConcurrentTrades']" />
+                            <input type="text" class="form-control float" name="TradeOptions.MaxNumberOfConcurrentTrades" v-bind:value="apiMainConfigData['tradeOptions']['maxNumberOfConcurrentTrades']" />
                         </td>
                     </tr>
-
+                    
+                    <tr>
+                        <td>
+                            <span class="qTip" title="Start amount">Start Amount <i class="fal fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                Start amount of your instance
+                                <br /><br /><strong>Default:</strong> <i>Whatever you want...</i>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control float" name="TradeOptions.StartAmount" v-bind:value="apiMainConfigData['tradeOptions']['startAmount']" />
+                        </td>
+                    </tr>
                     <tr>
                         <td>
                             <span class="qTip" title="Amount to invest per trade">AmountToInvestPerTrader <i class="fal fa-question-circle"></i></span>
