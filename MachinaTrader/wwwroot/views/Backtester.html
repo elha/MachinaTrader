@@ -516,6 +516,19 @@
                         responsivePriority: 0,
                     },
                     {
+                        "title": "Wallet low",
+                        "mDataProp": "LowWallet",
+                        responsivePriority: 0,
+                        mRender: function (data, type, row) {
+                            var formatted = (row.LowWallet).toFixed(3) + " " + row.BaseCurrency;
+                            return formatted;
+                        },
+                        createdCell: function (td, cellData, rowData, row, col) {
+                            if (rowData.LowWallet > 0) $(td).addClass('greenCell');
+                            if (rowData.LowWallet < 0) $(td).addClass('redCell');
+                        }
+                    },
+                    {
                         "title": "AmountOfTrades",
                         "mDataProp": "AmountOfTrades",
                         "sWidth": "160px",

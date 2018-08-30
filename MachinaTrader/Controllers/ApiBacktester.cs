@@ -179,9 +179,9 @@ namespace MachinaTrader.Controllers
         [Route("backtesterResults")]
         public ActionResult BacktesterResults(string exchange, string coinsToBuy, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount, DateTime? from = null, DateTime? to = null, string candleSize = "5", string strategy = "all")
         {
-            JObject strategies = new JObject();
+            var strategies = new JObject();
 
-            List<string> coins = new List<string>();
+            var coins = new List<string>();
             if (String.IsNullOrEmpty(coinsToBuy))
             {
                 IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
@@ -215,6 +215,12 @@ namespace MachinaTrader.Controllers
             if (to.HasValue)
                 backtestOptions.EndDate = to.Value;
 
+            if (tradeAmount == 0m)
+                tradeAmount = backtestOptions.StakeAmount;
+
+            if (startingWallet == 0m)
+                startingWallet = backtestOptions.StartingWallet;
+
             var cts = new CancellationTokenSource();
             var parallelOptions = new ParallelOptions
             {
@@ -231,7 +237,7 @@ namespace MachinaTrader.Controllers
                         return;
                     }
                 }
-                var result = await BacktestFunctions.BackTestJson(tradingStrategy, backtestOptions, Global.DataStoreBacktest, saveSignals, startingWallet, tradeAmount);
+                var result = await BacktestFunctions.BackTestJson(tradingStrategy, backtestOptions, Global.DataStoreBacktest, baseCurrency, saveSignals, startingWallet, tradeAmount);
                 for (int i = 0; i < result.Count(); i++)
                 {
                     if (i == 0)

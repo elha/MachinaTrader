@@ -12,7 +12,7 @@ namespace MachinaTrader.Backtester
 {
     public class BackTestRunner
     {
-        public async Task<List<BackTestResult>> RunSingleStrategy(ITradingStrategy strategy, BacktestOptions backtestOptions, IDataStoreBacktest dataStore, bool saveSignals, decimal startingWallet, decimal tradeAmount)
+        public async Task<List<BackTestResult>> RunSingleStrategy(ITradingStrategy strategy, BacktestOptions backtestOptions, IDataStoreBacktest dataStore, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount)
         {
             var results = new List<BackTestResult>();
             var allSignals = new List<TradeSignal>();
@@ -126,24 +126,18 @@ namespace MachinaTrader.Backtester
             {
                 strategyTrades.AddRange(marketResult.Trades);
             }
-            strategyTrades = strategyTrades.OrderBy(t => t.StartDate).ToList();
-
-            if (tradeAmount == 0m)
-                tradeAmount = backtestOptions.StakeAmount;
-
-            if (startingWallet == 0m)
-                startingWallet = backtestOptions.StartingWallet;
+            strategyTrades = strategyTrades.OrderBy(t => t.StartDate).ToList();           
 
             decimal wallet = startingWallet;
-
-            var _wallet = new Dictionary<DateTime, decimal>();
-            _wallet.Add(DateTime.UtcNow, startingWallet);
+            decimal lowWallet = startingWallet;
 
             int cct = 0;
             int mct = 0;
 
-            foreach (var signal in allSignals)
+            for (int i = 0; i < allSignals.Count(); i++)
             {
+                var signal = allSignals[i];
+    
                 if (signal.TradeAdvice == TradeAdvice.Buy)
                 {
                     cct = cct + 1;
@@ -152,14 +146,15 @@ namespace MachinaTrader.Backtester
                         mct = cct;
 
                     wallet = wallet - tradeAmount;
-                    _wallet.Add(DateTime.UtcNow, -(signal.Price * tradeAmount));
                 }
                 else if (signal.TradeAdvice == TradeAdvice.Sell)
                 {
-                    cct = cct - 1;
+                    cct = cct - 1;                   
 
-                    wallet = wallet + (signal.Price * tradeAmount);
-                    _wallet.Add(DateTime.UtcNow, (signal.Price * tradeAmount));
+                    wallet = wallet + (tradeAmount + signal.PercentageProfit * tradeAmount);
+
+                    if (wallet < lowWallet)
+                        lowWallet = wallet;
                 }
             }
 
@@ -168,10 +163,9 @@ namespace MachinaTrader.Backtester
             {
                 results.FirstOrDefault().ConcurrentTrades = mct;
                 results.FirstOrDefault().Wallet = wallet;
+                results.FirstOrDefault().LowWallet = lowWallet;
             }
-
             
-
             #endregion
 
             return results;
