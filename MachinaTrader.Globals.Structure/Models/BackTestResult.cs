@@ -20,6 +20,7 @@ namespace MachinaTrader.Globals.Structure.Models
 
         public int ConcurrentTrades { get; set; }
         public decimal Wallet { get; set; }
+        public decimal LowWallet { get; set; }
 
         public BackTestResult()
         {

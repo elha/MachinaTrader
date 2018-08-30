@@ -29,16 +29,16 @@ namespace MachinaTrader.Backtester
             return strategies;
         }
 
-        public static async Task<List<BackTestResult>> BackTest(ITradingStrategy strategy, BacktestOptions backtestOptions, IDataStoreBacktest dataStore, bool saveSignals, decimal startingWallet, decimal tradeAmount)
+        public static async Task<List<BackTestResult>> BackTest(ITradingStrategy strategy, BacktestOptions backtestOptions, IDataStoreBacktest dataStore, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount)
         {
             var runner = new BackTestRunner();
-            var results = await runner.RunSingleStrategy(strategy, backtestOptions, dataStore, saveSignals, startingWallet, tradeAmount);
+            var results = await runner.RunSingleStrategy(strategy, backtestOptions, dataStore, baseCurrency, saveSignals, startingWallet, tradeAmount);
             return results;
         }
 
-        public static async Task<JArray> BackTestJson(ITradingStrategy strategy, BacktestOptions backtestOptions, IDataStoreBacktest dataStore, bool saveSignals, decimal startingWallet, decimal tradeAmount)
+        public static async Task<JArray> BackTestJson(ITradingStrategy strategy, BacktestOptions backtestOptions, IDataStoreBacktest dataStore, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount)
         {
-            List<BackTestResult> results = await BackTest(strategy, backtestOptions, dataStore, saveSignals, startingWallet, tradeAmount);
+            var results = await BackTest(strategy, backtestOptions, dataStore, baseCurrency, saveSignals, startingWallet, tradeAmount);
 
             var jArrayResult = new JArray();
 
@@ -49,11 +49,17 @@ namespace MachinaTrader.Backtester
                 resultsSummary.Strategy = strategy.Name;
                 resultsSummary.ConcurrentTrades = results.First().ConcurrentTrades;
                 resultsSummary.Wallet = results.First().Wallet;
+                resultsSummary.LowWallet = results.First().LowWallet;
+
+                var endWallet = Math.Round(resultsSummary.Wallet, 3);
+                var walletRealPercentage = Math.Round(((resultsSummary.Wallet - startingWallet) / startingWallet) * 100, 3);
+                var lowWallet = Math.Round(resultsSummary.LowWallet, 3);
 
                 var currentResult1 = new JObject();
                 currentResult1["Strategy"] = resultsSummary.Strategy;
                 currentResult1["ConcurrentTrades"] = resultsSummary.ConcurrentTrades;
-                currentResult1["Wallet"] = resultsSummary.Wallet;
+                currentResult1["Wallet"] = endWallet + " " + baseCurrency + " (" + walletRealPercentage + "%)";
+                currentResult1["LowWallet"] = lowWallet;
                 currentResult1["AmountOfTrades"] = resultsSummary.AmountOfTrades;
                 currentResult1["AmountOfProfitableTrades"] = resultsSummary.AmountOfProfitableTrades;
                 currentResult1["SuccessRate"] = resultsSummary.SuccessRate;
@@ -61,6 +67,7 @@ namespace MachinaTrader.Backtester
                 currentResult1["TotalProfitPercentage"] = resultsSummary.TotalProfitPercentage;
                 currentResult1["AverageDuration"] = resultsSummary.AverageDuration;
                 currentResult1["DataPeriod"] = resultsSummary.DataPeriod;
+                currentResult1["BaseCurrency"] = baseCurrency;
                 jArrayResult.Add(currentResult1);
 
                 foreach (var result in results)
