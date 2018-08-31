@@ -135,7 +135,7 @@
                 </div>
                 <div class="row">
                     <div class="col-md-12">
-                        <h4 class="card-title">{{parseFloat(statisticsData.stat.currentBalance).toFixed(7)}} {{performanceData.tradeOptions.quoteCurrency}} ({{parseFloat(statisticsData.stat.investedCoinsPerformance).toFixed(4)}}%)</h4>
+                        <h4 class="card-title">{{parseFloat(statisticsData.stat.currentBalance).toFixed(7)}} {{performanceData.tradeOptions.quoteCurrency}} ({{parseFloat(statisticsData.stat.currentBalancePerformance).toFixed(4)}}%)</h4>
                     </div>
                 </div>
             </div>
@@ -159,9 +159,17 @@
         </div>
     </div>
 
+    <div class="animated fadeIn">
+        <div class="row">
+            <div class="col-md-12">
+                <canvas id="canvas-11" height="200" ></canvas>
+            </div>
+        </div>
+    </div>
+
+
 
     <!-- Performance on date -->
-
     <div class="row animated fadeIn">
         <div class="col-md-12">
             <div class="card">
@@ -318,7 +326,7 @@
                         data: {
                             datasets: [{
                                 label: 'Balances',
-                                backgroundColor: 'rgba(220, 220, 220, 0.2)',
+                                backgroundColor: '#fff',
                                 borderColor: 'rgba(220, 220, 220, 1)',
                                 pointBackgroundColor: 'rgba(220, 220, 220, 1)',
                                 pointBorderColor: '#fff',
@@ -338,7 +346,49 @@
                 }
             });
         });
+        
+        $.ajax({
+            url: '/api/statistics/overviewChart?mode=' + $("#modeSelect").val() + '&includeStartAmount=' + $(true),
+            type: "GET",
+            dataType: 'json',
+            success: function(rtnData) {
+                console.log(rtnData);
+
+                var arr = jQuery.map(rtnData.stat.dates,
+                    function(value, i) {
+                        return (moment(value).format("YYYY-MM-DD HH:mm:ss"));
+                    });
+
+                var config = {
+                    type: 'line',
+                    data: {
+                        datasets: [
+                            {
+                                label: 'Balances',
+                                backgroundColor: 'rgba(220, 220, 220, 0.2)',
+                                borderColor: 'rgba(220, 220, 220, 1)',
+                                pointBackgroundColor: 'rgba(220, 220, 220, 1)',
+                                pointBorderColor: '#fff',
+                                data: rtnData.stat.balances
+                            }
+                        ],
+                        labels: arr
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                    }
+                };
+
+                var lineChart = new Chart($('#canvas-11'), config);
+            },
+            error: function(rtnData) {
+                alert('error' + rtnData);
+            }
+        });
     };
+
+    
 
     var initDtCoinPerform = function() {
         table = $('#statisticTableId').DataTable({
