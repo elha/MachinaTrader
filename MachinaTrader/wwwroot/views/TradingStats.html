@@ -88,7 +88,7 @@
     }
 </style>
 
-<div class="animated fadeIn" id="statistics">
+<div class="animated fadeIn" id="statistics" v-if="performanceData && statisticsData && walletData">
     <div class="row">
         <div class="col-10">
             <h1 class="">Performance</h1>
@@ -99,7 +99,7 @@
         </div>
     </div>
     <br/>
-    <div class="row" v-if="performanceData">
+    <div class="row">
         <!-- Quotecurrency -->
         <div class="col-lg-3 col-md-3 col-sm-3">
             <div class="card text-white bg-primary ">
@@ -170,7 +170,7 @@
     <div class="animated fadeIn">
         <div class="row">
             <div class="col-md-12">
-                <canvas id="canvas-11" height="200"></canvas>
+                <canvas id="canvasOverview" height="200"></canvas>
             </div>
         </div>
     </div>
@@ -274,7 +274,7 @@
 <div class="animated fadeIn">
     <div class="row">
         <div class="col-md-12">
-            <canvas id="canvas-1"></canvas>
+            <canvas id="canvasWallet"></canvas>
         </div>
     </div>
 </div>
@@ -289,10 +289,13 @@
 
 
 <script type="text/javascript">
+
+    var momentDateNow = new Date(moment().locale("en").format("YYYY-MM-DD"));
+    var momentDateNowMinusOneWeek = new Date(moment().locale("en").subtract(7, 'd').format("YYYY-MM-DD"));
+    var momentDateNowMinusOneMonth = new Date(moment().locale("en").subtract(1, 'M').format("YYYY-MM-DD"));
+
     var pagefunction = function () {
-        var momentDateNow = new Date(moment().locale("en").format("YYYY-MM-DD"));
-        var momentDateNowMinusOneWeek = new Date(moment().locale("en").subtract(7, 'd').format("YYYY-MM-DD"));
-        var momentDateNowMinusOneMonth = new Date(moment().locale("en").subtract(1, 'M').format("YYYY-MM-DD"));
+
         $('#datetimepicker1').datetimepicker({
             defaultDate: momentDateNowMinusOneMonth,
             format: 'YYYY-MM-DD'
@@ -316,85 +319,7 @@
         $('#modeSelect').change(function () {
             statistics.updateData();
         });
-        
 
-        $(document).ready(function () {
-            $.ajax({
-                url: "/api/statistics/wallet",
-                type: "GET",
-                dataType: 'json',
-                success: function (rtnData) {
-                    console.log(rtnData);
-
-                    var arr = jQuery.map(rtnData.stat.dates, function (value, i) {
-                        return (moment(value).format("YYYY-MM-DD HH:mm:ss"));
-                    });
-
-                    var config = {
-                        type: 'line',
-                        data: {
-                            datasets: [{
-                                label: 'Balances',
-                                backgroundColor: '#fff',
-                                borderColor: 'rgba(220, 220, 220, 1)',
-                                pointBackgroundColor: 'rgba(220, 220, 220, 1)',
-                                pointBorderColor: '#fff',
-                                data: rtnData.stat.balances
-                            }],
-                            labels: arr
-                        },
-                        options: {
-                            responsive: true
-                        }
-                    };
-
-                    var lineChart = new Chart($('#canvas-1'), config);
-                },
-                error: function (rtnData) {
-                    alert('error' + rtnData);
-                }
-            });
-        });
-        
-        $.ajax({
-            url: '/api/statistics/overviewChart?mode=' + $("#modeSelect").val() + '&includeStartAmount=' + $(true),
-            type: "GET",
-            dataType: 'json',
-            success: function(rtnData) {
-                console.log(rtnData);
-
-                var arr = jQuery.map(rtnData.stat.dates,
-                    function(value, i) {
-                        return (moment(value).format("YYYY-MM-DD HH:mm:ss"));
-                    });
-
-                var config = {
-                    type: 'line',
-                    data: {
-                        datasets: [
-                            {
-                                label: 'Balances',
-                                backgroundColor: 'rgba(220, 220, 220, 0.2)',
-                                borderColor: 'rgba(220, 220, 220, 1)',
-                                pointBackgroundColor: 'rgba(220, 220, 220, 1)',
-                                pointBorderColor: '#fff',
-                                data: rtnData.stat.balances
-                            }
-                        ],
-                        labels: arr
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                    }
-                };
-
-                var lineChart = new Chart($('#canvas-11'), config);
-            },
-            error: function(rtnData) {
-                alert('error' + rtnData);
-            }
-        });
     };
     
     var initDtCoinPerform = function() {
@@ -486,7 +411,9 @@
 
         data: {
             performanceData: null,
-            statisticsData: null
+            statisticsData: null,
+            walletData: null,
+            overviewData: null
         },
 
         created: function () {
@@ -547,28 +474,98 @@
 
             fetchData: function () {
                 var self = this;
-                $.get('/api/statistics/overview?mode=' + $("#modeSelect").val(), function (data) {
-                        self.performanceData = data;
-                        $.get('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val(), function (stat) {
-                            self.statisticsData = stat;
+                console.log(moment(momentDateNowMinusOneMonth).format('YYYY-MM-DD'));
+                $.get('/api/statistics/overview?mode=paper', function (data) {
+                    self.performanceData = data;
+                    $.get('/api/statistics/overview?mode=paper&fromDate=' + moment(momentDateNowMinusOneMonth).format('YYYY-MM-DD') + '&toDate=' + moment(momentDateNow).format('YYYY-MM-DD') , function (stat) {
+                        self.statisticsData = stat;
+                        $.get('/api/statistics/wallet', function (wallet) {
+                            self.walletData = wallet;
+                            $.get('/api/statistics/overview?mode=paper', function (overview) {
+                                self.overviewData = overview;
+                                self.$nextTick(function () {
+                                    initDtCoinPerform();
+                                    pagefunction();
+                                    self.drawChart();
+                                });
+                            });
                         });
+                    });
                 });
-                self.$nextTick(function () {
-                    initDtCoinPerform();
-                    pagefunction();
-                });
-
             },
+
             updateData: function () {
                 var self = this;
                 $.get('/api/statistics/overview?mode=' + $("#modeSelect").val(), function (data) {
                     self.performanceData = data;
-                    $.get('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val(), function (data) {
-                        self.statisticsData = data;
-                        table.ajax.url('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val()).load();
+                    $.get('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val(), function (stat) {
+                        self.statisticsData = stat;
+                        $.get('/api/statistics/wallet', function (wallet) {
+                            self.walletData = wallet;
+                            $.get('/api/statistics/overview?mode=' + $("#modeSelect").val(), function (overview) {
+                                self.overviewData = overview;
+                                self.drawChart();
+                            });
+                        });
                     });
                 });
+                
             },
+
+            drawChart: function() {
+                var self = this;
+                var arrWallet = jQuery.map(self.walletData.stat.dates, function (value, i) {
+                    return (moment(value).format("YYYY-MM-DD HH:mm:ss"));
+                });
+
+                var configWallet = {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'Balances',
+                            backgroundColor: '#fff',
+                            borderColor: 'rgba(220, 220, 220, 1)',
+                            pointBackgroundColor: 'rgba(220, 220, 220, 1)',
+                            pointBorderColor: '#fff',
+                            data: self.walletData.stat.balances
+                        }],
+                        labels: arrWallet
+                    },
+                    options: {
+                        responsive: true
+                    }
+                };
+
+                var chartWallet = new Chart($('#canvasWallet'), configWallet);
+        
+                var arrOverview = jQuery.map(self.overviewData.stat.dates,
+                    function(value, i) {
+                        return (moment(value).format("YYYY-MM-DD HH:mm:ss"));
+                    });
+
+                var configOverview = {
+                    type: 'line',
+                    data: {
+                        datasets: [
+                            {
+                                label: 'Balances',
+                                backgroundColor: 'rgba(220, 220, 220, 0.2)',
+                                borderColor: 'rgba(220, 220, 220, 1)',
+                                pointBackgroundColor: 'rgba(220, 220, 220, 1)',
+                                pointBorderColor: '#fff',
+                                data: self.overviewData.stat.balances
+                            }
+                        ],
+                        labels: arrOverview
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                    }
+                };
+
+                var chartOverview = new Chart($('#canvasOverview'), configOverview);
+            }
         }
     });
 </script>
