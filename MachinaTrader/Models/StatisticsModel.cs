@@ -7,6 +7,7 @@ namespace MachinaTrader.Models
     public class Statistics
     {
         public decimal? CurrentBalance { get; set; } = 0m;
+        public decimal? CurrentBalancePerformance { get; set; } = 0;
         public decimal? InvestedCoins { get; set; } = 0m;
         public decimal? InvestedCoinsPerformance { get; set; } = 0;
         public decimal? ProfitLoss { get; set; } = 0m;
@@ -20,7 +21,7 @@ namespace MachinaTrader.Models
     public class CoinPerformance
     {
         public string Coin { get; set; }
-        public decimal? InvestedCoins { get; set; } = 0;
+        public decimal? InvestedCoins { get; set; } = 0m;
         public decimal? Performance { get; set; } = 0m;
         public decimal? PerformancePercentage { get; set; } = 0;
         public int? PositiveTrades { get; set; }
