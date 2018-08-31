@@ -60,7 +60,14 @@ namespace MachinaTrader.Controllers
 
             // Invested amout
             stat.InvestedCoins = coins.Sum(c => c.InvestedCoins);
-            stat.InvestedCoinsPerformance = ((stat.ProfitLoss - stat.InvestedCoins) * 100) / stat.InvestedCoins;
+            if ((tradeOptions.StartAmount * stat.ProfitLoss == 0))
+            {
+                stat.InvestedCoinsPerformance = 0;
+            }
+            else
+            {
+                stat.InvestedCoinsPerformance = ((tradeOptions.StartAmount * stat.ProfitLoss) / 100) * 100;
+            }
 
             // Coin performance
             stat.CoinPerformances = coins;
