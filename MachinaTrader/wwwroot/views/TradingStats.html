@@ -89,8 +89,16 @@
 </style>
 
 <div class="animated fadeIn" id="statistics">
-    <!-- Performance -->
-    <h1 class="mt-5">Performance</h1>
+    <div class="row">
+        <div class="col-10">
+            <h1 class="">Performance</h1>
+        </div>
+
+        <div class="col-2">
+            <button type="button" class="btn btn-success" style="width: 100%;" id="startButton" onclick="refresh();">Refresh</button>
+        </div>
+    </div>
+    <br/>
     <div class="row" v-if="performanceData">
         <!-- Quotecurrency -->
         <div class="col-lg-3 col-md-3 col-sm-3">
@@ -126,21 +134,21 @@
             </div>
         </div>
         <div class="col-lg-3 col-md-3 col-sm-3">
-        <div class="card text-white bg-success ">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-12">
-                        <h4 class="card-title">Current balance</h4>
+            <div class="card text-white bg-success ">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">Current balance</h4>
+                        </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <h4 class="card-title">{{parseFloat(statisticsData.stat.currentBalance).toFixed(7)}} {{performanceData.tradeOptions.quoteCurrency}} ({{parseFloat(statisticsData.stat.currentBalancePerformance).toFixed(4)}}%)</h4>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">{{parseFloat(statisticsData.stat.currentBalance).toFixed(7)}} {{performanceData.tradeOptions.quoteCurrency}} ({{parseFloat(statisticsData.stat.currentBalancePerformance).toFixed(4)}}%)</h4>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
         <div class="col-lg-3 col-md-3 col-sm-3">
             <div class="card text-white bg-warning ">
                 <div class="card-body">
@@ -162,7 +170,7 @@
     <div class="animated fadeIn">
         <div class="row">
             <div class="col-md-12">
-                <canvas id="canvas-11" height="200" ></canvas>
+                <canvas id="canvas-11" height="200"></canvas>
             </div>
         </div>
     </div>
@@ -308,6 +316,7 @@
         $('#modeSelect').change(function () {
             statistics.updateData();
         });
+        
 
         $(document).ready(function () {
             $.ajax({
@@ -387,9 +396,7 @@
             }
         });
     };
-
     
-
     var initDtCoinPerform = function() {
         table = $('#statisticTableId').DataTable({
             ajax: {
@@ -474,6 +481,10 @@
     }
 
 
+    var refresh = function () {
+        statistics.updateData();
+    }
+
     var statistics = new Vue({
         el: '#statistics',
         parent: vueMain,
@@ -555,9 +566,12 @@
             },
             updateData: function () {
                 var self = this;
-                $.get('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val(), function (data) {
-                    self.statisticsData = data;
-                    table.ajax.url('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val()).load();
+                $.get('/api/statistics/overview?mode=' + $("#modeSelect").val(), function (data) {
+                    self.performanceData = data;
+                    $.get('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val(), function (data) {
+                        self.statisticsData = data;
+                        table.ajax.url('/api/statistics/overview?mode=' + $("#modeSelect").val() + '&fromDate=' + $('#inputFromDate').val() + '&toDate=' + $('#inputToDate').val()).load();
+                    });
                 });
             },
         }
