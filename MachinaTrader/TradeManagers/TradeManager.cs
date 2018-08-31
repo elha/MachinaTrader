@@ -8,6 +8,8 @@ using MachinaTrader.Globals.Structure.Enums;
 using MachinaTrader.Globals.Structure.Extensions;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Models;
+using MachinaTrader.Helpers;
+using MachinaTrader.Notifications;
 using MachinaTrader.Strategies;
 
 namespace MachinaTrader.TradeManagers
@@ -895,11 +897,25 @@ namespace MachinaTrader.TradeManagers
 
         private async Task SendNotification(string message)
         {
-            //Global.Logger.Information(message);
+            Global.Logger.Debug(message);
 
             if (Runtime.NotificationManagers != null)
+            {
                 foreach (var notificationManager in Runtime.NotificationManagers)
-                    notificationManager.SendNotification(message);
+                {
+                    if (notificationManager is SignalrNotificationManager)
+                    {
+                        notificationManager.SendNotification(message);
+                    }
+                    else
+                    {
+                        if (!Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+                        {
+                            notificationManager.SendNotification(message);
+                        }
+                    }
+                }
+            }
         }
 
         private string TradeToString(Trade trade)
