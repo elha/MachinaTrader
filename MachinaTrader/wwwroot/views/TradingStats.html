@@ -95,7 +95,7 @@
         </div>
 
         <div class="col-2">
-            <button type="button" class="btn btn-success" style="width: 100%;" id="startButton" onclick="refresh();">Refresh</button>
+            <button type="button" class="btn btn-success" style="width: 100%;" id="startButton" v-on:click="updateData">Refresh</button>
         </div>
     </div>
     <br/>
@@ -478,11 +478,6 @@
             ]
         });
 
-    }
-
-
-    var refresh = function () {
-        statistics.updateData();
     }
 
     var statistics = new Vue({
