@@ -31,6 +31,7 @@
     <ProjectReference Include="..\MachinaTrader.Strategies\MachinaTrader.Strategies.csproj" />
     <ProjectReference Include="..\MachinaTrader.Data.LiteDB\MachinaTrader.Data.LiteDB.csproj" />
     <ProjectReference Include="..\MachinaTrader.Data.MongoDB\MachinaTrader.Data.MongoDB.csproj" />
+    <ProjectReference Include="..\MachinaTrader.TradeManagers\MachinaTrader.TradeManagers.csproj" />
   </ItemGroup>
 
   <ItemGroup>

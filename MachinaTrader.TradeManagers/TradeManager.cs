@@ -553,7 +553,7 @@ namespace MachinaTrader.TradeManagers
             }
 
             // This means an order to buy has been open for an entire buy cycle.
-            if (Global.Configuration.TradeOptions.CancelUnboughtOrdersEachCycle && Runtime.GlobalOrderBehavior == OrderBehavior.CheckMarket)
+            if (Global.Configuration.TradeOptions.CancelUnboughtOrdersEachCycle && Global.GlobalOrderBehavior == OrderBehavior.CheckMarket)
                 await new TradeManager().CancelUnboughtOrders();
         }
 
@@ -589,7 +589,7 @@ namespace MachinaTrader.TradeManagers
 
                         if (candle != null && (trade.OpenRate >= candle.High ||
                                                (trade.OpenRate >= candle.Low && trade.OpenRate <= candle.High) ||
-                                               Runtime.GlobalOrderBehavior == OrderBehavior.AlwaysFill
+                                               Global.GlobalOrderBehavior == OrderBehavior.AlwaysFill
                             ))
                         {
                             trade.OpenOrderId = null;
@@ -676,7 +676,7 @@ namespace MachinaTrader.TradeManagers
                     }
                     else
                     {
-                        if (candle != null && (trade.CloseRate <= candle.Low || (trade.CloseRate >= candle.Low && trade.CloseRate <= candle.High) || Runtime.GlobalOrderBehavior == OrderBehavior.AlwaysFill))
+                        if (candle != null && (trade.CloseRate <= candle.Low || (trade.CloseRate >= candle.Low && trade.CloseRate <= candle.High) || Global.GlobalOrderBehavior == OrderBehavior.AlwaysFill))
                         {
                             trade.OpenOrderId = null;
                             trade.IsOpen = false;
@@ -896,10 +896,13 @@ namespace MachinaTrader.TradeManagers
         private async Task SendNotification(string message)
         {
             //Global.Logger.Information(message);
-
-            if (Runtime.NotificationManagers != null)
-                foreach (var notificationManager in Runtime.NotificationManagers)
+            if (Global.NotificationManagers != null)
+            {
+                foreach (var notificationManager in Global.NotificationManagers)
+                {
                     notificationManager.SendNotification(message);
+                }
+            }
         }
 
         private string TradeToString(Trade trade)
