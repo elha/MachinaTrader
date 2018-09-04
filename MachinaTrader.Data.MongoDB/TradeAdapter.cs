@@ -38,6 +38,8 @@ namespace MachinaTrader.Data.MongoDB
 
         public string StrategyUsed { get; set; }
         public double? StopLossRate { get; set; }
+
+        public BuyType BuyType { get; set; }
         public SellType SellType { get; set; }
 
         // Used for MyntUI output
