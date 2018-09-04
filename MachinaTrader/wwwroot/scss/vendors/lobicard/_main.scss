@@ -1,0 +1,234 @@
+.tooltip {
+    z-index: 20000;
+}
+
+body.lobicard-minimized {
+    padding-bottom: $lobicard-toolbar-height;
+}
+
+.lobicard {
+    position: relative;
+    margin-bottom: $lobicard-card-margin-bottom;
+    > .card-header {
+        padding: 5px;
+        position: relative;
+        @include border-top-radius(0px);
+        > .card-title {
+            float: left;
+            max-width: calc(100% - #{$lobicard-card-control-width});
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: $lobicard-card-title-font-size;
+            line-height: $lobicard-card-title-line-height;
+            padding-left: $lobicard-card-title-padding-horizontal;
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                margin: 0;
+                line-height: $lobicard-card-title-line-height;
+            }
+            input {
+                color: inherit;
+                line-height: $lobicard-card-title-line-height;
+                border-radius: 2px;
+                padding: 0 5px;
+                width: 100%;
+                background-color: rgba(0, 0, 0, 0.2);
+                border: 1px solid $brand-primary;
+                outline: 0;
+                &:focus {
+                    background-color: rgba(0, 0, 0, 0.15);
+                }
+            }
+        }
+        .dropdown {
+            display: inline-block;
+            float: right;
+            position: relative;
+            .dropdown-menu {
+                left: auto;
+                right: 0;
+                min-width: 0;
+                margin-top: 0;
+                border-radius: 0;
+                > li > a {
+                    .control-title {
+                        display: inline-block;
+                        margin-left: 15px;
+                    }
+                }
+            }
+            .dropdown-toggle {
+                border: none;
+                outline: 0;
+                background-color: transparent;
+                text-align: center;
+                padding: 0;
+                width: $lobicard-card-control-width;
+                font-size: $lobicard-card-control-font-size;
+                @include transition(all $lobicard-transition-duration);
+                .card-control-icon {
+                    top: 0;
+                    line-height: $lobicard-card-title-line-height;
+                }
+                &:hover,
+                &:hover:focus {
+                    text-shadow: $lobicard-card-control-hover-text-shadow;
+                    background-color: $lobicard-card-control-hover-bg;
+                }
+            }
+            &.open {
+                .dropdown-toggle {
+                    text-shadow: $lobicard-card-control-hover-text-shadow;
+                    background-color: $lobicard-card-control-hover-bg;
+                }
+            }
+        }
+        @include clearfix();
+    }
+    @include media-breakpoint-up(sm) {
+        .card-header {
+            .card-title {
+                max-width: calc(100% - #{$lobicard-card-control-width * 6});
+            }
+            @include lobicard-dropdown-screen-lg();
+        }
+    }
+    > .card-block {
+        overflow: auto;
+        position: relative;
+    }
+    .card-loader {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #fff;
+        opacity: 0.8;
+    }
+    &.card-collapsed {
+        > .card-header {
+            border-bottom: none;
+            .dropdown {
+                .dropdown-menu {
+                    > li {
+                        > a {
+                            &[data-func="unpin"],
+                            &[data-func="reload"],
+                            &[data-func="expand"] {
+                                display: none;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    &.card-expanded,
+    &.card-unpin,
+    &.card-minimized.card-unpin {
+        margin-bottom: 0;
+    }
+    &.card-unpin {
+        overflow: hidden;
+        position: absolute;
+        z-index: $lobicard-basic-z-index;
+        @include box-shadow($lobicard-card-unpin-box-shadow);
+        > .card-header {
+            cursor: move;
+        }
+        &.card-minimized {
+            float: left;
+            position: static;
+            border-radius: 0;
+            @include box-shadow(none);
+            min-width: $lobicard-card-minimized-min-width;
+            margin-right: $lobicard-card-minimized-margin-right;
+            > .card-header {
+                padding: 0;
+                cursor: pointer;
+                border-bottom: none;
+                .card-title {
+                    max-width: calc(100% - #{$lobicard-card-control-width * 2});
+                    h1,
+                    h2,
+                    h3,
+                    h4,
+                    h5,
+                    h6 {
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+                }
+                @include lobicard-dropdown-screen-lg();
+                .dropdown {
+                    .dropdown-menu {
+                        > li {
+                            > a {
+                                display: none;
+                                &[data-func="close"],
+                                &[data-func="expand"] {
+                                    display: inline-block;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            > .card-block,
+            > .card-footer {
+                display: none !important;
+            }
+        }
+    }
+    &.card-expanded {
+        > .card-header {
+            cursor: default;
+            .dropdown {
+                .dropdown-menu {
+                    > li {
+                        > a {
+                            &[data-func="unpin"],
+                            &[data-func="minimize"] {
+                                display: none;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        &.card-unpin {
+            > .card-header {
+                .card-control[data-func="minimize"] {
+                    display: block;
+                }
+            }
+        }
+    }
+}
+
+.lobicard-minimized-toolbar {
+    position: fixed;
+    height: $lobicard-toolbar-height;
+    padding: $lobicard-toolbar-padding;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 20000;
+    background: $lobicard-toolbar-bg;
+}
+
+.lobicard-placeholder {
+    background-color: #f9f5d1;
+    border: 1px dashed #919191;
+    margin-bottom: $lobicard-card-margin-bottom;
+}
+
+.lobicard-parent-sortable {
+    min-height: 20px;
+}
