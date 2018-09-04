@@ -107,7 +107,9 @@
                     </div>
                 </div>
 
-                 <div class="col-1"></div>
+                <div class="col-1">
+                    <button type="button" class="btn btn-warning" style="width: 100%;" id="fillCandlesGapsButton" onclick="fillCandlesGaps();">Fill gaps</button>
+                </div>
             </div>
 
             <div class="row card-body-header">
@@ -193,7 +195,7 @@
                             <label for="exchangeCoinsAvailableData" class="col-2 col-form-label">Available Data:</label>
                             <div class='col-10 col-form-label' id='exchangeCoinsAvailableData'>
                                 <template v-for="(value, key) in candleAgeData">
-                                    {{candleAgeData[key]["Coin"]}}: {{formatDate(candleAgeData[key]["FirstCandleDate"])}} to {{formatDate(candleAgeData[key]["LastCandleDate"])}}
+                                    {{candleAgeData[key]["Coin"]}} : {{formatDate(candleAgeData[key]["FirstCandleDate"])}} to {{formatDate(candleAgeData[key]["LastCandleDate"])}} , Num. of candles: {{candleAgeData[key]["CandlesNum"]}} ,  Expected num. of candles: {{candleAgeData[key]["ExpectedCandlesNum"]}}
                                     <br />
                                 </template>
 
@@ -334,11 +336,26 @@
             $("#startButton").prop("disabled", false);
             widgetBackendTester.updateCandleAge();
         })
-            .catch((error) => {
-                console.log(error);
-            });
+        .catch((error) => {
+            console.log(error);
+        });
     };
 
+    var fillCandlesGaps = function () {
+        $("#refreshButton").prop("disabled", true);
+        $("#startButton").prop("disabled", true);
+
+        axios.get('/api/backtester/fillCandlesGaps?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val() + '&from=' + $('#inputFromDate').val() + '&to=' + $('#inputToDate').val()).then((response) => {
+            $("#refreshButton").prop("disabled", false);
+            $("#startButton").prop("disabled", false);
+
+            widgetBackendTester.updateCandleAge();
+        })
+        .catch((error) => {
+            console.log(error);
+        });
+    };
+    
     var runStrategy = function () {
         if (table != null) {
             table.clear().draw();
@@ -722,7 +739,6 @@
                     self.exchangeCoinsData = data[0];
                 });
             },
-
             updateCandleAge: function () {
                 var self = this;
                 $.get('/api/backtester/candlesAge?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val(), function (data) {
@@ -733,7 +749,7 @@
                         $("#startButton").prop("disabled", false);
                     }
                 });
-            }
+            }           
         }
     });
 

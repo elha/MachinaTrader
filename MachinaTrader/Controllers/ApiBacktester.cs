@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using MachinaTrader.Backtester;
-using MachinaTrader.Globals.Structure.Extensions;
 using MachinaTrader.Exchanges;
 
 namespace MachinaTrader.Controllers
@@ -28,7 +27,7 @@ namespace MachinaTrader.Controllers
         [Route("refresh")]
         public async Task<string> Refresh(string exchange, string coinsToBuy, string candleSize = "5")
         {
-            BacktestOptions backtestOptions = new BacktestOptions
+            var backtestOptions = new BacktestOptions
             {
                 DataFolder = Global.DataPath,
                 Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true),
@@ -45,7 +44,7 @@ namespace MachinaTrader.Controllers
         [Route("candlesAge")]
         public async Task<ActionResult> CandlesAge(string exchange, string coinsToBuy, string baseCurrency, string candleSize = "5")
         {
-            List<string> coins = new List<string>();
+            var coins = new List<string>();
 
             if (String.IsNullOrEmpty(coinsToBuy))
             {
@@ -66,15 +65,16 @@ namespace MachinaTrader.Controllers
                 }
             }
 
-            BacktestOptions backtestOptions = new BacktestOptions
+            var backtestOptions = new BacktestOptions
             {
                 DataFolder = Global.DataPath,
                 Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true),
                 Coins = coins,
-                CandlePeriod = Int32.Parse(candleSize)
+                CandlePeriod = Int32.Parse(candleSize),
+                EndDate = DateTime.Now
             };
 
-            JObject result = new JObject
+            var result = new JObject
             {
                 ["result"] = await DataRefresher.GetCacheAge(backtestOptions, Global.DataStoreBacktest)
             };
@@ -119,6 +119,55 @@ namespace MachinaTrader.Controllers
             {
                 ["result"] = "success"
             };
+            return new JsonResult(result);
+        }
+
+        [HttpGet]
+        [Route("fillCandlesGaps")]
+        public async Task<ActionResult> FillCandlesGaps(string exchange, string coinsToBuy, string baseCurrency, DateTime? from = null, DateTime? to = null, string candleSize = "5")
+        {
+            var coins = new List<string>();
+
+            if (String.IsNullOrEmpty(coinsToBuy))
+            {
+                IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
+                var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
+                foreach (var coin in exchangeCoins)
+                {
+                    coins.Add(api.ExchangeSymbolToGlobalSymbol(coin.MarketName));
+                }
+            }
+            else
+            {
+                Char delimiter = ',';
+                String[] coinsToBuyArray = coinsToBuy.Split(delimiter);
+                foreach (var coin in coinsToBuyArray)
+                {
+                    coins.Add(coin.ToUpper());
+                }
+            }
+
+            var backtestOptions = new BacktestOptions
+            {
+                DataFolder = Global.DataPath,
+                Exchange = (Exchange)Enum.Parse(typeof(Exchange), exchange, true),
+                Coins = coins,
+                CandlePeriod = Int32.Parse(candleSize),
+                EndDate = DateTime.Now
+            };
+
+            if (from.HasValue)
+                backtestOptions.StartDate = from.Value;
+
+            if (to.HasValue)
+            {
+                backtestOptions.EndDate = to.Value;
+                backtestOptions.EndDate = backtestOptions.EndDate.AddDays(1).AddMinutes(-1);
+            }
+
+            await DataRefresher.FillCandlesGaps(x => Global.Logger.Information(x), backtestOptions, Global.DataStoreBacktest);
+
+            var result = new JObject { ["result"] = "success" };
             return new JsonResult(result);
         }
 
@@ -213,7 +262,10 @@ namespace MachinaTrader.Controllers
                 backtestOptions.StartDate = from.Value;
 
             if (to.HasValue)
+            {
                 backtestOptions.EndDate = to.Value;
+                backtestOptions.EndDate = backtestOptions.EndDate.AddDays(1).AddMinutes(-1);
+            }
 
             if (tradeAmount == 0m)
                 tradeAmount = backtestOptions.StakeAmount;
@@ -399,7 +451,7 @@ namespace MachinaTrader.Controllers
                 }
                 strategyClassName = item.ToString().Split('.').Last();
             }
-           
+
 
             while (currentExchangeOption.SimulationCurrentDate <= currentExchangeOption.SimulationEndDate)
             {
