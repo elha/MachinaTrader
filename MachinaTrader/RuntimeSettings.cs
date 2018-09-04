@@ -31,8 +31,7 @@ namespace MachinaTrader
         public static IHubContext<HubBacktest> GlobalHubBacktest;
         public static IHubContext<HubExchangeAccounts> GlobalHubAccounts;
         public static TelegramNotificationOptions GlobalTelegramNotificationOptions { get; set; }
-        public static List<INotificationManager> NotificationManagers;
-        public static OrderBehavior GlobalOrderBehavior;
+        
         public static ConcurrentDictionary<string, Ticker> WebSocketTickers = new ConcurrentDictionary<string, Ticker>();
 
         public static List<string> GlobalCurrencys = new List<string>();
@@ -46,9 +45,9 @@ namespace MachinaTrader
     {
         public async static void Init()
         {
-            Runtime.GlobalOrderBehavior = OrderBehavior.CheckMarket;
+            Global.GlobalOrderBehavior = OrderBehavior.CheckMarket;
 
-            Runtime.NotificationManagers = new List<INotificationManager>()
+            Global.NotificationManagers = new List<INotificationManager>()
             {
                 new SignalrNotificationManager(),
                 new TelegramNotificationManager(Runtime.GlobalTelegramNotificationOptions)

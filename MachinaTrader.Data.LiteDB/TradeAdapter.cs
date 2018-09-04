@@ -32,6 +32,8 @@ namespace MachinaTrader.Data.LiteDB
 
         public string StrategyUsed { get; set; }
         public double? StopLossRate { get; set; }
+
+        public BuyType BuyType { get; set; }
         public SellType SellType { get; set; }
 
         public bool PaperTrading { get; set; }

@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using LazyCache;
 using MachinaTrader.Globals.Hubs;
 using MachinaTrader.Globals.Models;
+using MachinaTrader.Globals.Structure.Enums;
 using MachinaTrader.Globals.Structure.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.SignalR;
@@ -129,6 +130,8 @@ namespace MachinaTrader.Globals
         public static string DatabaseConnectionString { get; set; }
 
         public static RuntimeConfig RuntimeSettings = new RuntimeConfig();
+        public static List<INotificationManager> NotificationManagers;
+        public static OrderBehavior GlobalOrderBehavior;
         public static IApplicationBuilder ApplicationBuilder { get; set; }
         public static IServiceScope ServiceScope { get; set; }
         public static Serilog.ILogger Logger { get; set; }

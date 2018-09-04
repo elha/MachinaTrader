@@ -33,6 +33,8 @@ namespace MachinaTrader.Globals.Structure.Models
 
         public string StrategyUsed { get; set; }
         public decimal? StopLossRate { get; set; }
+
+        public BuyType BuyType { get; set; }
         public SellType SellType { get; set; }
 
         public bool PaperTrading { get; set; }

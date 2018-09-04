@@ -8,6 +8,7 @@ using MachinaTrader.Models;
 using ExchangeSharp;
 using MachinaTrader.Globals;
 using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.TradeManagers;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json.Linq;
 
@@ -143,6 +144,11 @@ namespace MachinaTrader.Controllers
             trade.IsSelling = true;
 
             await Global.DataStore.SaveTradeAsync(trade);
+
+            //Trigger Sell
+            TradeManager tradeManager = new TradeManager();
+            await tradeManager.UpdateOpenSellOrders(trade);
+
             await Runtime.GlobalHubTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to SellNow");
         }
 
