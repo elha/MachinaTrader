@@ -1,5 +1,8 @@
 @mixin lobicard-dropdown-screen-lg() {
     .dropdown {
+        position: absolute;
+        top: 0;
+        right: 0;	
         .dropdown-menu {
             position: static;
             display: inline-block;
@@ -13,13 +16,17 @@
             > li {
                 display: inline-block;
                 > a {
+					display: block;
+					float: left;
+					width: 50px;
+					margin: 0;
+					border: 0;
+					border-left: 1px solid rgba(0,0,0,.2);
                     cursor: pointer;
                     color: inherit;
-                    padding: 0;
+                    padding: .75rem 0;
                     outline: 0;
                     text-align: center;
-                    width: $lobicard-card-control-width;
-                    margin-left: $lobicard-card-control-margin;
                     font-size: $lobicard-card-control-font-size;
                     @include transition(all $lobicard-transition-duration);
                     .card-control-icon {

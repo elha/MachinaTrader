@@ -16,7 +16,7 @@
     "build-copy": "copyfiles -a -e \"wwwroot/scss/**/*\" -u 1 \"wwwroot/**/*\" dist/",
     "build-vendors": "node build/vendors.js",
     "css": "node_modules/.bin/npm-run-all css-compile* --sequential css-prefix css-minify*",
-    "css-compile": "node node_modules/node-sass/bin/node-sass --output-style expanded --source-map true --source-map-contents true --precision 6 wwwroot/scss/style.scss wwwroot/css/style.css",
+    "css-compile": "node node_modules/node-sass/bin/node-sass --no-recursive --output-style expanded --source-map true --source-map-contents true --precision 6 wwwroot/scss/ -o wwwroot/css/",
     "css-compile-dark": "node node_modules/node-sass/bin/node-sass --output-style expanded --source-map true --source-map-contents true --precision 6 wwwroot/scss/styledark.scss wwwroot/css/styledark.css",
     "_css-compile-vendors": "node build/vendors-sass.js",
     "css-lint": "stylelint --config build/.stylelintrc --syntax scss \"wwwroot/scss/**/*.scss\"",

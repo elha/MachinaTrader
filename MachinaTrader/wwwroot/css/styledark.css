@@ -18762,4 +18762,543 @@ div[toast].ng-leave.ng-leave-active,
 .toaster-icon.icon-info {
   display: none;
 }
+
+.spinner-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.spinner-windows8 {
+  position: relative;
+  display: block;
+  margin: 0 auto;
+  width: 50px;
+  height: 50px;
+  margin-top: 100px;
+}
+
+.spinner-windows8 .wBall {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  opacity: 0;
+  -moz-transform: rotate(225deg);
+  -moz-animation: orbit 2.75s infinite;
+  -webkit-transform: rotate(225deg);
+  -webkit-animation: orbit 2.75s infinite;
+  -ms-transform: rotate(225deg);
+  -ms-animation: orbit 2.75s infinite;
+  -o-transform: rotate(225deg);
+  -o-animation: orbit 2.75s infinite;
+  transform: rotate(225deg);
+  animation: orbit 2.75s infinite;
+}
+
+.spinner-windows8 .wBall .wInnerBall {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #000000;
+  left: 0px;
+  top: 0px;
+  border-radius: 6px;
+  z-index: 2;
+}
+
+.spinner-windows8 .wBall:first-child {
+  -webkit-animation-delay: 0.6s;
+  animation-delay: 0.6s;
+}
+
+.spinner-windows8 .wBall:nth-child(2) {
+  -webkit-animation-delay: 0.12s;
+  animation-delay: 0.12s;
+}
+
+.spinner-windows8 .wBall:nth-child(3) {
+  -webkit-animation-delay: 0.24s;
+  animation-delay: 0.24s;
+}
+
+.spinner-windows8 .wBall:nth-child(4) {
+  -webkit-animation-delay: 0.36s;
+  animation-delay: 0.36s;
+}
+
+.spinner-windows8 .wBall:nth-child(5) {
+  -webkit-animation-delay: 0.48s;
+  animation-delay: 0.48s;
+}
+
+@-webkit-keyframes orbit {
+  0% {
+    opacity: 1;
+    z-index: 99;
+    -webkit-transform: rotate(180deg);
+    -webkit-animation-timing-function: ease-out;
+  }
+  7% {
+    opacity: 1;
+    -webkit-transform: rotate(300deg);
+    -webkit-animation-timing-function: linear;
+    -webkit-origin: 0%;
+  }
+  30% {
+    opacity: 1;
+    -webkit-transform: rotate(410deg);
+    -webkit-animation-timing-function: ease-in-out;
+    -webkit-origin: 7%;
+  }
+  39% {
+    opacity: 1;
+    -webkit-transform: rotate(645deg);
+    -webkit-animation-timing-function: linear;
+    -webkit-origin: 30%;
+  }
+  70% {
+    opacity: 1;
+    -webkit-transform: rotate(770deg);
+    -webkit-animation-timing-function: ease-out;
+    -webkit-origin: 39%;
+  }
+  75% {
+    opacity: 1;
+    -webkit-transform: rotate(900deg);
+    -webkit-animation-timing-function: ease-out;
+    -webkit-origin: 70%;
+  }
+  76% {
+    opacity: 0;
+    -webkit-transform: rotate(900deg);
+  }
+  100% {
+    opacity: 0;
+    -webkit-transform: rotate(900deg);
+  }
+}
+
+@keyframes orbit {
+  0% {
+    opacity: 1;
+    z-index: 99;
+    -webkit-transform: rotate(180deg);
+    transform: rotate(180deg);
+    -webkit-animation-timing-function: ease-out;
+    animation-timing-function: ease-out;
+  }
+  7% {
+    opacity: 1;
+    -webkit-transform: rotate(300deg);
+    transform: rotate(300deg);
+    -webkit-animation-timing-function: linear;
+    animation-timing-function: linear;
+    origin: 0%;
+  }
+  30% {
+    opacity: 1;
+    -webkit-transform: rotate(410deg);
+    transform: rotate(410deg);
+    -webkit-animation-timing-function: ease-in-out;
+    animation-timing-function: ease-in-out;
+    origin: 7%;
+  }
+  39% {
+    opacity: 1;
+    -webkit-transform: rotate(645deg);
+    transform: rotate(645deg);
+    -webkit-animation-timing-function: linear;
+    animation-timing-function: linear;
+    origin: 30%;
+  }
+  70% {
+    opacity: 1;
+    -webkit-transform: rotate(770deg);
+    transform: rotate(770deg);
+    -webkit-animation-timing-function: ease-out;
+    animation-timing-function: ease-out;
+    origin: 39%;
+  }
+  75% {
+    opacity: 1;
+    -webkit-transform: rotate(900deg);
+    transform: rotate(900deg);
+    -webkit-animation-timing-function: ease-out;
+    animation-timing-function: ease-out;
+    origin: 70%;
+  }
+  76% {
+    opacity: 0;
+    -webkit-transform: rotate(900deg);
+    transform: rotate(900deg);
+  }
+  100% {
+    opacity: 0;
+    -webkit-transform: rotate(900deg);
+    transform: rotate(900deg);
+  }
+}
+
+.tooltip {
+  z-index: 20000;
+}
+
+body.lobicard-minimized {
+  padding-bottom: 36px;
+}
+
+.lobicard {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.lobicard > .card-header {
+  padding: .75rem 1.25rem;
+  position: relative;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+}
+
+.lobicard > .card-header > .card-title {
+  float: left;
+  max-width: calc(100% - 50px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 16px;
+  margin-bottom: 0;
+  padding-left: 0;
+}
+
+.lobicard > .card-header > .card-title > i {
+  margin-right: .5rem;
+}
+
+.lobicard > .card-header > .card-title h1,
+.lobicard > .card-header > .card-title h2,
+.lobicard > .card-header > .card-title h3,
+.lobicard > .card-header > .card-title h4,
+.lobicard > .card-header > .card-title h5,
+.lobicard > .card-header > .card-title h6 {
+  margin: 0;
+  line-height: 25px;
+}
+
+.lobicard > .card-header > .card-title input {
+  color: inherit;
+  line-height: 25px;
+  border-radius: 2px;
+  padding: 0 5px;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid #e08e0b;
+  outline: 0;
+}
+
+.lobicard > .card-header > .card-title input:focus {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.lobicard > .card-header .dropdown {
+  display: inline-block;
+  float: right;
+  position: relative;
+}
+
+.lobicard > .card-header .dropdown .dropdown-menu {
+  left: auto;
+  right: 0;
+  min-width: 0;
+  margin-top: 0;
+  border-radius: 0;
+}
+
+.lobicard > .card-header .dropdown .dropdown-menu > li > a .control-title {
+  display: inline-block;
+  margin-left: 15px;
+}
+
+.lobicard > .card-header .dropdown .dropdown-toggle {
+  border: none;
+  outline: 0;
+  background-color: transparent;
+  text-align: center;
+  padding: 0;
+  width: 50px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+@media screen and (prefers-reduced-motion: reduce) {
+  .lobicard > .card-header .dropdown .dropdown-toggle {
+    transition: none;
+  }
+}
+
+.lobicard > .card-header .dropdown .dropdown-toggle .card-control-icon {
+  top: 0;
+  line-height: 25px;
+}
+
+.lobicard > .card-header .dropdown .dropdown-toggle:hover, .lobicard > .card-header .dropdown .dropdown-toggle:hover:focus {
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.lobicard > .card-header .dropdown.open .dropdown-toggle {
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.lobicard > .card-header::after {
+  display: block;
+  clear: both;
+  content: "";
+}
+
+@media (min-width: 576px) {
+  .lobicard .card-header .card-title {
+    max-width: calc(100% - 300px);
+  }
+  .lobicard .card-header .dropdown {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  .lobicard .card-header .dropdown .dropdown-menu {
+    position: static;
+    display: inline-block;
+    border: none;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+    width: auto;
+    background: transparent;
+  }
+  .lobicard .card-header .dropdown .dropdown-menu > li {
+    display: inline-block;
+  }
+  .lobicard .card-header .dropdown .dropdown-menu > li > a {
+    display: block;
+    float: left;
+    width: 50px;
+    margin: 0;
+    border: 0;
+    border-left: 1px solid rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    color: inherit;
+    padding: .75rem 0;
+    outline: 0;
+    text-align: center;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+}
+
+@media screen and (min-width: 576px) and (prefers-reduced-motion: reduce) {
+  .lobicard .card-header .dropdown .dropdown-menu > li > a {
+    transition: none;
+  }
+}
+
+@media (min-width: 576px) {
+  .lobicard .card-header .dropdown .dropdown-menu > li > a .card-control-icon {
+    top: 0;
+    line-height: 25px;
+  }
+  .lobicard .card-header .dropdown .dropdown-menu > li > a .control-title {
+    display: none;
+  }
+  .lobicard .card-header .dropdown .dropdown-menu > li > a:hover, .lobicard .card-header .dropdown .dropdown-menu > li > a:focus:hover {
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.15);
+  }
+  .lobicard .card-header .dropdown .dropdown-menu > li > a:focus {
+    text-shadow: none;
+    background-color: transparent;
+  }
+  .lobicard .card-header .dropdown .dropdown-toggle {
+    display: none;
+  }
+}
+
+.lobicard > .card-block {
+  overflow: auto;
+  position: relative;
+}
+
+.lobicard .card-loader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  opacity: 0.8;
+}
+
+.lobicard.card-collapsed > .card-header {
+  border-bottom: none;
+}
+
+.lobicard.card-collapsed > .card-header .dropdown .dropdown-menu > li > a[data-func="unpin"], .lobicard.card-collapsed > .card-header .dropdown .dropdown-menu > li > a[data-func="reload"], .lobicard.card-collapsed > .card-header .dropdown .dropdown-menu > li > a[data-func="expand"] {
+  display: none;
+}
+
+.lobicard.card-expanded, .lobicard.card-unpin, .lobicard.card-minimized.card-unpin {
+  margin-bottom: 0;
+}
+
+.lobicard.card-unpin {
+  overflow: hidden;
+  position: absolute;
+  z-index: 10000;
+}
+
+.lobicard.card-unpin > .card-header {
+  cursor: move;
+}
+
+.lobicard.card-unpin.card-minimized {
+  float: left;
+  position: static;
+  border-radius: 0;
+  min-width: 170px;
+  margin-right: 5px;
+}
+
+.lobicard.card-unpin.card-minimized > .card-header {
+  padding: 0;
+  cursor: pointer;
+  border-bottom: none;
+}
+
+.lobicard.card-unpin.card-minimized > .card-header .card-title {
+  max-width: calc(100% - 100px);
+}
+
+.lobicard.card-unpin.card-minimized > .card-header .card-title h1,
+.lobicard.card-unpin.card-minimized > .card-header .card-title h2,
+.lobicard.card-unpin.card-minimized > .card-header .card-title h3,
+.lobicard.card-unpin.card-minimized > .card-header .card-title h4,
+.lobicard.card-unpin.card-minimized > .card-header .card-title h5,
+.lobicard.card-unpin.card-minimized > .card-header .card-title h6 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lobicard.card-unpin.card-minimized > .card-header .dropdown {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.lobicard.card-unpin.card-minimized > .card-header .dropdown .dropdown-menu {
+  position: static;
+  display: inline-block;
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  width: auto;
+  background: transparent;
+}
+
+.lobicard.card-unpin.card-minimized > .card-header .dropdown .dropdown-menu > li {
+  display: inline-block;
+}
+
+.lobicard.card-unpin.card-minimized > .card-header .dropdown .dropdown-menu > li > a {
+  display: block;
+  float: left;
+  width: 50px;
+  margin: 0;
+  border: 0;
+  border-left: 1px solid rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  color: inherit;
+  padding: .75rem 0;
+  outline: 0;
+  text-align: center;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+@media screen and (prefers-reduced-motion: reduce) {
+  .lobicard.card-unpin.card-minimized > .card-header .dropdown .dropdown-menu > li > a {
+    transition: none;
+  }
+}
+
+.lobicard.card-unpin.card-minimized > .card-header .dropdown .dropdown-menu > li > a .card-control-icon {
+  top: 0;
+  line-height: 25px;
+}
+
+.lobicard.card-unpin.card-minimized > .card-header .dropdown .dropdown-menu > li > a .control-title {
+  display: none;
+}
+
+.lobicard.card-unpin.card-minimized > .card-header .dropdown .dropdown-menu > li > a:hover, .lobicard.card-unpin.card-minimized > .card-header .dropdown .dropdown-menu > li > a:focus:hover {
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.lobicard.card-unpin.card-minimized > .card-header .dropdown .dropdown-menu > li > a:focus {
+  text-shadow: none;
+  background-color: transparent;
+}
+
+.lobicard.card-unpin.card-minimized > .card-header .dropdown .dropdown-toggle {
+  display: none;
+}
+
+.lobicard.card-unpin.card-minimized > .card-header .dropdown .dropdown-menu > li > a {
+  display: none;
+}
+
+.lobicard.card-unpin.card-minimized > .card-header .dropdown .dropdown-menu > li > a[data-func="close"], .lobicard.card-unpin.card-minimized > .card-header .dropdown .dropdown-menu > li > a[data-func="expand"] {
+  display: inline-block;
+}
+
+.lobicard.card-unpin.card-minimized > .card-block,
+.lobicard.card-unpin.card-minimized > .card-footer {
+  display: none !important;
+}
+
+.lobicard.card-expanded > .card-header {
+  cursor: default;
+}
+
+.lobicard.card-expanded > .card-header .dropdown .dropdown-menu > li > a[data-func="unpin"], .lobicard.card-expanded > .card-header .dropdown .dropdown-menu > li > a[data-func="minimize"] {
+  display: none;
+}
+
+.lobicard.card-expanded.card-unpin > .card-header .card-control[data-func="minimize"] {
+  display: block;
+}
+
+.lobicard-minimized-toolbar {
+  position: fixed;
+  height: 36px;
+  padding: 2px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20000;
+  background: rgba(34, 115, 182, 0.51);
+}
+
+.lobicard-placeholder {
+  background-color: #f9f5d1;
+  border: 1px dashed #919191;
+  margin-bottom: 15px;
+}
+
+.lobicard-parent-sortable {
+  min-height: 20px;
+}
 /*# sourceMappingURL=styledark.css.map */

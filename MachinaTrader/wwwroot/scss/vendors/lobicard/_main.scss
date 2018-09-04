@@ -10,17 +10,20 @@ body.lobicard-minimized {
     position: relative;
     margin-bottom: $lobicard-card-margin-bottom;
     > .card-header {
-        padding: 5px;
+        padding: .75rem 1.25rem;
         position: relative;
         @include border-top-radius(0px);
         > .card-title {
+			> i {
+				margin-right: .5rem;
+			}		
             float: left;
             max-width: calc(100% - #{$lobicard-card-control-width});
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             font-size: $lobicard-card-title-font-size;
-            line-height: $lobicard-card-title-line-height;
+			margin-bottom: 0;
             padding-left: $lobicard-card-title-padding-horizontal;
             h1,
             h2,
@@ -38,7 +41,7 @@ body.lobicard-minimized {
                 padding: 0 5px;
                 width: 100%;
                 background-color: rgba(0, 0, 0, 0.2);
-                border: 1px solid $brand-primary;
+                border: 1px solid $primary;
                 outline: 0;
                 &:focus {
                     background-color: rgba(0, 0, 0, 0.15);

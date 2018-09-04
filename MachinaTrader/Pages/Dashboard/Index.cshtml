@@ -1,0 +1,49 @@
+@page
+@using System.IO
+@using Globals
+@model IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+
+<script src="/js/lobicard/lobicard.js"></script>
+
+
+<div id="lobicard">
+    <div class="container">
+        <div id="lobicard-examples">
+            <div id="lobicard-multiple">
+                <div class="row">
+                    @foreach (var widget in Directory.GetFiles(Global.AppPath + "/wwwroot/views/widgets/", "*.html", SearchOption.TopDirectoryOnly))
+                    {
+                        @Html.Raw(System.IO.File.ReadAllText(widget))
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(function () {
+        $('.lobicard')
+            .lobiCard();
+        $('#lobicard-multiple')
+            .find('.card')
+            .lobiCard({
+                sortable: true,
+                reload: false,
+
+                editTitle: false,
+                beforeTitleChange: function (lobiCard, title) {
+                    console.log("beforeTitleChange", arguments);
+                    if (!title) {
+                        return false;
+                    }
+                    return false;
+                }
+            });
+    });
+</script>

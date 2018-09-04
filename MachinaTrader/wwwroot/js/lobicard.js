@@ -148,7 +148,7 @@ $(function () {
 
         this.$options = me._processInput(options);
         me.$heading = this.$el.find('>.card-header');
-        me.$body = this.$el.find('>.card-block');
+        me.$body = this.$el.find('>.card-body');
         me._init();
         me.$el.css('display', 'none');
         me._applyState(me.$options.state, me.$options.stateParams);
@@ -298,7 +298,7 @@ $(function () {
                 width: cardWidth,
                 height: cardHeight
             });
-            //we give .card-block to width and height in order .card-block to start scroling
+            //we give .card-body to width and height in order .card-body to start scroling
             var bHeight = me._calculateBodyHeight(cardHeight);
             var bWidth = me._calculateBodyWidth(cardWidth);
             me.$body.css({
@@ -1001,7 +1001,7 @@ $(function () {
         },
 
         /**
-         * Load data into .card-block.
+         * Load data into .card-body.
          * params object is in format
          * {
          *      url: '', //Optional: load url
@@ -1196,12 +1196,12 @@ $(function () {
             if (me.$options.reload !== false) {
                 menu.append(me._generateReload());
             }
-            if (me.$options.minimize !== false) {
-                menu.append(me._generateMinimize());
-            }
             if (me.$options.expand !== false) {
                 menu.append(me._generateExpand());
             }
+            if (me.$options.minimize !== false) {
+                menu.append(me._generateMinimize());
+            }			
             if (me.$options.close !== false) {
                 menu.append(me._generateClose());
             }
@@ -1830,7 +1830,7 @@ $(function () {
         bodyHeight: 'auto',
         //This will enable tooltips on card controls
         tooltips: true,
-        toggleIcon: 'fa fa-cog',
+        toggleIcon: 'fal fa-cog',
         expandAnimation: 100,
         collapseAnimation: 100,
         state: 'pinned', // Initial state of the card. Available options: pinned, unpinned, collapsed, minimized, fullscreen
@@ -1840,30 +1840,30 @@ $(function () {
         // and apply them when you reload the browser
         constrain: 'document', // 'parent', 'document', 'window'
         unpin: {
-            icon: 'fa fa-arrows',
+            icon: 'fal fa-arrows',
             tooltip: 'Unpin' //tooltip text, If you want to disable tooltip, set it to false
         },
         reload: {
-            icon: 'fa fa-refresh',
+            icon: 'fal fa-sync',
             tooltip: 'Reload' //tooltip text, If you want to disable tooltip, set it to false
         },
         minimize: {
-            icon: 'fa fa-chevron-up', //icon is shown when card is not minimized
-            icon2: 'fa fa-chevron-down', //icon2 is shown when card is minimized
+            icon: 'fal fa-chevron-up', //icon is shown when card is not minimized
+            icon2: 'fal fa-chevron-down', //icon2 is shown when card is minimized
             tooltip: 'Minimize' //tooltip text, If you want to disable tooltip, set it to false
         },
         expand: {
-            icon: 'fa fa-expand', //icon is shown when card is not on full screen
-            icon2: 'fa fa-compress', //icon2 is shown when pane is on full screen state
+            icon: 'fal fa-expand', //icon is shown when card is not on full screen
+            icon2: 'fal fa-compress', //icon2 is shown when pane is on full screen state
             tooltip: 'Fullscreen' //tooltip text, If you want to disable tooltip, set it to false
         },
         close: {
-            icon: 'fa fa-times-circle',
+            icon: 'fal fa-times-circle',
             tooltip: 'Close' //tooltip text, If you want to disable tooltip, set it to false
         },
         editTitle: {
-            icon: 'fa fa-edit',
-            icon2: 'fa fa-save',
+            icon: 'fal fa-edit',
+            icon2: 'fal fa-save',
             tooltip: 'Edit title'
         },
 
