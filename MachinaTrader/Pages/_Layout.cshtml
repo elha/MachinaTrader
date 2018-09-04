@@ -31,7 +31,7 @@
         }
         else
         {
-            <link href="/css/style.min.css" rel="stylesheet" asp-append-version="true">
+            <link href="/css/@(Global.Configuration.SystemOptions.Theme)-@(Global.Configuration.SystemOptions.ThemeHighlightColor).css" rel="stylesheet" asp-append-version="true">
         }
     }
     <link href="/css/machinacore-font/style.css" rel="stylesheet" asp-append-version="true">
