@@ -552,7 +552,11 @@ namespace MachinaTrader.TradeManagers
             }
 
             // Secondly we check if currently selling trades can be marked as sold if they're filled.
-            await UpdateOpenSellOrders();
+            foreach (var trade in activeTrades.Where(x => x.IsSelling))
+            {
+                //Global.Logger.Information($"Checking Opened SELL Order {this.TradeToString(trade)}");
+                new Thread(async () => await UpdateOpenSellOrders(trade)).Start();
+            }
 
             // Third, our current trades need to be checked if one of these has hit its sell targets...
             if (!Global.Configuration.TradeOptions.OnlySellOnStrategySignals)
@@ -615,7 +619,7 @@ namespace MachinaTrader.TradeManagers
         /// Updates the sell orders by checking with the exchange what status they are currently.
         /// </summary>
         /// <returns></returns>
-        private async Task UpdateOpenSellOrders()
+        public async Task UpdateOpenSellOrders(Trade trade)
         {
             //Global.Logger.Information($"Starting UpdateOpenSellOrders");
             //var watch1 = System.Diagnostics.Stopwatch.StartNew();
@@ -623,86 +627,108 @@ namespace MachinaTrader.TradeManagers
             // There are trades that have an open order ID set & sell order id set
             // that means its a sell trade that is waiting to get sold. See if we can update that first.
 
-            var activeTrades = await Global.DataStore.GetActiveTradesAsync();
-            foreach (var trade in activeTrades.Where(x => x.IsSelling))
+
+            //Global.Logger.Information($"Checking Opened SELL Order {this.TradeToString(trade)}");
+
+            if (Global.Configuration.TradeOptions.PaperTrade)
             {
-                //Global.Logger.Information($"Checking Opened SELL Order {this.TradeToString(trade)}");
+                List<Candle> candles;
 
-                if (Global.Configuration.TradeOptions.PaperTrade)
+                if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
                 {
-                    List<Candle> candles;
-
-                    if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
-                    {
-                        //in simulation the date comes from external
-                        var simulationCurrentDate = Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
+                    //in simulation the date comes from external
+                    var simulationCurrentDate = Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
 
 #warning //TODO: improve to other timeframe
-                        DateTime startDate = simulationCurrentDate.AddMinutes(-(30 * 40));
-                        DateTime endDate = simulationCurrentDate;
+                    DateTime startDate = simulationCurrentDate.AddMinutes(-(30 * 40));
+                    DateTime endDate = simulationCurrentDate;
 
-                        candles = await Global.ExchangeApi.GetTickerHistory(trade.Market, Period.Minute, startDate, endDate);
-                    }
-                    else
-                    {
-                        candles = await Global.ExchangeApi.GetTickerHistory(trade.Market, Period.Minute, 1);
-                    }
+                    candles = await Global.ExchangeApi.GetTickerHistory(trade.Market, Period.Minute, startDate, endDate);
+                }
+                else
+                {
+                    candles = await Global.ExchangeApi.GetTickerHistory(trade.Market, Period.Minute, 5);
+                }
 
-                    var candle = candles.LastOrDefault();
+                var candle = candles.LastOrDefault();
 
-                    //in simulation mode we always fill..
-                    if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+                //in simulation mode we always fill..
+                if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+                {
+                    trade.OpenOrderId = null;
+                    trade.IsOpen = false;
+                    trade.IsSelling = false;
+                    trade.CloseDate = candle.Timestamp;
+                    trade.CloseProfit = (trade.CloseRate * trade.Quantity) - trade.StakeAmount;
+                    trade.CloseProfitPercentage = ((trade.CloseRate * trade.Quantity) - trade.StakeAmount) / trade.StakeAmount * 100;
+                }
+                else
+                {
+                    if (candle != null && (trade.CloseRate <= candle.Low || (trade.CloseRate >= candle.Low && trade.CloseRate <= candle.High) || Global.GlobalOrderBehavior == OrderBehavior.AlwaysFill))
                     {
                         trade.OpenOrderId = null;
                         trade.IsOpen = false;
                         trade.IsSelling = false;
-                        trade.CloseDate = candle.Timestamp;
+                        trade.CloseDate = DateTime.UtcNow;
                         trade.CloseProfit = (trade.CloseRate * trade.Quantity) - trade.StakeAmount;
                         trade.CloseProfitPercentage = ((trade.CloseRate * trade.Quantity) - trade.StakeAmount) / trade.StakeAmount * 100;
                     }
-                    else
-                    {
-                        if (candle != null && (trade.CloseRate <= candle.Low || (trade.CloseRate >= candle.Low && trade.CloseRate <= candle.High) || Global.GlobalOrderBehavior == OrderBehavior.AlwaysFill))
-                        {
-                            trade.OpenOrderId = null;
-                            trade.IsOpen = false;
-                            trade.IsSelling = false;
-                            trade.CloseDate = DateTime.UtcNow;
-                            trade.CloseProfit = (trade.CloseRate * trade.Quantity) - trade.StakeAmount;
-                            trade.CloseProfitPercentage = ((trade.CloseRate * trade.Quantity) - trade.StakeAmount) / trade.StakeAmount * 100;
-                        }
-                    }
+                }
+
+                await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction()
+                {
+                    Amount = (trade.CloseRate.Value * trade.Quantity),
+                    Date = DateTime.UtcNow
+                });
+
+                await SendNotification($"Sell Order is filled: {this.TradeToString(trade)}");
+            }
+            else
+            {
+                // Livetrading
+
+                if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+                {
+                    //in simulation the date comes from external
+                    var simulationCurrentDate = Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
+
+#warning //TODO: improve to other timeframe
+                    DateTime startDate = simulationCurrentDate.AddMinutes(-(30 * 40));
+                    DateTime endDate = simulationCurrentDate;
+
+                    var candles = await Global.ExchangeApi.GetTickerHistory(trade.Market, Period.Minute, startDate, endDate);
+                    var candle = candles.LastOrDefault();
+
+                    trade.OpenOrderId = null;
+                    trade.IsOpen = false;
+                    trade.IsSelling = false;
+                    trade.CloseDate = candle.Timestamp;
+                    trade.CloseProfit = (trade.CloseRate * trade.Quantity) - trade.StakeAmount;
+                    trade.CloseProfitPercentage = ((trade.CloseRate * trade.Quantity) - trade.StakeAmount) / trade.StakeAmount * 100;
 
                     await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction()
                     {
                         Amount = (trade.CloseRate.Value * trade.Quantity),
-                        Date = DateTime.UtcNow
+                        Date = trade.CloseDate.Value
                     });
 
                     await SendNotification($"Sell Order is filled: {this.TradeToString(trade)}");
                 }
                 else
                 {
-                    // Livetrading
+                    var exchangeOrder = await Global.ExchangeApi.GetOrder(trade.SellOrderId, trade.Market);
 
-                    if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+                    // if this order is filled, we can update our database.
+                    if (exchangeOrder?.Status == OrderStatus.Filled)
                     {
-                        //in simulation the date comes from external
-                        var simulationCurrentDate = Global.Configuration.ExchangeOptions.FirstOrDefault().SimulationCurrentDate;
-
-#warning //TODO: improve to other timeframe
-                        DateTime startDate = simulationCurrentDate.AddMinutes(-(30 * 40));
-                        DateTime endDate = simulationCurrentDate;
-
-                        var candles = await Global.ExchangeApi.GetTickerHistory(trade.Market, Period.Minute, startDate, endDate);
-                        var candle = candles.LastOrDefault();
-
                         trade.OpenOrderId = null;
                         trade.IsOpen = false;
                         trade.IsSelling = false;
-                        trade.CloseDate = candle.Timestamp;
-                        trade.CloseProfit = (trade.CloseRate * trade.Quantity) - trade.StakeAmount;
-                        trade.CloseProfitPercentage = ((trade.CloseRate * trade.Quantity) - trade.StakeAmount) / trade.StakeAmount * 100;
+                        trade.CloseDate = exchangeOrder.OrderDate;
+                        trade.CloseRate = exchangeOrder.Price;
+                        trade.Quantity = exchangeOrder.ExecutedQuantity;
+                        trade.CloseProfit = (exchangeOrder.Price * exchangeOrder.ExecutedQuantity) - trade.StakeAmount;
+                        trade.CloseProfitPercentage = ((exchangeOrder.Price * exchangeOrder.ExecutedQuantity) - trade.StakeAmount) / trade.StakeAmount * 100;
 
                         await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction()
                         {
@@ -712,38 +738,14 @@ namespace MachinaTrader.TradeManagers
 
                         await SendNotification($"Sell Order is filled: {this.TradeToString(trade)}");
                     }
-                    else
-                    {
-                        var exchangeOrder = await Global.ExchangeApi.GetOrder(trade.SellOrderId, trade.Market);
-
-                        // if this order is filled, we can update our database.
-                        if (exchangeOrder?.Status == OrderStatus.Filled)
-                        {
-                            trade.OpenOrderId = null;
-                            trade.IsOpen = false;
-                            trade.IsSelling = false;
-                            trade.CloseDate = exchangeOrder.OrderDate;
-                            trade.CloseRate = exchangeOrder.Price;
-                            trade.Quantity = exchangeOrder.ExecutedQuantity;
-                            trade.CloseProfit = (exchangeOrder.Price * exchangeOrder.ExecutedQuantity) - trade.StakeAmount;
-                            trade.CloseProfitPercentage = ((exchangeOrder.Price * exchangeOrder.ExecutedQuantity) - trade.StakeAmount) / trade.StakeAmount * 100;
-
-                            await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction()
-                            {
-                                Amount = (trade.CloseRate.Value * trade.Quantity),
-                                Date = trade.CloseDate.Value
-                            });
-
-                            await SendNotification($"Sell Order is filled: {this.TradeToString(trade)}");
-                        }
-                    }
                 }
-
-                await Global.DataStore.SaveTradeAsync(trade);
-
-                //watch1.Stop();
-                //Global.Logger.Warning($"Ended UpdateOpenSellOrders in #{watch1.Elapsed.TotalSeconds} seconds");
             }
+
+            await Global.DataStore.SaveTradeAsync(trade);
+
+            //watch1.Stop();
+            //Global.Logger.Warning($"Ended UpdateOpenSellOrders in #{watch1.Elapsed.TotalSeconds} seconds");
+
         }
 
         /// <summary>
