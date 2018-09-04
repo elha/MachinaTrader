@@ -493,17 +493,14 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="Cancel unbought orders each cycle">CancelUnboughtOrdersEachCycle <i class="fal fa-question-circle"></i></span>
+                            <span class="qTip" title="Cancel unbought orders each cycle">Max open time to buy <i class="fal fa-question-circle"></i></span>
                             <div style="display: none;">
-                                Cancel unbought orders each cycle. Depends on time of your cron (buy/sell timer)
-                                <br /><br /><strong>Default:</strong> <i>true</i>
+                                Cancel unbought orders after this time cycle (in seconds)
+                                <br /><br /><strong>Default:</strong> <i>600</i>
                             </div>
                         </td>
                         <td>
-                            <label class="switch switch-label switch-primary">
-                                <input type="checkbox" class="switch-input bool" name="TradeOptions.CancelUnboughtOrdersEachCycle" :checked="apiMainConfigData['tradeOptions']['cancelUnboughtOrdersEachCycle']" />
-                                <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
-                            </label>
+                            <input type="text" class="form-control float" name="TradeOptions.MaxOpenTimeBuy" v-bind:value="apiMainConfigData['tradeOptions']['maxOpenTimeBuy']" />
                         </td>
                     </tr>
                     <tr>

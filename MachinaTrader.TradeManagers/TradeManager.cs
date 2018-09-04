@@ -47,47 +47,44 @@ namespace MachinaTrader.TradeManagers
         /// Cancels any orders that have been buying for an entire cycle.
         /// </summary>
         /// <returns></returns>
-        public async Task CancelUnboughtOrders()
+        public async Task CancelUnboughtOrders(Trade trade)
         {
             //Global.Logger.Information($"Starting CancelUnboughtOrders");
-
-            // Only trigger if there are orders still buying.
-            var activeTrades = await Global.DataStore.GetActiveTradesAsync();
-
-            // Loop our current trades that are still looking to buy if there are any.
-            foreach (var trade in activeTrades.Where(x => x.IsBuying))
+            if ((trade.OpenDate.AddSeconds(Global.Configuration.TradeOptions.MaxOpenTimeBuy) > DateTime.UtcNow))
             {
-                // Only in livetrading
-                if (!Global.Configuration.TradeOptions.PaperTrade)
-                {
-                    // Cancel our open buy order on the exchange.
-                    var exchangeOrder = await Global.ExchangeApi.GetOrder(trade.BuyOrderId, trade.Market);
-
-                    // If this order is PartiallyFilled, don't cancel
-                    if (exchangeOrder?.Status == OrderStatus.PartiallyFilled)
-                        continue;  // not yet completed so wait
-
-                    await Global.ExchangeApi.CancelOrder(trade.BuyOrderId, trade.Market);
-                }
-
-                trade.OpenOrderId = null;
-                trade.BuyOrderId = null;
-                trade.SellOrderId = null;
-                trade.IsOpen = false;
-                trade.IsBuying = false;
-                trade.SellType = SellType.Cancelled;
-                trade.CloseDate = DateTime.UtcNow;
-
-                await Global.DataStore.SaveTradeAsync(trade);
-
-                await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction()
-                {
-                    Amount = (trade.OpenRate * trade.Quantity),
-                    Date = DateTime.UtcNow
-                });
-
-                await SendNotification($"Buy Order cancelled because it wasn't filled in time: {this.TradeToString(trade)}.");
+                await SendNotification($"Buy Order wasn't filled: {this.TradeToString(trade)} waiting until {trade.OpenDate.AddSeconds(Global.Configuration.TradeOptions.MaxOpenTimeBuy)}");
+                return;
             }
+            // Only in livetrading
+            if (!Global.Configuration.TradeOptions.PaperTrade)
+            {
+                // Cancel our open buy order on the exchange.
+                var exchangeOrder = await Global.ExchangeApi.GetOrder(trade.BuyOrderId, trade.Market);
+
+                // If this order is PartiallyFilled, don't cancel
+                if (exchangeOrder?.Status == OrderStatus.PartiallyFilled)
+                    return;  // not yet completed so wait
+
+                await Global.ExchangeApi.CancelOrder(trade.BuyOrderId, trade.Market);
+            }
+
+            trade.OpenOrderId = null;
+            trade.BuyOrderId = null;
+            trade.SellOrderId = null;
+            trade.IsOpen = false;
+            trade.IsBuying = false;
+            trade.SellType = SellType.Cancelled;
+            trade.CloseDate = DateTime.UtcNow;
+
+            await Global.DataStore.SaveTradeAsync(trade);
+
+            await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction()
+            {
+                Amount = (trade.OpenRate * trade.Quantity),
+                Date = DateTime.UtcNow
+            });
+
+            await SendNotification($"Buy Order cancelled because it wasn't filled in time: {this.TradeToString(trade)}.");
         }
 
         /// <summary>
@@ -541,7 +538,18 @@ namespace MachinaTrader.TradeManagers
         public async Task UpdateExistingTrades()
         {
             // First we update our open buy orders by checking if they're filled.
-            await UpdateOpenBuyOrders();
+            var activeTrades = Global.DataStore.GetActiveTradesAsync().Result;
+            foreach (var trade in activeTrades.Where(x => x.IsBuying))
+            {
+                Global.Logger.Information($"Checking Opened BUY Order {this.TradeToString(trade)}");
+                new Thread(async () => await UpdateOpenBuyOrder(trade)).Start();
+
+                //Cancel unbought orders
+                if (Global.GlobalOrderBehavior == OrderBehavior.CheckMarket)
+                {
+                    new Thread(async () => await CancelUnboughtOrders(trade)).Start();
+                }
+            }
 
             // Secondly we check if currently selling trades can be marked as sold if they're filled.
             await UpdateOpenSellOrders();
@@ -551,78 +559,56 @@ namespace MachinaTrader.TradeManagers
             {
                 await CheckForSellConditions();
             }
-
-            // This means an order to buy has been open for an entire buy cycle.
-            if (Global.Configuration.TradeOptions.CancelUnboughtOrdersEachCycle && Global.GlobalOrderBehavior == OrderBehavior.CheckMarket)
-                await new TradeManager().CancelUnboughtOrders();
         }
 
         /// <summary>
         /// Updates the buy orders by checking with the exchange what status they are currently.
         /// </summary>
         /// <returns></returns>
-        private async Task UpdateOpenBuyOrders()
+        public async Task UpdateOpenBuyOrder(Trade trade)
         {
-            //Global.Logger.Information($"Starting UpdateOpenBuyOrders");
-            //var watch1 = System.Diagnostics.Stopwatch.StartNew();
-
-            // This means its a buy trade that is waiting to get bought. See if we can update that first.
-            var activeTrades = await Global.DataStore.GetActiveTradesAsync();
-
-            foreach (var trade in activeTrades.Where(x => x.IsBuying))
+            if (Global.Configuration.TradeOptions.PaperTrade)
             {
-                //Global.Logger.Information($"Checking Opened BUY Order {this.TradeToString(trade)}");
-
-                if (Global.Configuration.TradeOptions.PaperTrade)
+                //in simulation mode we always fill..
+                if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
                 {
-                    //in simulation mode we always fill..
-                    if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
-                    {
-                        trade.OpenOrderId = null;
-                        trade.IsBuying = false;
-                    }
-                    else
-                    {
-                        // Papertrading
-                        var candles = await Global.ExchangeApi.GetTickerHistory(trade.Market, Period.Minute, 1);
-                        var candle = candles.LastOrDefault();
-
-                        if (candle != null && (trade.OpenRate >= candle.High ||
-                                               (trade.OpenRate >= candle.Low && trade.OpenRate <= candle.High) ||
-                                               Global.GlobalOrderBehavior == OrderBehavior.AlwaysFill
-                            ))
-                        {
-                            trade.OpenOrderId = null;
-                            trade.IsBuying = false;
-                        }
-                    }
-
-                    await SendNotification($"BUY Order is filled: {this.TradeToString(trade)}");
+                    trade.OpenOrderId = null;
+                    trade.IsBuying = false;
                 }
                 else
                 {
-                    // Livetrading
-                    var exchangeOrder = await Global.ExchangeApi.GetOrder(trade.BuyOrderId, trade.Market);
-
-                    // if this order is filled, we can update our database.
-                    if (exchangeOrder?.Status == OrderStatus.Filled)
+                    // Papertrading
+                    var candles = await Global.ExchangeApi.GetTickerHistory(trade.Market, Period.Minute, 5);
+                    var candle = candles.LastOrDefault();
+                    if (candle != null && (trade.OpenRate >= candle.High || (trade.OpenRate >= candle.Low && trade.OpenRate <= candle.High) || Global.GlobalOrderBehavior == OrderBehavior.AlwaysFill))
                     {
                         trade.OpenOrderId = null;
                         trade.IsBuying = false;
-                        trade.StakeAmount = exchangeOrder.OriginalQuantity * exchangeOrder.Price;
-                        trade.Quantity = exchangeOrder.OriginalQuantity;
-                        trade.OpenRate = exchangeOrder.Price;
-                        trade.OpenDate = Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation ? trade.OpenDate : exchangeOrder.OrderDate;
-
-                        await SendNotification($"BUY Order is filled: {this.TradeToString(trade)}");
                     }
                 }
 
-                await Global.DataStore.SaveTradeAsync(trade);
-
-                //watch1.Stop();
-                //Global.Logger.Warning($"Ended UpdateOpenBuyOrders in #{watch1.Elapsed.TotalSeconds} seconds");
+                await SendNotification($"BUY Order is filled: {this.TradeToString(trade)}");
             }
+            else
+            {
+                // Livetrading
+                var exchangeOrder = await Global.ExchangeApi.GetOrder(trade.BuyOrderId, trade.Market);
+
+                // if this order is filled, we can update our database.
+                if (exchangeOrder?.Status == OrderStatus.Filled)
+                {
+                    trade.OpenOrderId = null;
+                    trade.IsBuying = false;
+                    trade.StakeAmount = exchangeOrder.OriginalQuantity * exchangeOrder.Price;
+                    trade.Quantity = exchangeOrder.OriginalQuantity;
+                    trade.OpenRate = exchangeOrder.Price;
+                    trade.OpenDate = Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation ? trade.OpenDate : exchangeOrder.OrderDate;
+
+                    await SendNotification($"BUY Order is filled: {this.TradeToString(trade)}");
+                }
+            }
+
+            await Global.DataStore.SaveTradeAsync(trade);
         }
 
         /// <summary>

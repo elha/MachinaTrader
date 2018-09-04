@@ -25,6 +25,7 @@ namespace MachinaTrader.Globals.Structure.Models
         // Trader settings
         public decimal StartAmount { get; set; } = 1m;
         public int MaxNumberOfConcurrentTrades { get; set; } = 10;
+        public int MaxOpenTimeBuy { get; set; } = 600;
         public decimal AmountToInvestPerTrader { get; set; } = 0.005m;
         public ProfitType ProfitStrategy { get; set; } = ProfitType.Reinvest;
         public decimal AmountToReinvestPercentage { get; set; } = 0.25m; //25% of wallet
@@ -55,10 +56,6 @@ namespace MachinaTrader.Globals.Structure.Models
         public bool EnableTrailingStop { get; set; } = true;
         public decimal TrailingStopStartingPercentage { get; set; } = 0.05m;
         public decimal TrailingStopPercentage { get; set; } = 0.05m;
-
-        // If set to true, orders that have not been bought for an entire cycle of the BuyTimer
-        // are cancelled. This frees up a trader to look for other opportunities.
-        public bool CancelUnboughtOrdersEachCycle { get; set; } = true;
 
         // When enabled a first stop price is set to the current signal candle's low.
         public bool PlaceFirstStopAtSignalCandleLow { get; set; } = false;
