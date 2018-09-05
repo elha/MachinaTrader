@@ -31,7 +31,7 @@
         }
         else
         {
-            <link href="/css/style.min.css" rel="stylesheet" asp-append-version="true">
+            <link href="/css/@(Global.Configuration.SystemOptions.Theme)-@(Global.Configuration.SystemOptions.ThemeHighlightColor).css" rel="stylesheet" asp-append-version="true">
         }
     }
     <link href="/css/machinacore-font/style.css" rel="stylesheet" asp-append-version="true">
@@ -66,14 +66,14 @@
                 <i class="far fa-bars"></i>
             </button>
             <ul class="nav navbar-nav d-md-down-none">
-                <li class="nav-item px-3">
-                    <a class="nav-link" href="/">Dashboard</a>
+                <li class="nav-item">
+                    <a class="nav-link" href="/"><i class="fal fa-tachometer-alt"></i>&nbsp;&nbsp;Dashboard</a>
                 </li>
-                <li class="nav-item px-3">
-                    <a class="nav-link" href="#">Users</a>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#/Dashboard/"><i class="fal fa-bug"></i>&nbsp;&nbsp;Widgets</a>
                 </li>
-                <li class="nav-item px-3">
-                    <a class="nav-link" href="#">Settings</a>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#/views/Configuration.html"><i class="fal fa-cog"></i>&nbsp;&nbsp;Settings</a>
                 </li>
             </ul>
             <ul class="nav navbar-nav ml-auto">

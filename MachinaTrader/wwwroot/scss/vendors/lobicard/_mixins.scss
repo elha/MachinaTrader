@@ -1,0 +1,55 @@
+@mixin lobicard-dropdown-screen-lg() {
+    .dropdown {
+        position: absolute;
+        top: 0;
+        right: 0;	
+        .dropdown-menu {
+            position: static;
+            display: inline-block;
+            border: none;
+            padding: 0;
+            margin: 0;
+            min-width: 0;
+            width: auto;
+            @include box-shadow(none);
+            background: transparent;
+            > li {
+                display: inline-block;
+                > a {
+					display: block;
+					float: left;
+					width: 50px;
+					margin: 0;
+					border: 0;
+					border-left: 1px solid rgba(0,0,0,.2);
+                    cursor: pointer;
+                    color: inherit;
+                    padding: .75rem 0;
+                    outline: 0;
+                    text-align: center;
+                    font-size: $lobicard-card-control-font-size;
+                    @include transition(all $lobicard-transition-duration);
+                    .card-control-icon {
+                        top: 0;
+                        line-height: $lobicard-card-title-line-height;
+                    }
+                    .control-title {
+                        display: none;
+                    }
+                    &:hover,
+                    &:focus:hover {
+                        text-shadow: $lobicard-card-control-hover-text-shadow;
+                        background-color: $lobicard-card-control-hover-bg;
+                    }
+                    &:focus {
+                        text-shadow: none;
+                        background-color: transparent;
+                    }
+                }
+            }
+        }
+        .dropdown-toggle {
+            display: none;
+        }
+    }
+}

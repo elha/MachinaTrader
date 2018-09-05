@@ -1,0 +1,22 @@
+// If you want to override variables do it here
+@import "variables";
+
+//Set Primary Color or other overrides
+$orange:	#e08e0b;
+$primary:	$orange;
+
+// Import CoreUI default colors
+@import "node_modules/@machinacore/machinacoreui/scss/variables/colors";
+
+// Customized Bootstrap variables
+@import "node_modules/@machinacore/machinacoreui/scss/variables/bootstrap/variables";
+
+//Set main theme
+@import "node_modules/@machinacore/machinacoreui/scss/coreui";
+
+// Import Vendor Files
+@import "node_modules/bootstrap/scss/mixins";
+@import "vendors/vendors";
+
+// If you want to add something do it here
+@import "custom";
