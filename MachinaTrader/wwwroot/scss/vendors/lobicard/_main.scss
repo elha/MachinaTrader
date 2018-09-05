@@ -24,13 +24,9 @@ body.lobicard-minimized {
             text-overflow: ellipsis;
             font-size: $lobicard-card-title-font-size;
 			margin-bottom: 0;
+            /*line-height: $lobicard-card-title-line-height;*/
             padding-left: $lobicard-card-title-padding-horizontal;
-            h1,
-            h2,
-            h3,
-            h4,
-            h5,
-            h6 {
+            h1, h2, h3, h4, h5, h6 {
                 margin: 0;
                 line-height: $lobicard-card-title-line-height;
             }
@@ -64,6 +60,40 @@ body.lobicard-minimized {
                         margin-left: 15px;
                     }
                 }
+                .style-change-item {
+                position: relative;
+                .style-list {
+                    position: absolute;
+                    background: #f5f5f5;
+                    box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.3);
+                    padding: $lobicard-style-change-list-padding;
+                    display: none;
+                    width: $lobicard-style-change-item-count-in-a-row * $lobicard-style-change-item-size
+                            + ($lobicard-style-change-item-count-in-a-row * 2) * $lobicard-style-change-item-margin
+                            + $lobicard-style-change-list-padding * 2;
+                    top: 100%;
+                    right: 0;
+                    z-index: 2;
+                    .style-item{
+                        cursor: pointer;
+                        display: inline-block;
+                        width: $lobicard-style-change-item-size;
+                        height: $lobicard-style-change-item-size;
+                        margin: $lobicard-style-change-item-margin;
+                        border: 2px solid #f5f5f5;
+                        &:hover{
+                            border-color: #FFF;
+                        }
+
+                        &:active{
+                            box-shadow: inset 2px 2px 10px rgba(0, 0, 0, 0.3);
+                        }
+                    }
+                    &.opened{
+                        display: block;
+                    }
+                }
+            }
             }
             .dropdown-toggle {
                 border: none;
@@ -122,8 +152,7 @@ body.lobicard-minimized {
                     > li {
                         > a {
                             &[data-func="unpin"],
-                            &[data-func="reload"],
-                            &[data-func="expand"] {
+                            &[data-func="reload"] {
                                 display: none;
                             }
                         }
@@ -158,12 +187,7 @@ body.lobicard-minimized {
                 border-bottom: none;
                 .card-title {
                     max-width: calc(100% - #{$lobicard-card-control-width * 2});
-                    h1,
-                    h2,
-                    h3,
-                    h4,
-                    h5,
-                    h6 {
+                    h1, h2, h3, h4, h5, h6 {
                         overflow: hidden;
                         text-overflow: ellipsis;
                     }

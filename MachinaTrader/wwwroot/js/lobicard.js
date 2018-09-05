@@ -7,8 +7,8 @@
  * @returns {String}
  */
 Math.randomString = function (n) {
-    var text = '';
-    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     for (var i = 0; i < n; i++)
         text += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -24,8 +24,7 @@ Math.randomString = function (n) {
  */
 String.prototype.getCss = function () {
     var css = {};
-    var style = this.valueOf()
-        .split(';');
+    var style = this.valueOf().split(';');
     for (var i = 0; i < style.length; i++) {
         style[i] = $.trim(style[i]);
         if (style[i]) {
@@ -36,24 +35,23 @@ String.prototype.getCss = function () {
     return css;
 };
 String.prototype.trim = function () {
-    return this.replace(/^\s+|\s+$/g, '');
+    return this.replace(/^\s+|\s+$/g, "");
 };
 
 String.prototype.toCamel = function () {
     return this.replace(/(\-[a-z])/g, function ($1) {
-        return $1.toUpperCase()
-            .replace('-', '');
+        return $1.toUpperCase().replace('-', '');
     });
 };
 
 String.prototype.toDash = function () {
     return this.replace(/([A-Z])/g, function ($1) {
-        return '-' + $1.toLowerCase();
+        return "-" + $1.toLowerCase();
     });
 };
 String.prototype.toUnderscore = function () {
     return this.replace(/([A-Z])/g, function ($1) {
-        return '_' + $1.toLowerCase();
+        return "_" + $1.toLowerCase();
     });
 };
 
@@ -62,7 +60,7 @@ String.prototype.toUnderscore = function () {
  *
  * @param {number} num1
  * @param {number} num2
- * @param {boolean} including 'include these numbers in comparison or not' default false
+ * @param {boolean} including "include these numbers in comparison or not" default false
  * @returns boolean
  */
 Number.prototype.isBetween = function (num1, num2, including) {
@@ -86,31 +84,37 @@ Number.prototype.isBetween = function (num1, num2, including) {
  * @returns {undefined}
  */
 $.fn.insertAt = function (i, selector) {
-    var object = selector;
+    var $object = selector;
     if (typeof selector === 'string') {
-        object = $(selector);
+        $object = $(selector);
     }
 
-    i = Math.min(object.children()
-        .length, i);
+    i = Math.min($object.children().length, i);
     if (i == 0) {
-        object.prepend(this);
+        $object.prepend(this);
         return this;
     }
     var oldIndex = this.data('index');
 
+    if (!i || isNaN(i)) {
+        i = $object.children().length - 1;
+    }
     this.attr('data-index', i);
-    object.find('>*:nth-child(' + i + ')')
-        .after(this);
-    object.children()
-        .each(function (index, el) {
-            var $el = $(el);
-            if (oldIndex < i && index > oldIndex && index <= i) {
-                $el.attr('data-index', parseInt($el.data('data-index'), 10) - 1);
-            } else if (oldIndex >= i && index > i && index <= oldIndex) {
-                $el.attr('data-index', parseInt($el.attr('data-index'), 10) + 1);
-            }
-        });
+
+    var $el = $object.children().eq(i - 1);
+    if ($el.length) {
+        $el.after(this);
+    } else {
+        $object.append(this);
+    }
+    $object.children().each(function (index, el) {
+        var $el = $(el);
+        if (oldIndex < i && index > oldIndex && index <= i) {
+            $el.attr('data-index', parseInt($el.data('data-index'), 10) - 1);
+        } else if (oldIndex >= i && index > i && index <= oldIndex) {
+            $el.attr('data-index', parseInt($el.attr('data-index'), 10) + 1);
+        }
+    });
     return this;
 };
 
@@ -131,11 +135,43 @@ $.fn.enableSelection = function () {
 $(function () {
     var STORAGE_PREFIX = 'lobicard_';
 
+    var StorageLocal = function () {
+        this.saveChildPositions = function (parentInnerId, positions) {
+            if (positions !== undefined) {
+                localStorage.setItem(STORAGE_PREFIX + 'parent_' + parentInnerId, JSON.stringify(positions));
+            }
+        };
+
+        this.saveCardParams = function (innerId, storage) {
+            localStorage.setItem(STORAGE_PREFIX + innerId, JSON.stringify(storage));
+        };
+
+        this.getAllCardPositions = function () {
+            var parents = [];
+            for (var i in localStorage) {
+                if (i.indexOf(STORAGE_PREFIX + 'parent_') === 0) {
+                    var innerParentId = i.replace(STORAGE_PREFIX + 'parent_', '');
+                    var $parent = $('.lobicard-parent-sortable[data-inner-id=' + innerParentId + ']');
+                    if ($parent.length) {
+                        parents[innerParentId] = JSON.parse(localStorage[i]);
+                    }
+                }
+            }
+            return parents;
+        };
+
+        this.getCardStorage = function (innerId) {
+            var item = localStorage.getItem(STORAGE_PREFIX + innerId);
+            return JSON.parse(item || null) || {};
+        };
+
+    };
+
     var LobiCard = function ($el, options) {
         var me = this;
 
         this.hasRandomId = false;
-        this.storage = null;
+        this.storage = {};
 
 
         this.$el = $el;
@@ -153,7 +189,8 @@ $(function () {
         me.$el.css('display', 'none');
         me._applyState(me.$options.state, me.$options.stateParams);
         me.$el.css('display', 'block');
-        me._applyIndex(me.$options.initialIndex);
+        // me._applyIndex(me.$options.initialIndex);
+        me._triggerEvent("init");
     };
 
     LobiCard.prototype = {
@@ -164,12 +201,12 @@ $(function () {
             }
 
 
+            this.storageObject = options.storageObject || new StorageLocal();
             if (!me.hasRandomId) {
-                me.storage = localStorage.getItem(STORAGE_PREFIX + me.innerId);
-                me.storage = JSON.parse(me.storage) || {};
+                me.storage = this.storageObject.getCardStorage(me.innerId);
             }
             var opts = me._getOptionsFromAttributes();
-            // window.console.log(opts);
+//            window.console.log(opts);
             options = $.extend({}, $.fn.lobiCard.DEFAULTS, me.storage, options, opts);
             var objects = ['unpin', 'reload', 'expand', 'minimize', 'close', 'editTitle'];
             for (var i = 0; i < objects.length; i++) {
@@ -185,7 +222,7 @@ $(function () {
             me.$el.addClass('lobicard');
 
             me.$heading.append(me._generateControls());
-            //------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
             var parent = me.$el.parent();
             me._appendInnerIdToParent(parent, me.innerId);
             me._enableSorting();
@@ -195,19 +232,24 @@ $(function () {
             if (me.$options.autoload) {
                 me.load();
             }
-            var maxWidth = 'calc(100% - ' + me.$heading.find('.dropdown-menu')
-                .children()
-                .length * me.$heading.find('.dropdown-menu li')
-                .first()
-                .outerWidth() + 'px)';
-            me.$heading.find('.card-title')
-                .css('max-width', maxWidth);
+            var maxWidth = 'calc(100% - ' + me.$heading.find('.dropdown-menu').children().length * me.$heading.find('.dropdown-menu li').first().outerWidth() + "px)";
+            me.$heading.find('.card-title').css('max-width', maxWidth);
 
-            me._triggerEvent('init');
+            if (me.getParam('cardTitle')) {
+                me.$heading.find('.card-title').html(me.getParam('cardTitle'));
+            }
+
+            var style = me.getParam('cardStyle');
+            if (style) {
+                me.applyStyle(style.bg, style.text);
+            }
+
+            // me.savecardPositions();
+            // me._triggerEvent("init");
         },
         /**
          * Checks if card is initialized. Card is initialized if it has
-         * lobicard class and data-inner-id='' attribute
+         * lobicard class and data-inner-id="" attribute
          *
          * @returns {boolean}
          */
@@ -237,21 +279,36 @@ $(function () {
             //disable resize functionality
             me.disableResize();
             me.disableDrag();
-            me._enableSorting();
+
             //remove on card click event (which brings the card into front)
             me._offCardClick();
             //remove card-unpin class
             me.$el.removeClass('card-unpin')
-                //save current position, z-index and size to use it for later unpin
+            //save current position, z-index and size to use it for later unpin
                 .attr('old-style', me.$el.attr('style'))
-                .removeAttr('style')
+                // .removeAttr('style')
                 .css('position', 'relative');
+
+            var toRemoveProperties = [
+                'position',
+                'z-index',
+                'left',
+                'top',
+                'width',
+                'height'
+            ];
+
+            for (var i in toRemoveProperties) {
+                me.$el.css(toRemoveProperties[i], '');
+            }
+
             me.$body.css({
                 width: '',
                 height: ''
             });
             me._setBodyHeight();
             me._insertInParent();
+            me._enableSorting();
             return me;
         },
 
@@ -262,7 +319,7 @@ $(function () {
          */
         unpin: function () {
             var me = this;
-            if (me.$el.hasClass('card-collapsed')) {
+            if (me.$el.hasClass("card-collapsed")) {
                 return me;
             }
             me._disableSorting();
@@ -271,11 +328,8 @@ $(function () {
             } else {
                 var width = me.$el.width();
                 var height = me.$el.height();
-                var left = Math.max(0, (($(window)
-                    .width() - me.$el.outerWidth()) / 2));
-                var top = Math.max(0, ($(document)
-                    .scrollTop() + ($(window)
-                        .height() - me.$el.outerHeight()) / 2));
+                var left = Math.max(0, (($(window).width() - me.$el.outerWidth()) / 2));
+                var top = Math.max(0, ($(document).scrollTop() + ($(window).height() - me.$el.outerHeight()) / 2));
                 me.$el.css({
                     left: left,
                     top: top,
@@ -288,8 +342,7 @@ $(function () {
             me._onCardClick();
 
             me.$el.addClass('card-unpin');
-            $('body')
-                .append(me.$el);
+            $('body').append(me.$el);
 
             var cardWidth = me._getAvailableWidth(me.$el.width());
             var cardHeight = me._getAvailableHeight(me.$el.height());
@@ -348,14 +401,13 @@ $(function () {
          */
         minimize: function () {
             var me = this;
-            me._triggerEvent('beforeMinimize');
+            me._triggerEvent("beforeMinimize");
             if (me.isMinimized()) {
                 return me;
             }
             if (me.isPinned()) {
                 me.$body.slideUp();
-                me.$el.find('.card-footer')
-                    .slideUp();
+                me.$el.find('.card-footer').slideUp();
                 me.$el.addClass('card-collapsed');
                 me._saveState('collapsed');
                 me._changeClassOfControl(me.$heading.find('[data-func="minimize"]'));
@@ -367,19 +419,16 @@ $(function () {
                 var children = footer.find('>*');
                 var left, top;
                 //get top coordinate of footer
-                top = footer.offset()
-                    .top;
+                top = footer.offset().top;
                 //if there are no other cards inside footer, this card will be first
                 //and its left coordinate will be footer's left coordinate
                 if (children.length === 0) {
-                    left = footer.offset()
-                        .left;
+                    left = footer.offset().left;
                 } else {
                     //if there exist cards inside footer, then this card's left
                     //coordinate will be last card's (in footer) right coordinate
                     var ch = $(children[children.length - 1]);
-                    left = ch.offset()
-                        .left + ch.width();
+                    left = ch.offset().left + ch.width();
                 }
                 //if card was not expanded and it was jus unpin we need to save
                 //card's style
@@ -396,9 +445,10 @@ $(function () {
                     //after minimization we remove 'card-expanded' class and we change icon
                     if (me.$el.hasClass('card-expanded')) {
                         me.$el.removeClass('card-expanded');
-                        me.$el.find('.card-header [data-func="expand"] .' + LobiCard.PRIVATE_OPTIONS.iconClass)
+                        me.$el.find('.card-header [data-func=expand] .' + LobiCard.PRIVATE_OPTIONS.iconClass)
                             .removeClass(me.$options.expand.icon2)
-                            .addClass(me.$options.expand.icon);
+                            .addClass(me.$options.expand.icon)
+                        ;
                     }
                     //we add 'card-minimized' class
                     me.$el.addClass('card-minimized');
@@ -409,16 +459,11 @@ $(function () {
                     //animation was made and card is positioned in place we it must be
                     //so we append card into footer
                     footer.append(me.$el);
-                    $('body')
-                        .addClass('lobicard-minimized');
-                    var maxWidth = 'calc(100% - ' + me.$heading.find('.dropdown-menu li>a:visible')
-                        .length * me.$heading.find('.dropdown-menu li>a:visible')
-                        .first()
-                        .outerWidth() + 'px)';
-                    me.$heading.find('.card-title')
-                        .css('max-width', maxWidth);
+                    $('body').addClass('lobicard-minimized');
+                    var maxWidth = 'calc(100% - ' + me.$heading.find('.dropdown-menu li>a:visible').length * me.$heading.find('.dropdown-menu li>a:visible').first().outerWidth() + "px)";
+                    me.$heading.find('.card-title').css('max-width', maxWidth);
                     me._saveState('minimized');
-                    me._triggerEvent('onMinimize');
+                    me._triggerEvent("onMinimize");
                 });
             }
             return me;
@@ -433,40 +478,36 @@ $(function () {
          */
         maximize: function () {
             var me = this;
-            me._triggerEvent('beforeMaximize');
+            me._triggerEvent("beforeMaximize");
             if (!me.isMinimized()) {
                 return me;
             }
             if (me.isPinned()) {
                 me.$body.slideDown();
-                me.$el.find('.card-footer')
-                    .slideDown();
+                me.$el.find('.card-footer').slideDown();
                 me.$el.removeClass('card-collapsed');
                 me._saveState('pinned');
                 me._changeClassOfControl(me.$heading.find('[data-func="minimize"]'));
+                me._triggerEvent("onMaximize");
             } else {
                 me.enableTooltips();
                 //we get css style which was saved before minimization
-                var css = me.$el.attr('old-style')
-                    .getCss();
+                var css = me.$el.attr('old-style').getCss();
                 //we give card these css properties, coz animation work
                 me.$el.css({
                     position: css.position || 'fixed',
                     'z-index': css['z-index'],
-                    left: me.$el.offset()
-                        .left,
-                    top: me.$el.offset()
-                        .top,
+                    left: me.$el.offset().left,
+                    top: me.$el.offset().top,
                     width: me.$el.width(),
                     height: me.$el.height()
                 });
                 //we append card into body
-                $('body')
-                    .append(me.$el);
+                $('body').append(me.$el);
                 //It is not possible to make animations to these propeties and we remove it
                 delete css['position'];
                 delete css['z-index'];
-                //            css['position'] = 'absolute';
+//            css['position'] = 'absolute';
                 //and we animate card to its saved style
                 me.$el.animate(css, 100, function () {
                     //we remove position property from style, before 'card-unpin'
@@ -482,21 +523,15 @@ $(function () {
                     me._removeExpandOnHeaderClick();
                     //If there are no other elements inside footer, remove it also
                     var footer = me._getFooterForMinimizedCards();
-                    if (footer.children()
-                        .length === 0) {
+                    if (footer.children().length === 0) {
                         footer.remove();
                     }
-                    $('body')
-                        .removeClass('lobicard-minimized')
+                    $('body').removeClass('lobicard-minimized')
                         .addClass('lobicard-minimized');
-                    var maxWidth = 'calc(100% - ' + me.$heading.find('.dropdown-menu li')
-                        .length * me.$heading.find('.dropdown-menu li')
-                        .first()
-                        .outerWidth() + 'px)';
-                    me.$heading.find('.card-title')
-                        .css('max-width', maxWidth);
+                    var maxWidth = 'calc(100% - ' + me.$heading.find('.dropdown-menu li').length * me.$heading.find('.dropdown-menu li').first().outerWidth() + "px)";
+                    me.$heading.find('.card-title').css('max-width', maxWidth);
                     me._updateUnpinnedState();
-                    me._triggerEvent('onMaximize');
+                    me._triggerEvent("onMaximize");
                 });
             }
             return me;
@@ -534,10 +569,11 @@ $(function () {
          */
         toFullScreen: function () {
             var me = this;
-            me._triggerEvent('beforeFullScreen');
-            if (me.$el.hasClass('card-collapsed')) {
+            me._triggerEvent("beforeFullScreen");
+            if (me.$el.hasClass("card-collapsed")) {
                 return me;
             }
+            me.$el.attr('data-index', me.$el.index());
             me._changeClassOfControl(me.$heading.find('[data-func="expand"]'));
             me.$el.css('position', 'fixed');
             var res = me._getMaxZIndex();
@@ -547,22 +583,17 @@ $(function () {
             if (me.isPinned() || me.isMinimized()) {
                 me.enableTooltips();
                 me.$el.css({
-                    'z-index': res['z-index'] + 1,
-                    left: me.$el.offset()
-                        .left,
-                    top: me.$el.offset()
-                        .top - $(window)
-                        .scrollTop(),
+                    "z-index": res["z-index"] + 1,
+                    left: me.$el.offset().left,
+                    top: me.$el.offset().top - $(window).scrollTop(),
                     width: me.$el.width(),
                     height: me.$el.height()
                 });
-                $('body')
-                    .append(me.$el);
+                $('body').append(me.$el);
                 //If we are expanding card to full screen from footer and in footer there are no more elements
                 //remove footer also
                 var footer = me._getFooterForMinimizedCards();
-                if (footer.children()
-                    .length === 0) {
+                if (footer.children().length === 0) {
                     footer.remove();
                 }
             } else {
@@ -586,10 +617,8 @@ $(function () {
             var toolbar = $('.' + LobiCard.PRIVATE_OPTIONS.toolbarClass);
             var toolbarHeight = toolbar.outerHeight() || 0;
             me.$el.animate({
-                width: $(window)
-                    .width(),
-                height: $(window)
-                    .height() - toolbarHeight,
+                width: $(window).width(),
+                height: $(window).height() - toolbarHeight,
                 left: 0,
                 top: 0
             }, me.$options.expandAnimation, function () {
@@ -600,8 +629,7 @@ $(function () {
                     bottom: toolbarHeight
                 });
                 me.$el.addClass('card-expanded');
-                $('body')
-                    .css('overflow', 'hidden');
+                $('body').css('overflow', 'hidden');
                 me.$body.css({
                     width: me._calculateBodyWidth(me.$el.width()),
                     height: me._calculateBodyHeight(me.$el.height())
@@ -611,7 +639,7 @@ $(function () {
                     me._disableSorting();
                 }
                 me._saveState('fullscreen');
-                me._triggerEvent('onFullScreen');
+                me._triggerEvent("onFullScreen");
             });
             return me;
         },
@@ -623,10 +651,19 @@ $(function () {
          */
         toSmallSize: function () {
             var me = this;
-            me._triggerEvent('beforeSmallSize');
+            me._triggerEvent("beforeSmallSize");
             me._changeClassOfControl(me.$heading.find('[data-func="expand"]'));
-            var css = me.$el.attr('old-style')
-                .getCss();
+            var css = me.$el.attr('old-style').getCss();
+
+            var toRemoveProperties = [
+                'position',
+                'z-index',
+                'left',
+                'top',
+                'width',
+                'height'
+            ];
+
             //we get css properties from old-style (saved before expanding)
             //and we animate card to this css properties
             me.$el.animate({
@@ -643,7 +680,10 @@ $(function () {
                 //if card is pinned we also remove its style attribute and we
                 //append card in its parent element
                 if (!me.$el.hasClass('card-unpin')) {
-                    me.$el.removeAttr('style');
+                    for (var i in toRemoveProperties) {
+                        me.$el.css(toRemoveProperties[i], '');
+                    }
+                    // me.$el.removeAttr('style');
                     me._insertInParent();
                     me._enableSorting();
                 } else {
@@ -653,8 +693,7 @@ $(function () {
                     me.enableResize();
                 }
                 me.$el.removeClass('card-expanded');
-                $('body')
-                    .css('overflow', 'auto');
+                $('body').css('overflow', 'auto');
                 var bWidth = '';
                 var bHeight = '';
                 if (!me.isPinned()) {
@@ -663,8 +702,8 @@ $(function () {
                 } else if (me.$options.bodyHeight !== 'auto') {
                     bHeight = me.$options.bodyHeight;
                 }
-                if (me.$options.bodyHeight !== 'auto') {
-                    me._saveState('pinnned');
+                if (me.isPinned()) {
+                    me._saveState('pinned');
                 } else {
                     me._updateUnpinnedState();
                 }
@@ -672,7 +711,7 @@ $(function () {
                     width: bWidth,
                     height: bHeight
                 });
-                me._triggerEvent('onSmallSize');
+                me._triggerEvent("onSmallSize");
             });
             return me;
         },
@@ -704,14 +743,12 @@ $(function () {
             me._triggerEvent('beforeClose');
             me.$el.hide(animationDuration, function () {
                 if (me.isOnFullScreen()) {
-                    $('body')
-                        .css('overflow', 'auto');
+                    $('body').css('overflow', 'auto');
                 }
                 me._triggerEvent('onClose');
                 me.$el.remove();
                 var footer = me._getFooterForMinimizedCards();
-                if (footer.children()
-                    .length === 0) {
+                if (footer.children().length === 0) {
                     footer.remove();
                 }
             });
@@ -858,13 +895,13 @@ $(function () {
          */
         bringToFront: function () {
             var me = this;
-            me._triggerEvent('beforeToFront');
+            me._triggerEvent("beforeToFront");
             var res = me._getMaxZIndex();
             if (res['id'] === me.$el.data('inner-id')) {
                 return me;
             }
             me.$el.css('z-index', res['z-index'] + 1);
-            me._triggerEvent('onToFront');
+            me._triggerEvent("onToFront");
             return me;
         },
 
@@ -897,7 +934,7 @@ $(function () {
         disableDrag: function () {
             var me = this;
             if (me.$el.hasClass('ui-draggable')) {
-                me.$el.draggable('destroy');
+                me.$el.draggable("destroy");
             }
             return me;
         },
@@ -942,7 +979,7 @@ $(function () {
                         height: bHeight
                     });
                     me._updateUnpinnedState();
-                    me._triggerEvent('onResize');
+                    me._triggerEvent("onResize");
                 }
             });
             return me;
@@ -956,7 +993,7 @@ $(function () {
         disableResize: function () {
             var me = this;
             if (me.$el.hasClass('ui-resizable')) {
-                me.$el.resizable('destroy');
+                me.$el.resizable("destroy");
             }
             return me;
         },
@@ -982,8 +1019,7 @@ $(function () {
          */
         stopLoading: function () {
             var me = this;
-            me.$el.find('.spinner-wrapper')
-                .remove();
+            me.$el.find('.spinner-wrapper').remove();
             return me;
         },
 
@@ -1016,27 +1052,23 @@ $(function () {
             var me = this;
             params = params || {};
             if (typeof params === 'string') {
-                params = {
-                    url: params
-                };
+                params = {url: params};
             }
-
             var url = params.url || me.$options.loadUrl,
-                data = params.data || "",
+                data = params.data || {},
                 callback = params.callback || null;
 
             if (!url) {
                 return me;
             }
-
-            me._triggerEvent('beforeLoad');
+            me._triggerEvent("beforeLoad");
             me.startLoading();
             me.$body.load(url, data, function (result, status, xhr) {
                 if (callback && typeof callback === 'function') {
                     me.callback(result, status, xhr);
                 }
                 me.stopLoading();
-                me._triggerEvent('loaded', result, status, xhr);
+                me._triggerEvent("loaded", result, status, xhr);
             });
             return me;
         },
@@ -1057,8 +1089,7 @@ $(function () {
                 .removeAttr('data-inner-id')
                 .removeAttr('data-index')
                 .removeData('lobiCard');
-            me.$heading.find('.dropdown')
-                .remove();
+            me.$heading.find('.dropdown').remove();
             return me.$el;
         },
 
@@ -1069,9 +1100,7 @@ $(function () {
          */
         startTitleEditing: function () {
             var me = this;
-            var title = me.$heading.find('.card-title')
-                .html()
-                .trim();
+            var title = me.$heading.find('.card-title').text().trim();
             var input = $('<input value="' + title + '"/>');
             input.on('keydown', function (ev) {
                 if (ev.which === 13) {
@@ -1082,8 +1111,7 @@ $(function () {
             });
             me.$heading.find('.card-title')
                 .data('old-title', title)
-                .html('')
-                .append(input);
+                .html("").append(input);
             input[0].focus();
             input[0].select();
             me._changeClassOfControl(me.$heading.find('[data-func="editTitle"]'));
@@ -1097,8 +1125,7 @@ $(function () {
          */
         isTitleEditing: function () {
             var me = this;
-            return me.$heading.find('.card-title input')
-                .length > 0;
+            return me.$heading.find('.card-title input').length > 0;
         },
 
         /**
@@ -1110,8 +1137,7 @@ $(function () {
             var me = this;
             var title = me.$heading.find('.card-title');
             title.html(title.data('old-title'))
-                .find('input')
-                .remove();
+                .find('input').remove();
             me._changeClassOfControl(me.$heading.find('[data-func="editTitle"]'));
             return me;
         },
@@ -1127,8 +1153,9 @@ $(function () {
             if (me._triggerEvent('beforeTitleChange', input.val()) === false) {
                 return me;
             }
-            me.$heading.find('.card-title')
-                .html(input.val());
+
+            me.saveParam('cardTitle', input.val());
+            me.$heading.find('.card-title').html(input.val());
             input.remove();
             me._changeClassOfControl(me.$heading.find('[data-func="editTitle"]'));
             me._triggerEvent('onTitleChange', input.val());
@@ -1142,8 +1169,7 @@ $(function () {
          */
         enableTooltips: function () {
             var me = this;
-            if ($(window)
-                .width() < 768) {
+            if ($(window).width() < 768) {
                 return me;
             }
             var controls = me.$heading.find('.dropdown-menu>li>a');
@@ -1151,14 +1177,14 @@ $(function () {
                 var $el = $(el);
                 $el.attr('data-toggle', 'tooltip')
                     .attr('data-title', $el.data('tooltip'))
-                    .attr('data-placement', 'bottom');
+                    .attr('data-placement', 'bottom')
+                ;
             });
             controls.each(function (ind, el) {
-                $(el)
-                    .tooltip({
-                        container: 'body',
-                        template: '<div class="tooltip lobicard-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
-                    });
+                $(el).tooltip({
+                    container: 'body',
+                    template: '<div class="tooltip lobicard-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
+                });
             });
             return me;
         },
@@ -1172,11 +1198,9 @@ $(function () {
             var me = this;
             var $links = me.$heading.find('.dropdown-menu>li>a');
             $links.each(function (ind, el) {
-                var bsTooltip = $(el)
-                    .data('bs.tooltip');
+                var bsTooltip = $(el).data('bs.tooltip');
                 if (bsTooltip) {
-                    $(el)
-                        .tooltip('dispose');
+                    $(el).tooltip('dispose');
                 }
             });
             // me.$heading.find('.dropdown-menu>li>a').tooltip('destroy');
@@ -1196,27 +1220,29 @@ $(function () {
             if (me.$options.reload !== false) {
                 menu.append(me._generateReload());
             }
+            if (me.$options.minimize !== false) {
+                menu.append(me._generateMinimize());
+            }
             if (me.$options.expand !== false) {
                 menu.append(me._generateExpand());
             }
-            if (me.$options.minimize !== false) {
-                menu.append(me._generateMinimize());
-            }			
+            if (me.$options.changeStyle !== false) {
+                menu.append(me._generateChangeStyle());
+            }
             if (me.$options.close !== false) {
                 menu.append(me._generateClose());
             }
-            menu.find('>li>a')
-                .on('click', function (ev) {
-                    ev.preventDefault();
-                    ev.stopPropagation();
-                });
+            menu.find('>li>a').on('click', function (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+            });
             return dropdown;
         },
         _generateDropdown: function () {
             var me = this;
-            return $('<div class="dropdown"></div>')
-                .append('<ul class="dropdown-menu dropdown-menu-right"></ul>')
-                .append('<div class="dropdown-toggle" data-toggle="dropdown"><span class="' + LobiCard.PRIVATE_OPTIONS.iconClass + ' ' + me.$options.toggleIcon + '"></div>');
+            return $('<div class="dropdown"'+(me.$options.forAngularJs ? ' uib-dropdown' : '')+'></div>')
+                .append('<ul class="dropdown-menu dropdown-menu-right"'+(me.$options.forAngularJs ? ' uib-dropdown-menu' : '')+'></ul>')
+                .append('<div class="dropdown-toggle"'+(me.$options.forAngularJs ? ' uib-dropdown-toggle' : ' data-toggle="dropdown"')+'><span class="' + LobiCard.PRIVATE_OPTIONS.iconClass + ' ' + me.$options.toggleIcon + '"></div>');
         },
         _generateEditTitle: function () {
             var me = this;
@@ -1229,8 +1255,7 @@ $(function () {
             }
 
             me._attachEditTitleClickListener(control);
-            return $('<li></li>')
-                .append(control);
+            return $('<li></li>').append(control);
         },
         _attachEditTitleClickListener: function (control) {
             var me = this;
@@ -1266,8 +1291,7 @@ $(function () {
                 control.attr('data-tooltip', options.tooltip);
             }
             me._attachUnpinClickListener(control);
-            return $('<li></li>')
-                .append(control);
+            return $('<li></li>').append(control);
         },
         _attachUnpinClickListener: function (control) {
             var me = this;
@@ -1290,8 +1314,7 @@ $(function () {
                 control.attr('data-tooltip', options.tooltip);
             }
             me._attachReloadClickListener(control);
-            return $('<li></li>')
-                .append(control);
+            return $('<li></li>').append(control);
         },
         _attachReloadClickListener: function (control) {
             var me = this;
@@ -1313,8 +1336,7 @@ $(function () {
                 control.attr('data-tooltip', options.tooltip);
             }
             me._attachMinimizeClickListener(control);
-            return $('<li></li>')
-                .append(control);
+            return $('<li></li>').append(control);
         },
         _attachMinimizeClickListener: function (control) {
             var me = this;
@@ -1337,8 +1359,100 @@ $(function () {
                 control.attr('data-tooltip', options.tooltip);
             }
             me._attachExpandClickListener(control);
-            return $('<li></li>')
-                .append(control);
+            return $('<li></li>').append(control);
+        },
+        _generateChangeStyle: function () {
+            var me = this;
+            var options = me.$options.changeStyle;
+            var $control = $('<a data-func="changeStyle"></a>');
+            $control.append('<i class="' + LobiCard.PRIVATE_OPTIONS.iconClass + ' ' + options.icon + '"></i>');
+            if (options.tooltip && typeof options.tooltip === 'string') {
+                $control.append('<span class="control-title">' + options.tooltip + '</span>');
+                $control.attr('data-tooltip', options.tooltip);
+            }
+            // me._attachExpandClickListener(control);
+
+            var $dropdown = $('<li class="style-change-item"></li>').append($control);
+
+            var $menu = $('<div>', {
+                'class': 'style-list'
+            }).appendTo($dropdown);
+
+            if (me.$options.styles) {
+                for (var i = 0; i < me.$options.styles.length; i++) {
+                    var style = me.$options.styles[i];
+                    $menu.append('<div class="style-item style-primary" style="background-color: ' +
+                        style.bg + '" data-bg="' + style.bg + '" data-text="' + style.text + '"></div>');
+                }
+            }
+            $menu.find('.style-item').on('click', function () {
+                var $item = $(this);
+                me.saveParam('cardStyle', {
+                    bg: $item.data('bg'),
+                    text: $item.data('text')
+                });
+                me.applyStyle($item.data('bg'), $item.data('text'));
+                $menu.removeClass('opened');
+            });
+
+            $control.on('click', function () {
+                var $this = $(this);
+                var $parent = $this.closest('.style-change-item');
+                $parent.find('.style-list').toggleClass('opened');
+            });
+
+            return $dropdown;
+        },
+
+        applyStyle: function (color, text) {
+            var me = this;
+            me.$heading.css('background-color', color);
+            me.$heading.css('border-color', color);
+            me.$heading.css('color', text);
+            me.$el.css('border-color', color);
+        },
+
+        _createDropdownForStyleChange: function () {
+            var me = this;
+            var $dropdown = $('<div>', {
+                'class': 'dropdown'
+            }).append(
+                $('<button>', {
+                    'type': 'button',
+                    'data-toggle': 'dropdown',
+                    'class': 'btn btn-default btn-xs',
+                    'html': '<i class="glyphicon glyphicon-th"></i>'
+                })
+            );
+            var $menu = $('<div>', {
+                'class': 'dropdown-menu dropdown-menu-right'
+            }).appendTo($dropdown);
+
+            for (var i = 0; i < 0; i++) {
+                var st = me.$globalOptions.listStyles[i];
+                var st = 'primary';
+                $('<div class="' + st + '"></div>')
+                    .on('mousedown', function (ev) {
+                        ev.stopPropagation()
+                    })
+                    .click(function () {
+                        var classes = me.$el[0].className.split(' ');
+                        var oldClass = null;
+                        for (var i = 0; i < classes.length; i++) {
+                            if (me.$globalOptions.listStyles.indexOf(classes[i]) > -1) {
+                                oldClass = classes[i];
+                            }
+                        }
+                        me.$el.removeClass(me.$globalOptions.listStyles.join(" "))
+                            .addClass(this.className);
+
+                        me._triggerEvent('styleChange', [me, oldClass, this.className]);
+
+                    })
+                    .appendTo($menu);
+            }
+
+            return $dropdown;
         },
         _attachExpandClickListener: function (control) {
             var me = this;
@@ -1361,8 +1475,7 @@ $(function () {
                 control.attr('data-tooltip', options.tooltip);
             }
             me._attachCloseClickListener(control);
-            return $('<li></li>')
-                .append(control);
+            return $('<li></li>').append(control);
         },
         _attachCloseClickListener: function (control) {
             var me = this;
@@ -1383,36 +1496,32 @@ $(function () {
                 cur;
             if (cards.length === 0) {
                 return {
-                    'id': '',
-                    'z-index': LobiCard.PRIVATE_OPTIONS.initialZIndex
+                    "id": "",
+                    "z-index": LobiCard.PRIVATE_OPTIONS.initialZIndex
                 };
             }
-            style = $(cards[0])
-                .attr('style');
-            var id = $(cards[0])
-                .data('inner-id');
+            style = $(cards[0]).attr('style');
+            var id = $(cards[0]).data('inner-id');
             if (!style) {
                 max = LobiCard.PRIVATE_OPTIONS.initialZIndex;
             } else {
                 max = style.getCss()['z-index'];
             }
             for (var i = 1; i < cards.length; i++) {
-                style = $(cards[i])
-                    .attr('style');
+                style = $(cards[i]).attr('style');
                 if (!style) {
                     cur = 0;
                 } else {
                     cur = style.getCss()['z-index'];
                 }
                 if (cur > max) {
-                    id = $(cards[i])
-                        .data('inner-id');
+                    id = $(cards[i]).data('inner-id');
                     max = cur;
                 }
             }
             return {
-                'id': id,
-                'z-index': parseInt(max, 10)
+                "id": id,
+                "z-index": parseInt(max, 10)
             };
         },
         _onCardClick: function () {
@@ -1437,9 +1546,7 @@ $(function () {
             if (!opts.icon) {
                 return;
             }
-            el.find('.' + LobiCard.PRIVATE_OPTIONS.iconClass)
-                .toggleClass(opts.icon)
-                .toggleClass(opts.icon2);
+            el.find('.' + LobiCard.PRIVATE_OPTIONS.iconClass).toggleClass(opts.icon).toggleClass(opts.icon2);
         },
         _getFooterForMinimizedCards: function () {
             var me = this;
@@ -1448,8 +1555,7 @@ $(function () {
             //if card does not exist we create it and append to body
             if (minimizedCtr.length === 0) {
                 minimizedCtr = $('<div class="' + LobiCard.PRIVATE_OPTIONS.toolbarClass + '"></div>');
-                $('body')
-                    .append(minimizedCtr);
+                $('body').append(minimizedCtr);
             }
             return minimizedCtr;
         },
@@ -1486,8 +1592,7 @@ $(function () {
         },
         _calculateBodyHeight: function (h) {
             var me = this;
-            return h - me.$heading.outerHeight() - me.$el.find('.card-footer')
-                .outerHeight();
+            return h - me.$heading.outerHeight() - me.$el.find('.card-footer').outerHeight();
         },
         _calculateBodyWidth: function (w) {
             var me = this;
@@ -1502,12 +1607,11 @@ $(function () {
             //This means that parent already has LobiCard instance
             else {
                 //if parent already has card innerId than we do nothing
-                if (parent.attr(LobiCard.PRIVATE_OPTIONS.parentAttr)
-                    .indexOf(innerId) > -1) {
+                if (parent.attr(LobiCard.PRIVATE_OPTIONS.parentAttr).indexOf(innerId) > -1) {
                     return;
                 }
                 var innerIds = parent.attr(LobiCard.PRIVATE_OPTIONS.parentAttr);
-                parent.attr(LobiCard.PRIVATE_OPTIONS.parentAttr, innerIds + ' ' + innerId);
+                parent.attr(LobiCard.PRIVATE_OPTIONS.parentAttr, innerIds + " " + innerId);
             }
             me.$el.attr('data-index', me.$el.index());
         },
@@ -1540,15 +1644,14 @@ $(function () {
                 '<div class="wInnerBall">',
                 '</div>',
                 '</div>',
-                '</div>'
-            ].join('');
+                '</div>'].join("");
             return $('<div class="spinner-wrapper">' + template + '</div>');
         },
         _enableSorting: function () {
             var me = this;
             var parent = me.$el.parent();
             if (parent.hasClass('ui-sortable')) {
-                parent.sortable('destroy');
+                parent.sortable("destroy");
             }
             if (me.$options.sortable) {
                 me.$el.addClass('lobicard-sortable');
@@ -1566,62 +1669,63 @@ $(function () {
                 opacity: 0.7,
                 revert: 300,
                 update: function (event, ui) {
-                    var innerId = ui.item.data('inner-id');
+                    me.savecardPositions();
+                    var $card = ui.item;
+
+                    var innerId = $card.data('inner-id');
                     me._removeInnerIdFromParent(innerId);
                     me._appendInnerIdToParent(ui.item.parent(), innerId);
-                    me._updateDataIndices(ui.item);
                     me._triggerEvent('dragged');
                 }
             });
         },
+
+        savecardPositions: function () {
+            var me = this;
+            var $parents = $('.lobicard-parent-sortable');
+            $parents.each(function (index, parent) {
+                var $parent = $(parent);
+
+                var parentInnerId = $parent.data('inner-id');
+                if (!parentInnerId) {
+                    console.error("Card does not have parent id ", $parent);
+                    return;
+                }
+                var $childCards = $parent.find('.lobicard');
+                var positions = {};
+                $childCards.each(function (index, el) {
+                    var $el = $(el);
+                    positions[$el.data('inner-id')] = index;
+                });
+                me.storageObject.saveChildPositions(parentInnerId, positions);
+            });
+        },
+
         _disableSorting: function () {
             var me = this;
             var parent = me.$el.parent();
             if (parent.hasClass('ui-sortable')) {
-                parent.sortable('destroy');
-            }
-        },
-        _updateDataIndices: function (card) {
-            var me = this;
-            var items = card.parent()
-                .children();
-            items.each(function (index, el) {
-                $(el)
-                    .attr('data-index', index);
-                var lobiCard = $(el)
-                    .data('lobiCard');
-                if (lobiCard && lobiCard.$options.stateful && !lobiCard.hasRandomId) {
-                    lobiCard._saveState('pinned', {
-                        index: index
-                    });
-                }
-            });
-            // me._saveState('pinned', {index: card.index()})
-            if (me.$options.log) {
-                console.log('Save indices in localstorage');
+                parent.sortable("destroy");
             }
         },
         _removeInnerIdFromParent: function (innerId) {
             var me = this;
             var parent = $('[' + LobiCard.PRIVATE_OPTIONS.parentAttr + '~=' + innerId + ']');
-            var innerIds = parent.attr(LobiCard.PRIVATE_OPTIONS.parentAttr)
-                .replace(innerId, '')
-                .trim()
-                .replace(/\s{2,}/g, ' ');
-            parent.attr(LobiCard.PRIVATE_OPTIONS.parentAttr, innerIds);
+            if (parent.length) {
+                var innerIds = parent.attr(LobiCard.PRIVATE_OPTIONS.parentAttr).replace(innerId, '').trim().replace(/\s{2,}/g, ' ');
+                parent.attr(LobiCard.PRIVATE_OPTIONS.parentAttr, innerIds);
+            }
         },
         _onToggleIconsBtnClick: function () {
             var me = this;
-            me.$heading.find('.toggle-controls')
-                .on('click.lobiCard', function () {
-                    me.$el.toggleClass('controls-expanded');
-                });
+            me.$heading.find('.toggle-controls').on('click.lobiCard', function () {
+                me.$el.toggleClass("controls-expanded");
+            });
         },
         _adjustForScreenSize: function () {
             var me = this;
             me.disableTooltips();
-            if ($(window)
-                .width() > 768 && me.$options.tooltips) {
+            if ($(window).width() > 768 && me.$options.tooltips) {
                 me.enableTooltips();
             }
             if (me.isOnFullScreen()) {
@@ -1634,10 +1738,9 @@ $(function () {
         _enableResponsiveness: function () {
             var me = this;
             me._adjustForScreenSize();
-            $(window)
-                .on('resize.lobiCard', function () {
-                    me._adjustForScreenSize();
-                });
+            $(window).on('resize.lobiCard', function () {
+                me._adjustForScreenSize();
+            });
         },
         _setBodyHeight: function () {
             var me = this;
@@ -1667,48 +1770,74 @@ $(function () {
         },
         _saveState: function (state, params) {
             var me = this;
-
-            if (me.$options.log) {
-                console.log('Save state ', state, params);
-            }
-
+            // console.log("Save state ", state, params);
             if (!me.hasRandomId && me.$options.stateful) {
                 me.storage.state = state;
                 if (params) {
                     me.storage.stateParams = params;
                 }
+
                 me._saveLocalStorage(me.storage);
             }
         },
+        getParam: function (key, value) {
+            var me = this;
+            // console.log("Save state ", state, params);
+            return me.storage[key];
+        },
+        saveParam: function (key, value) {
+            var me = this;
+            // console.log("Save state ", state, params);
+            me.storage[key] = value;
+
+            me._saveLocalStorage(me.storage);
+        },
         _saveLocalStorage: function (storage) {
             var me = this;
-            localStorage.setItem(STORAGE_PREFIX + me.innerId, JSON.stringify(storage));
+            me.storageObject.saveCardParams(me.innerId, storage);
         },
         _applyState: function (state, params) {
             var me = this;
             switch (state) {
-            case 'pinned':
-                if (params && params.index !== null && params.index !== undefined) {
-                    me._applyIndex(params.index);
-                }
-                break;
-            case 'unpinned':
-                me.unpin();
-                me.setPosition(params.left, params.top, 0);
-                me.setSize(params.width, params.height, 0);
-                break;
-            case 'minimized':
-                me.unpin();
-                me.minimize();
-                break;
-            case 'collapsed':
-                me.minimize();
-                break;
-            case 'fullscreen':
-                me.toFullScreen();
-                break;
-            default:
-                break;
+                case 'pinned':
+                    if (!me.hasRandomId) {
+                        var allCardPositions = me.storageObject.getAllCardPositions();
+                        // console.log(allCardPositions);
+                        for (var i in allCardPositions) {
+                            var cardPositions = allCardPositions[i];
+                            var innerParentId = i;
+                            var $parent = $('.lobicard-parent-sortable[data-inner-id=' + innerParentId + ']');
+                            for (var j in cardPositions) {
+                                var $card = $('[data-inner-id=' + j + ']');
+                                me._removeInnerIdFromParent($card.data('inner-id'));
+                                me._appendInnerIdToParent($parent, $card.data('inner-id'));
+                                if (!$card.hasClass('card-unpin') && !$card.hasClass('card-expanded')) {
+                                    $card.insertAt(cardPositions[j], $parent);
+                                }
+                            }
+                        }
+                    }
+                    // if (params && params.index !== null && params.index !== undefined) {
+                    //     me._applyIndex(params.index);
+                    // }
+                    break;
+                case 'unpinned':
+                    me.unpin();
+                    me.setPosition(params.left, params.top, 0);
+                    me.setSize(params.width, params.height, 0);
+                    break;
+                case 'minimized':
+                    me.unpin();
+                    me.minimize();
+                    break;
+                case 'collapsed':
+                    me.minimize();
+                    break;
+                case 'fullscreen':
+                    me.toFullScreen();
+                    break;
+                default:
+                    break;
             }
         },
         _applyIndex: function (index) {
@@ -1731,10 +1860,10 @@ $(function () {
         },
         doPin: function () {
             var me = this;
-            if (me._triggerEvent('beforePin') !== false) {
+            if (me._triggerEvent("beforePin") !== false) {
                 me.pin();
                 me._saveState('pinned');
-                me._triggerEvent('onPin');
+                me._triggerEvent("onPin");
             }
             return me;
         },
@@ -1790,6 +1919,32 @@ $(function () {
         });
         return ret;
     };
+    $.fn.lobiCardParent = function (option) {
+        this.each(function (index, parent) {
+            var $parent = $(parent);
+            if (!$parent.hasClass('ui-sortable')) {
+                $parent.sortable({
+                    connectWith: '.lobicard-parent-sortable',
+                    items: '.lobicard-sortable',
+                    handle: '.card-header',
+                    cursor: 'move',
+                    placeholder: 'lobicard-placeholder',
+                    forcePlaceholderSize: true,
+                    opacity: 0.7,
+                    revert: 300,
+                    update: function (event, ui) {
+                        console.log(ui);
+                        // me.savecardPositions();
+                        //
+                        // // me._removeInnerIdFromParent(innerId);
+                        // // me._appendInnerIdToParent(ui.item.parent(), innerId);
+                        // me._triggerEvent('dragged');
+                    }
+                });
+            }
+        });
+        return this;
+    };
     LobiCard.PRIVATE_OPTIONS = {
         //We need to know what is the parent of the card, that's why we add
         //this attribute to parent element and it contains space seperated inner-ids of all its child lobicard
@@ -1802,8 +1957,6 @@ $(function () {
         iconClass: 'card-control-icon'
     };
     $.fn.lobiCard.DEFAULTS = {
-        // Enable logging to console
-        log: false,
         //Makes <b>unpinned</b> card draggable
         //Warning!!! This requires jquery ui draggable widget to be included
         draggable: true,
@@ -1824,48 +1977,80 @@ $(function () {
         //Maximum height <b>unpin, resizable</b> card can have.
         maxHeight: 700,
         //The url which will be used to load content. If not provided reload button will do nothing
-        loadUrl: '',
+        loadUrl: "",
         //If loadUrl is provided plugin will load content as soon as plugin is initialized
         autoload: true,
         bodyHeight: 'auto',
         //This will enable tooltips on card controls
         tooltips: true,
+        forAngularJs: false,
         toggleIcon: 'fal fa-cog',
         expandAnimation: 100,
         collapseAnimation: 100,
         state: 'pinned', // Initial state of the card. Available options: pinned, unpinned, collapsed, minimized, fullscreen
         initialIndex: null, // Initial index of the card among its siblings
         stateful: false, // If you set this to true you must specify data-inner-id. Plugin will save (in localStorage) it's states such as
-        // pinned, unpinned, collapsed, minimized, fullscreen, position among it's siblings
-        // and apply them when you reload the browser
+                         // pinned, unpinned, collapsed, minimized, fullscreen, position among it's siblings
+                         // and apply them when you reload the browser
         constrain: 'document', // 'parent', 'document', 'window'
         unpin: {
-            icon: 'fal fa-arrows',
-            tooltip: 'Unpin' //tooltip text, If you want to disable tooltip, set it to false
+            icon: 'fal fa-arrows', //You can user glyphicons if you do not want to use font-awesome
+            tooltip: 'Unpin'               //tooltip text, If you want to disable tooltip, set it to false
         },
         reload: {
-            icon: 'fal fa-sync',
-            tooltip: 'Reload' //tooltip text, If you want to disable tooltip, set it to false
+            icon: 'fal fa-sync', //You can user glyphicons if you do not want to use font-awesome
+            tooltip: 'Reload'           //tooltip text, If you want to disable tooltip, set it to false
         },
         minimize: {
-            icon: 'fal fa-chevron-up', //icon is shown when card is not minimized
-            icon2: 'fal fa-chevron-down', //icon2 is shown when card is minimized
-            tooltip: 'Minimize' //tooltip text, If you want to disable tooltip, set it to false
+            icon: 'fal fa-chevron-down', //icon is shown when card is not minimized
+            icon2: 'fal fa-chevron-up', //icon2 is shown when card is minimized
+            tooltip: 'Minimize'         //tooltip text, If you want to disable tooltip, set it to false
         },
         expand: {
             icon: 'fal fa-expand', //icon is shown when card is not on full screen
             icon2: 'fal fa-compress', //icon2 is shown when pane is on full screen state
-            tooltip: 'Fullscreen' //tooltip text, If you want to disable tooltip, set it to false
+            tooltip: 'Fullscreen'       //tooltip text, If you want to disable tooltip, set it to false
+        },
+        changeStyle: {
+            icon: 'fal fa-edit', //icon is shown when card is not on full screen
+            tooltip: 'Style'       //tooltip text, If you want to disable tooltip, set it to false
         },
         close: {
-            icon: 'fal fa-times-circle',
-            tooltip: 'Close' //tooltip text, If you want to disable tooltip, set it to false
+            icon: 'fal fa-times-circle', //You can user glyphicons if you do not want to use font-awesome
+            tooltip: 'Close'            //tooltip text, If you want to disable tooltip, set it to false
         },
         editTitle: {
             icon: 'fal fa-edit',
             icon2: 'fal fa-save',
             tooltip: 'Edit title'
         },
+        styles: [
+            {
+                bg: '#d9534f',
+                text: '#FFF'
+            },
+            {
+                bg: '#f0ad4e',
+                text: '#FFF'
+            },
+            {
+                bg: '#337ab7',
+                text: '#FFF'
+            },
+            {
+                bg: '#5bc0de',
+                text: '#FFF'
+            },
+            {
+                bg: '#4753e4',
+                text: '#FFF'
+            },
+            {
+                bg: '#9e4aea',
+                text: '#FFF'
+            }
+        ],
+        storageObject: null,
 
         // Events
         /**
@@ -1876,6 +2061,9 @@ $(function () {
         beforeTitleChange: null
     };
 
-    $('.lobicard')
-        .lobiCard();
+    $('.lobicard').lobiCard();
+
+    var $parent = $('.lobicard-parent-sortable');
+    $parent.lobiCardParent();
 });
+
