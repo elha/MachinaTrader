@@ -8,8 +8,6 @@ using MachinaTrader.Globals.Structure.Enums;
 using MachinaTrader.Globals.Structure.Extensions;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Models;
-using MachinaTrader.Helpers;
-using MachinaTrader.Notifications;
 using MachinaTrader.Strategies;
 
 namespace MachinaTrader.TradeManagers
@@ -51,6 +49,10 @@ namespace MachinaTrader.TradeManagers
         /// <returns></returns>
         public async Task CancelUnboughtOrders(Trade trade)
         {
+            //in simulation all order are filled
+            if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+                return;
+
             //Global.Logger.Information($"Starting CancelUnboughtOrders");
             if ((trade.OpenDate.AddSeconds(Global.Configuration.TradeOptions.MaxOpenTimeBuy) > DateTime.UtcNow))
             {
@@ -887,21 +889,23 @@ namespace MachinaTrader.TradeManagers
         {
             Global.Logger.Debug(message);
 
-            if (Runtime.NotificationManagers != null)
+            if (Global.NotificationManagers != null)
             {
-                foreach (var notificationManager in Runtime.NotificationManagers)
+                foreach (var notificationManager in Global.NotificationManagers)
                 {
-                    if (notificationManager is SignalrNotificationManager)
-                    {
-                        notificationManager.SendNotification(message);
-                    }
-                    else
-                    {
-                        if (!Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
-                        {
-                            notificationManager.SendNotification(message);
-                        }
-                    }
+                    notificationManager.SendNotification(message);
+
+                    //if (notificationManager is SignalrNotificationManager)
+                    //{
+                    //    notificationManager.SendNotification(message);
+                    //}
+                    //else
+                    //{
+                    //    if (!Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+                    //    {
+                    //        notificationManager.SendNotification(message);
+                    //    }
+                    //}
                 }
             }
         }

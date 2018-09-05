@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,8 +10,8 @@ namespace MachinaTrader.Backtester
 {
     public class MemoryDataStore : IDataStore
     {
-        private List<Trade> _trades = new List<Trade>();
-        private List<WalletTransaction> _walletTransactions = new List<WalletTransaction>();
+        private ConcurrentDictionary<string, Trade> _trades = new ConcurrentDictionary<string, Trade>();
+        private ConcurrentDictionary<Guid, WalletTransaction> _walletTransactions = new ConcurrentDictionary<Guid, WalletTransaction>();
 
         public MemoryDataStore()
         {
@@ -22,13 +23,13 @@ namespace MachinaTrader.Backtester
 
         public async Task<List<Trade>> GetClosedTradesAsync()
         {
-            var items = _trades.Where(x => !x.IsOpen).ToList();
+            var items = _trades.Values.Where(x => !x.IsOpen).ToList();
             return items;
         }
 
         public async Task<List<Trade>> GetActiveTradesAsync()
         {
-            var items = _trades.Where(x => x.IsOpen).ToList();
+            var items = _trades.Values.Where(x => x.IsOpen).ToList();
             return items;
         }
 
@@ -44,32 +45,19 @@ namespace MachinaTrader.Backtester
 
         public async Task SaveTradeAsync(Trade trade)
         {
-            var item = _trades.Where(x => x.TradeId.Equals(trade.TradeId)).FirstOrDefault();
-
-            if (item != null)
-            {
-                _trades.Remove(item);
-            }
-           
-            _trades.Add(trade);
+            _trades.TryRemove(trade.TradeId, out Trade removed);
+            _trades.TryAdd(trade.TradeId, trade);
         }
 
         public async Task SaveWalletTransactionAsync(WalletTransaction walletTransaction)
         {
-            var item = _walletTransactions.Where(x => x.Id.Equals(walletTransaction.Id)).FirstOrDefault();
-
-            if (item != null)
-            {
-                _walletTransactions.Remove(item);
-            }
-
-            walletTransaction.Id = Guid.NewGuid();
-            _walletTransactions.Add(walletTransaction);
+            _walletTransactions.TryRemove(walletTransaction.Id, out WalletTransaction removed);
+            _walletTransactions.TryAdd(walletTransaction.Id, walletTransaction);
         }
 
         public async Task<List<WalletTransaction>> GetWalletTransactionsAsync()
         {
-            var items = _walletTransactions.OrderBy(s => s.Date).ToList();
+            var items = _walletTransactions.Values.OrderBy(s => s.Date).ToList();
             return items;
         }
 
