@@ -27,25 +27,26 @@ namespace MachinaTrader.Globals.Data
         public async Task Initialize()
         {
             //Create the Administartor Role
-            await _roleManager.CreateAsync(new IdentityRole("Administrator"));
+            var resultRoleManager = _roleManager.CreateAsync(new IdentityRole("Administrator")).Result;
 
             //Create the default Admin account and apply the Administrator role
-            string userName = (string)Global.CoreConfig["coreConfig"]["webDefaultUsername"];
-            string userEmail = (string)Global.CoreConfig["coreConfig"]["webDefaultUserEmail"];
-            string userPassword = (string)Global.CoreConfig["coreConfig"]["webDefaultPassword"];
+            string userName = Global.Configuration.SystemOptions.DefaultUserName;
+            string userEmail = Global.Configuration.SystemOptions.DefaultUserEmail;
+            string userPassword = Global.Configuration.SystemOptions.DefaultUserPassword;
 
-            var user = await _userManager.FindByNameAsync(userEmail);
+            var user = _userManager.FindByNameAsync(userEmail).Result;
+
             if (user == null)
             {
                 //Like on registration UserName is userEmail
-                var userCreated = new ApplicationUser { UserName = userEmail, Email = userEmail, EmailConfirmed = true, AccountEnabled = true};
-                var resultCreateAsync = await _userManager.CreateAsync(userCreated, userPassword);
-                var resultAddToRoleAsync = await _userManager.AddToRoleAsync(await _userManager.FindByEmailAsync(userEmail), "Administrator");
+                var userCreated = new ApplicationUser { UserName = userEmail, Email = userEmail, EmailConfirmed = true, AccountEnabled = true };
+                var resultCreateAsync = _userManager.CreateAsync(userCreated, userPassword).Result;
+                var resultAddToRoleAsync = _userManager.AddToRoleAsync(_userManager.FindByEmailAsync(userEmail).Result, "Administrator").Result;
             }
             else
             {
-                var resultDeletePassword = await _userManager.RemovePasswordAsync(user);
-                var resultResetPassword = await _userManager.AddPasswordAsync(user, userPassword);
+                var resultDeletePassword = _userManager.RemovePasswordAsync(user).Result;
+                var resultResetPassword = _userManager.AddPasswordAsync(user, userPassword).Result;
             }
         }
     }
