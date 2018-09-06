@@ -67,21 +67,16 @@ namespace MachinaTrader.Data.MongoDB
 
         public async Task<List<Candle>> GetBacktestCandlesBetweenTime(BacktestOptions backtestOptions)
         {
-            try
-            {
-                IMongoCollection<CandleAdapter> candleCollection = DataStoreBacktest.GetInstance(MongoDbBaseName + backtestOptions.CandlePeriod).GetTable<CandleAdapter>(backtestOptions.Exchange + "_" + backtestOptions.Coin);
-                List<CandleAdapter> candles = await candleCollection.Find(entry => entry.Timestamp >= backtestOptions.StartDate && entry.Timestamp <= backtestOptions.EndDate).ToListAsync();
+            var results = new List<Candle>();
+
+            IMongoCollection<CandleAdapter> candleCollection = DataStoreBacktest.GetInstance(MongoDbBaseName + backtestOptions.CandlePeriod).GetTable<CandleAdapter>(backtestOptions.Exchange + "_" + backtestOptions.Coin);
+            List<CandleAdapter> candles = await candleCollection.Find(entry => entry.Timestamp >= backtestOptions.StartDate && entry.Timestamp <= backtestOptions.EndDate).ToListAsync();
 
 #warning TODO: Sort operation used more than the maximum 33554432 bytes of RAM. Add an index, or specify a smaller limit=> temporarly order by LINQ
 
-                var items = Mapping.Mapper.Map<List<Candle>>(candles).OrderBy(c=>c.Timestamp).ToList();
-                return items;
-            }
-            catch (Exception ex)
-            {
-                Global.Logger.Error(ex.ToString());
-                throw;
-            }
+            results = Mapping.Mapper.Map<List<Candle>>(candles).OrderBy(c => c.Timestamp).ToList();
+
+            return results;
         }
 
         public async Task<Candle> GetBacktestFirstCandle(BacktestOptions backtestOptions)
@@ -117,6 +112,7 @@ namespace MachinaTrader.Data.MongoDB
                 IAsyncCursor<CandleAdapter> checkData = await candleCollection.FindAsync(x => x.Timestamp.Equals(item.Timestamp), marketCandleFindOptions);
                 if (await checkData.FirstOrDefaultAsync() == null)
                 {
+
                     await candleCollection.InsertOneAsync(item);
                 }
             }
@@ -151,7 +147,12 @@ namespace MachinaTrader.Data.MongoDB
             dbList.DropCollection(backtestOptions.Exchange + "_" + backtestOptions.Coin);
         }
 
-
+        public async Task DeleteBacktestCandles(BacktestOptions backtestOptions)
+        {
+            IMongoCollection<CandleAdapter> candleCollection = DataStoreBacktest.GetInstance(MongoDbBaseName + backtestOptions.CandlePeriod).GetTable<CandleAdapter>(backtestOptions.Exchange + "_" + backtestOptions.Coin);
+            await candleCollection.DeleteManyAsync(entry => entry.Timestamp >= backtestOptions.StartDate && entry.Timestamp <= backtestOptions.EndDate);
+        }
+        
         public async Task SaveBacktestTradeSignalsBulk(List<TradeSignal> signals, BacktestOptions backtestOptions)
         {
             var items = Mapping.Mapper.Map<List<TradeSignalAdapter>>(signals);

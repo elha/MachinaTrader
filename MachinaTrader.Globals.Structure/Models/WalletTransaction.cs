@@ -4,7 +4,12 @@ namespace MachinaTrader.Globals.Structure.Models
 {
     public class WalletTransaction
     {
-        public Guid Id { get; set; }
+        public WalletTransaction()
+        {
+            Id = Guid.NewGuid();
+        }
+
+        public Guid Id { get; }
 
         public DateTime Date { get; set; }
 

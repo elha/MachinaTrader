@@ -296,12 +296,12 @@ namespace MachinaTrader.Exchanges
         {
             IEnumerable<MarketCandle> tickers = new List<MarketCandle>();
 
-            int k = 1;
+            int k = 9;
 
             if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
-                k = 19;
+                k = 9;
 
-            while (tickers.Count() <= 0 && k < 20)
+            while (tickers.Count() <= 0 && k < 10)
             {
                 k++;
                 try
@@ -346,7 +346,7 @@ namespace MachinaTrader.Exchanges
                 }
             }
 
-            candles = await candles.FillCandleGaps(period);
+            //candles = await candles.FillCandleGaps(period);
 
             return candles.OrderBy(x => x.Timestamp).ToList();
         }

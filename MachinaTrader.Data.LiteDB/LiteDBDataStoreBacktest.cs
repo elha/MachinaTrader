@@ -13,7 +13,6 @@ using LiteDB;
 
 namespace MachinaTrader.Data.LiteDB
 {
-
     public class LiteDbDataStoreBacktest : IDataStoreBacktest
     {
         private LiteDatabase _database;
@@ -94,7 +93,6 @@ namespace MachinaTrader.Data.LiteDB
                 Global.Logger.Error(ex.ToString());
                 throw;
             }
-
         }
 
         public async Task<Candle> GetBacktestFirstCandle(BacktestOptions backtestOptions)
@@ -152,6 +150,13 @@ namespace MachinaTrader.Data.LiteDB
         {
             List<string> allDatabaseFiles = Directory.GetFiles(backtestOptions.DataFolder, "*.db", SearchOption.TopDirectoryOnly).ToList();
             return allDatabaseFiles;
+        }
+
+        public async Task DeleteBacktestCandles(BacktestOptions backtestOptions)
+        {
+            LiteCollection<CandleAdapter> candleCollection = DataStoreBacktest.GetInstance(GetDatabase(backtestOptions)).GetTable<CandleAdapter>("Candle_" + backtestOptions.CandlePeriod);
+            candleCollection.EnsureIndex("Timestamp");
+            candleCollection.Delete(Query.Between("Timestamp", backtestOptions.StartDate, backtestOptions.EndDate, true, true));
         }
 
         public async Task DeleteBacktestDatabase(BacktestOptions backtestOptions)

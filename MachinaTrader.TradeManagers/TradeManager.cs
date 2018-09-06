@@ -49,6 +49,10 @@ namespace MachinaTrader.TradeManagers
         /// <returns></returns>
         public async Task CancelUnboughtOrders(Trade trade)
         {
+            //in simulation all order are filled
+            if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+                return;
+
             //Global.Logger.Information($"Starting CancelUnboughtOrders");
             if ((trade.OpenDate.AddSeconds(Global.Configuration.TradeOptions.MaxOpenTimeBuy) > DateTime.UtcNow))
             {
@@ -883,12 +887,25 @@ namespace MachinaTrader.TradeManagers
 
         private async Task SendNotification(string message)
         {
-            //Global.Logger.Information(message);
+            Global.Logger.Debug(message);
+
             if (Global.NotificationManagers != null)
             {
                 foreach (var notificationManager in Global.NotificationManagers)
                 {
                     notificationManager.SendNotification(message);
+
+                    //if (notificationManager is SignalrNotificationManager)
+                    //{
+                    //    notificationManager.SendNotification(message);
+                    //}
+                    //else
+                    //{
+                    //    if (!Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
+                    //    {
+                    //        notificationManager.SendNotification(message);
+                    //    }
+                    //}
                 }
             }
         }
