@@ -1,4 +1,4 @@
-﻿using AspNetCore.Identity.LiteDB.Data;
+using AspNetCore.Identity.LiteDB.Data;
 using AspNetCore.Identity.LiteDB.Models;
 using LiteDB;
 using Microsoft.AspNetCore.Identity;
@@ -14,6 +14,7 @@ namespace AspNetCore.Identity.LiteDB
     public class LiteDbUserStore<TUser> : IUserStore<TUser>,
         IUserLoginStore<TUser>,
         IUserPasswordStore<TUser>,
+        IUserRoleStore<TUser>,
         IUserClaimStore<TUser>,
         IUserSecurityStampStore<TUser>,
         IUserTwoFactorStore<TUser>,
@@ -328,6 +329,39 @@ namespace AspNetCore.Identity.LiteDB
             return Task.FromResult(user.PasswordHash != null);
         }
         #endregion
+
+
+        #region IUserRoleStore
+
+        public Task AddToRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
+        {
+            user.AddRole(roleName);
+            return Task.FromResult(0);
+        }
+
+        public Task RemoveFromRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
+        {
+            user.RemoveRole(roleName);
+            return Task.FromResult(0);
+        }
+
+        public Task<IList<string>> GetRolesAsync(TUser user, CancellationToken cancellationToken)
+        {
+            return Task.FromResult((IList<string>)user.Roles);
+        }
+
+
+        public Task<bool> IsInRoleAsync(TUser user, string roleName, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(user.Roles.Contains(roleName));
+        }
+
+        public Task<IList<TUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
+        {
+            return Task.FromResult((IList<TUser>)_users.FindAll().Where(u => u.Roles.Contains(roleName)).ToList());
+        }
+        #endregion
+
 
         #region IUserClaimStore
         public Task<IList<Claim>> GetClaimsAsync(TUser user, CancellationToken cancellationToken = default(CancellationToken))
