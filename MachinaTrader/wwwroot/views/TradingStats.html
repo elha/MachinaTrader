@@ -88,92 +88,98 @@
     }
 </style>
 
-<div class="animated fadeIn" id="statistics" v-if="performanceData && statisticsData && walletData">
-    <div class="row">
-        <div class="col-10">
-            <h1 class="">Performance</h1>
+<div class="animated fadeIn" id="statistics" v-if="overviewData && performanceData && statisticsData">
+    <!-- Performance on first run -->
+    <div class="row animated fadeIn">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fab fa-btc"></i><span id="tourName">Performance</span>
+                    <div class="card-actions">
+                        <a href="#" class="btn btn-success" data-widget="collapse" v-on:click="updateData"><i class="fal fa-sync-alt"></i></a>
+                    </div>
+                </div>
+                <!--<div class="row card-body-header">
+                </div>-->
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Quotecurrency -->
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="card text-white bg-primary ">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h4 class="card-title">Quote Currency</h4>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h4 class="card-title">{{performanceData.tradeOptions.quoteCurrency}}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="card text-white bg-info ">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h4 class="card-title">Start amount</h4>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h4 class="card-title">{{performanceData.tradeOptions.startAmount}} {{performanceData.tradeOptions.quoteCurrency}}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="card text-white bg-success ">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h4 class="card-title">Current balance</h4>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h4 class="card-title">{{parseFloat(performanceData.stat.currentBalance).toFixed(7)}} {{performanceData.tradeOptions.quoteCurrency}} ({{parseFloat(performanceData.stat.currentBalancePerformance).toFixed(4)}}%)</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <div class="card text-white bg-warning ">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h4 class="card-title">Used Stategy</h4>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h4 class="card-title">{{performanceData.tradeOptions.defaultStrategy}}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <canvas id="canvasOverview" height="400"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <div class="col-2">
-            <button type="button" class="btn btn-success" style="width: 100%;" id="startButton" v-on:click="updateData">Refresh</button>
-        </div>
-    </div>
-    <br/>
-    <div class="row">
-        <!-- Quotecurrency -->
-        <div class="col-lg-3 col-md-3 col-sm-3">
-            <div class="card text-white bg-primary ">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">Quote Currency</h4>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">{{performanceData.tradeOptions.quoteCurrency}}</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-3 col-sm-3">
-            <div class="card text-white bg-info ">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">Start amount</h4>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">{{performanceData.tradeOptions.startAmount}} {{performanceData.tradeOptions.quoteCurrency}}</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-3 col-sm-3">
-            <div class="card text-white bg-success ">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">Current balance</h4>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">{{parseFloat(statisticsData.stat.currentBalance).toFixed(7)}} {{performanceData.tradeOptions.quoteCurrency}} ({{parseFloat(statisticsData.stat.currentBalancePerformance).toFixed(4)}}%)</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-3 col-sm-3">
-            <div class="card text-white bg-warning ">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">Used Stategy</h4>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h4 class="card-title">{{performanceData.tradeOptions.defaultStrategy}}</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="animated fadeIn">
-        <div class="row">
-            <div class="col-md-12">
-                <canvas id="canvasOverview" height="200"></canvas>
-            </div>
-        </div>
-    </div>
 
 
 
@@ -182,12 +188,10 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <i class="fab fa-btc"></i><span id="tourName">Performance</span>
-
-                    <!--<div class="card-actions">
-                        <a href="#" class="btn-minimize" data-widget="collapse"><i class="fal fa-angle-up"></i></a>
-                        <a href="#" class="btn-close" data-widget="remove"><i class="fal fa-times-circle"></i></a>
-                    </div>-->
+                    <i class="fab fa-btc"></i><span id="tourName">Performance on date</span>
+                    <div class="card-actions">
+                        <a href="#" class="btn btn-success" data-widget="collapse" v-on:click="updateData"><i class="fal fa-sync-alt"></i></a>
+                    </div>
                 </div>
                 <div class="row card-body-header">
 
@@ -266,15 +270,13 @@
             </div>
         </div>
     </div>
-
-
 </div>
 
 
 <div class="animated fadeIn">
     <div class="row">
         <div class="col-md-12">
-            <canvas id="canvasWallet"></canvas>
+            <canvas id="canvasWallet" height="400"></canvas>
         </div>
     </div>
 </div>
@@ -402,7 +404,6 @@
                 }
             ]
         });
-
     }
 
     var statistics = new Vue({
@@ -481,7 +482,7 @@
                         self.statisticsData = stat;
                         $.get('/api/statistics/wallet', function (wallet) {
                             self.walletData = wallet;
-                            $.get('/api/statistics/overview?mode=paper', function (overview) {
+                            $.get('/api/statistics/overviewChart?mode=' + $("#modeSelect").val() + '&includeStartAmount=' + true, function (overview) {
                                 self.overviewData = overview;
                                 self.$nextTick(function () {
                                     initDtCoinPerform();
@@ -502,7 +503,7 @@
                         self.statisticsData = stat;
                         $.get('/api/statistics/wallet', function (wallet) {
                             self.walletData = wallet;
-                            $.get('/api/statistics/overview?mode=' + $("#modeSelect").val(), function (overview) {
+                            $.get('/api/statistics/overviewChart?mode=' + $("#modeSelect").val() + '&includeStartAmount=' + true, function (overview) {
                                 self.overviewData = overview;
                                 self.drawChart();
                             });
@@ -515,14 +516,14 @@
             drawChart: function() {
                 var self = this;
                 var arrWallet = jQuery.map(self.walletData.stat.dates, function (value, i) {
-                    return (moment(value).format("YYYY-MM-DD HH:mm:ss"));
+                    return (moment(value).format("YYYY-MM-DD"));
                 });
 
                 var configWallet = {
                     type: 'line',
                     data: {
                         datasets: [{
-                            label: 'Balances',
+                            label: 'Wallet Simulation',
                             backgroundColor: '#fff',
                             borderColor: 'rgba(220, 220, 220, 1)',
                             pointBackgroundColor: 'rgba(220, 220, 220, 1)',
@@ -532,15 +533,28 @@
                         labels: arrWallet
                     },
                     options: {
-                        responsive: true
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        tooltips: {
+                            callbacks: {
+                                label: function (tooltipItem, data) {
+                                    var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += tooltipItem.yLabel.toFixed(6);
+                                    return label;
+                                }
+                            }
+                        }
                     }
                 };
-
                 var chartWallet = new Chart($('#canvasWallet'), configWallet);
-        
-                var arrOverview = jQuery.map(self.overviewData.stat.dates,
-                    function(value, i) {
-                        return (moment(value).format("YYYY-MM-DD HH:mm:ss"));
+
+
+                var arrOverview = jQuery.map(self.overviewData.stat.dates, function(value, i) {
+                        return (moment(value).format("DD.MM.YY"));
                     });
 
                 var configOverview = {
@@ -548,12 +562,28 @@
                     data: {
                         datasets: [
                             {
-                                label: 'Balances',
-                                backgroundColor: 'rgba(220, 220, 220, 0.2)',
-                                borderColor: 'rgba(220, 220, 220, 1)',
-                                pointBackgroundColor: 'rgba(220, 220, 220, 1)',
-                                pointBorderColor: '#fff',
+                                label: 'Balance in BTC',
+                                backgroundColor: 'rgba(0, 21, 184, 0.68)',
+                                borderColor: 'rgba(0, 21, 184, 0.68)',
+                                pointBackgroundColor: 'rgba(0, 21, 184, 0.68)',
+                                pointBorderColor: 'rgba(0, 21, 184, 0.68)',
                                 data: self.overviewData.stat.balances
+                            },
+                            {
+                                label: 'Positive trades',
+                                backgroundColor: 'rgba(0, 255, 47, 0.2)',
+                                borderColor: 'rgba(0, 255, 47, 0.2)',
+                                pointBackgroundColor: 'rgba(0, 255, 47, 0.2)',
+                                pointBorderColor: 'rgba(0, 255, 47, 0.2)',
+                                data: self.overviewData.stat.positiveTrades
+                            },
+                            {
+                                label: 'Negative trades',
+                                backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                                borderColor: 'rgba(255, 0, 0, 0.2)',
+                                pointBackgroundColor: 'rgba(255, 0, 0, 0.2)',
+                                pointBorderColor: 'rgba(255, 0, 0, 0.2)',
+                                data: self.overviewData.stat.negativeTrades
                             }
                         ],
                         labels: arrOverview
@@ -561,9 +591,29 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        tooltips: {
+                            callbacks: {
+                                label: function (tooltipItem, data) {
+                                    var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if ([tooltipItem.datasetIndex] == 0) {
+                                        label += tooltipItem.yLabel.toFixed(6);
+                                    }
+                                    if ([tooltipItem.datasetIndex] == 1) {
+                                        label += tooltipItem.yLabel.toFixed(0);
+                                    }
+                                    if ([tooltipItem.datasetIndex] == 2) {
+                                        label += tooltipItem.yLabel.toFixed(0);
+                                    }
+                                    return [label];
+                                }
+                            }
+                        }
                     }
                 };
-
                 var chartOverview = new Chart($('#canvasOverview'), configOverview);
             }
         }

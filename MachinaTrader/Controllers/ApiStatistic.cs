@@ -69,7 +69,7 @@ namespace MachinaTrader.Controllers
                 stat.InvestedCoinsPerformance = ((tradeOptions.StartAmount * stat.ProfitLoss) / 100) * 100;
             }
 
-            // Coin performance
+             // Coin performance
             stat.CoinPerformances = coins;
 
             // Trades amount
@@ -93,7 +93,7 @@ namespace MachinaTrader.Controllers
         public async Task<IActionResult> StatisticsChart(string mode = "paper", bool includeStartAmount = false, DateTime? fromDate = null, DateTime? toDate = null)
         {
             // Chart Model
-            var stat = new WalletStatistic();
+            var stat = new StatisticChart();
 
             var tradeOptions = Global.Configuration.TradeOptions;
 
@@ -114,7 +114,7 @@ namespace MachinaTrader.Controllers
 
             // Get first trade date
             var tradesClean = closedTradesClean.ToList();
-            var firstTradeDate = tradesClean.Select(x => x.CloseDate).Max();
+            var firstTradeDate = tradesClean.Select(x => x.CloseDate).Min();
 
             // include start amount
             decimal balance = 0;
@@ -123,18 +123,32 @@ namespace MachinaTrader.Controllers
 
             // iterate through dates and calculate balance
             var balances = new List<decimal>();
+            var positiveT = new List<decimal>();
+            var negativeT = new List<decimal>();
 
             // Generate all dates & balances
             stat.Dates = new List<DateTime>();
             if (firstTradeDate != null)
                 for (var dt = firstTradeDate.Value; dt <= DateTime.Today; dt = dt.AddDays(1))
                 {
+                    // add dates
                     stat.Dates.Add(dt);
-                    var trades = tradesClean.Where(t => t.CloseDate != null && t.CloseDate.Value.Date == dt.Date).Sum(x => x.CloseProfit);
-                    if (trades != null) balance += trades.Value;
+
+                    // Get trades
+                    var trades = tradesClean.Where(t => t.CloseDate != null && t.CloseDate.Value.Date == dt.Date);
+                    var posT = trades.Count(t => t.CloseProfit > 0);
+                    positiveT.Add(posT);
+                    var negT = trades.Count(t => t.CloseProfit < 0);
+                    negativeT.Add(negT * -1);
+
+                    // Get balances
+                    var sumTrades = trades.Sum(x => x.CloseProfit);
+                    if (sumTrades != null) balance += sumTrades.Value;
                     balances.Add(balance);
                 }
-            
+
+            stat.NegativeTrades = negativeT;
+            stat.PositiveTrades = positiveT;
             stat.Balances = balances;
             ViewBag.stat = stat;
 

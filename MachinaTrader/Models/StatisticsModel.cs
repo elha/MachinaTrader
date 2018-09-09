@@ -28,6 +28,14 @@ namespace MachinaTrader.Models
         public int? NegativeTrades { get; set; }
     }
 
+    public class StatisticChart
+    {
+        public List<DateTime> Dates { get; set; }
+        public List<decimal> Amounts { get; set; }
+        public List<decimal> Balances { get; set; }
+        public List<decimal> PositiveTrades { get; set; }
+        public List<decimal> NegativeTrades { get; set; }
+    }
     public class WalletStatistic
     {
         public List<DateTime> Dates { get; set; }

@@ -87,40 +87,46 @@ namespace MachinaTrader.Controllers
 
                             // Calculate special market USD, EUR, BTC
                             if (balanceEntry.Market.ToUpper().Contains("USD") ||
-                                balanceEntry.Market.ToUpper().Contains("EUR") ||
-                                balanceEntry.Market.ToUpper().Contains("BTC"))
-                            {
-                                if (balanceEntry.Market.ToUpper().Contains("USD"))
+                                    balanceEntry.Market.ToUpper().Contains("EUR") ||
+                                    balanceEntry.Market.ToUpper().Contains("BTC"))
                                 {
-                                    balanceEntry.BalanceInUsd = balance.Value;
-                                    balanceEntry.BalanceInBtc = balanceEntry.BalanceInUsd * usdToBtcTicker.Value.Last;
-                                }
+                                    if (balanceEntry.Market.ToUpper().Contains("USD"))
+                                    {
+                                        balanceEntry.BalanceInUsd = balance.Value;
+                                        balanceEntry.BalanceInBtc = balanceEntry.BalanceInUsd * usdToBtcTicker.Value.Last;
+                                    }
 
-                                if (balanceEntry.Market.ToUpper().Contains("EUR"))
+                                    if (balanceEntry.Market.ToUpper().Contains("EUR"))
+                                    {
+                                        var t = "";
+                                    }
+
+                                    if (balanceEntry.Market.ToUpper().Contains("BTC"))
+                                    {
+                                        balanceEntry.BalanceInBtc = balance.Value;
+                                        balanceEntry.BalanceInUsd = balanceEntry.BalanceInBtc * btcToUsdTicker.Value.Last;
+                                    }
+
+                                    if (tickerDisplayCurrency.Count >= 1)
+                                        balanceEntry.BalanceInDisplayCurrency =
+                                            balanceEntry.BalanceInBtc * dcTicker.Value.Last;
+                                }
+                                // Calculate cryptos without btc
+                                else
                                 {
-                                    var t = "";
+                                    if (ticker.Count >= 1)
+                                    {
+                                        balanceEntry.BalanceInBtc = (balance.Value * ticker[0].Value.Last);
+                                        balanceEntry.BalanceInUsd = balanceEntry.BalanceInBtc * btcToUsdTicker.Value.Last;
+                                        if (tickerDisplayCurrency.Count >= 1)
+                                            balanceEntry.BalanceInDisplayCurrency =
+                                                balanceEntry.BalanceInBtc * dcTicker.Value.Last;
+                                    }
+                                    else
+                                    {
+                                        Global.Logger.Error("Api has problem to find valid ticker for: " + balance.Key);
+                                    }
                                 }
-
-                                if (balanceEntry.Market.ToUpper().Contains("BTC"))
-                                {
-                                    balanceEntry.BalanceInBtc = balance.Value;
-                                    balanceEntry.BalanceInUsd = balanceEntry.BalanceInBtc * btcToUsdTicker.Value.Last;
-                                }
-
-                                if (tickerDisplayCurrency.Count >= 1)
-                                    balanceEntry.BalanceInDisplayCurrency =
-                                        balanceEntry.BalanceInBtc * dcTicker.Value.Last;
-                            }
-                            // Calculate cryptos without btc
-                            else
-                            {
-                                balanceEntry.BalanceInBtc = (balance.Value * ticker[0].Value.Last);
-                                balanceEntry.BalanceInUsd = balanceEntry.BalanceInBtc * btcToUsdTicker.Value.Last;
-                                if (tickerDisplayCurrency.Count >= 1)
-                                    balanceEntry.BalanceInDisplayCurrency =
-                                        balanceEntry.BalanceInBtc * dcTicker.Value.Last;
-                            }
-
                             // Add to list
                             account.Add(balanceEntry);
                         }
