@@ -2012,7 +2012,7 @@ $(function () {
             tooltip: 'Fullscreen'       //tooltip text, If you want to disable tooltip, set it to false
         },
         changeStyle: {
-            icon: 'fal fa-edit', //icon is shown when card is not on full screen
+            icon: 'fal fa-palette', //icon is shown when card is not on full screen
             tooltip: 'Style'       //tooltip text, If you want to disable tooltip, set it to false
         },
         close: {

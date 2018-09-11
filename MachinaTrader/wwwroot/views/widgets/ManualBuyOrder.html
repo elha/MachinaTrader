@@ -1,5 +1,5 @@
 <div id="widgetManualBuyOrder" class="col-md-6">
-    <div class="card">
+    <div class="card" data-stateful="true" data-inner-id="widgetManualBuyOrder" data-sortable="true">
         <div class="card-header">
             <div class="card-title">
                 <i class="fab fa-btc"></i>Manual Buy
@@ -23,7 +23,7 @@
                 </div>
                 <div class="col-8">
                     <div class="input-group">
-                        <select name="display" id="currencySelector" class="select2" data-live-search="true" data-size="10" data-width="auto">
+                        <select name="manualBuyCurrency" id="currencySelector" class="select2" data-live-search="true" data-size="10" data-width="auto">
                             <option v-for="(value, key) in exchangeCoinsData" v-bind:value="value" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{value}}</option>
                         </select>
                     </div>
@@ -55,8 +55,8 @@
                 </div>
                 <div class="col-8">
                     <div class="input-group">
-                        <input type="text" v-if="!currentCurrencyAsk" class="form-control" value="">
-                        <input type="text" v-if="currentCurrencyAsk" class="form-control" v-model="currentCurrencyAskManual" :value="currentCurrencyAskManual">
+                        <input type="text" name="manualBuyPrice" v-if="!currentCurrencyAsk" class="form-control float" value="">
+                        <input type="text" name="manualBuyPrice" v-if="currentCurrencyAsk" class="form-control float" v-model="currentCurrencyAskManual" :value="currentCurrencyAskManual">
                         <span class="input-group-append">
                             BTC
                         </span>
@@ -70,8 +70,8 @@
                 </div>
                 <div class="col-8">
                     <div class="input-group">
-                        <input type="text" v-if="!currentCurrencyAsk" class="form-control" value="">
-                        <input type="text" v-if="currentCurrencyAsk" class="form-control" :value="((apiMainConfigData.tradeOptions.amountToInvestPerTrader/currentCurrencyAskManual).toFixed(8))">
+                        <input type="text" name="manualBuyAmount" v-if="!currentCurrencyAsk" class="form-control float" value="">
+                        <input type="text" name="manualBuyAmount" v-if="currentCurrencyAsk" class="form-control float" :value="((apiMainConfigData.tradeOptions.amountToInvestPerTrader/currentCurrencyAskManual).toFixed(8))">
                         <span class="input-group-append">COIN</span>
                     </div>
                 </div>
@@ -89,7 +89,8 @@
                     </div>
                     <div class="col-8">
                         <div class="input-group">
-                            <input type="text" id="manualBuyOrderPercentageProfit" name="manualBuyOrderPercentageProfit" class="form-control">
+                            <input type="text" id="manualBuyOrderPercentageProfit" name="manualBuyOrderPercentageProfit" class="form-control float">
+                            <span class="input-group-append">%</span>
                         </div>
                     </div>
                 </div>
@@ -101,7 +102,7 @@
                     </div>
                     <div class="col-8">
                         <div class="input-group">
-                            <input type="text" id="manualBuyOrderSellPrice" name="manualBuyOrderSellPrice" class="form-control">
+                            <input type="text" id="manualBuyOrderSellPrice" name="manualBuyOrderSellPrice" class="form-control float">
                             <span class="input-group-append">
                                 BTC
                             </span>
@@ -126,7 +127,7 @@
                         <strong>Trailing buy percentage</strong>
                     </div>
                     <div class="col-8">
-                        <input type="text" id="manualBuyOrderTrailingPercentage" name="manualBuyOrderTrailingPercentage" class="form-control" value="">
+                        <input type="text" id="manualBuyOrderTrailingPercentage" name="manualBuyOrderTrailingPercentage" class="form-control float" value="">
                     </div>
                 </div>
 
@@ -140,7 +141,7 @@
                 </div>
                 <div class="col-8">
                     <div class="input-group">
-                        <input type="text" class="form-control" v-model="apiMainConfigData.tradeOptions.amountToInvestPerTrader" :value="apiMainConfigData.tradeOptions.amountToInvestPerTrader">
+                        <input type="text" class="form-control float" name="manualBuyOrderTotal" v-model="apiMainConfigData.tradeOptions.amountToInvestPerTrader" :value="apiMainConfigData.tradeOptions.amountToInvestPerTrader">
                         <span class="input-group-append">
                             BTC
                         </span>
@@ -149,7 +150,7 @@
             </div>
 
             <br />
-            <button type="button" v-if="apiMainConfigData.tradeOptions.buyEnabled" onclick="placeBuyOrder()" class="btn btn-primary btn-block">Place buy order</button>
+            <button type="button" v-if="apiMainConfigData.tradeOptions.buyEnabled" v-on:click="serializeForm()" class="btn btn-primary btn-block">Place buy order</button>
             <button type="button" v-if="!apiMainConfigData.tradeOptions.buyEnabled" class="btn btn-danger btn-block">Buying disabled</button>
 
         </div>
@@ -163,18 +164,6 @@
     function toggleDiv(divId) {
         $("#" + divId).toggle();
     }
-
-    var pagefunction = function () {
-        $(".select2").select2({
-            theme: "bootstrap",
-            width: "100%"
-        });
-
-        $('#currencySelector').change(function () {
-            widgetManualBuyOrder.getTicker();
-        });
-
-    };
 
     var widgetManualBuyOrder = new Vue({
         el: '#widgetManualBuyOrder',
@@ -197,7 +186,7 @@
 
         methods: {
             serializeForm: function () {
-                postFormData("apiMainConfig", "/api/config/mainConfig", false);
+                postFormData("widgetManualBuyOrder", "/api/trading/manualBuy", false);
             },
             isBool: function (data) {
                 if ((typeof (data) === "boolean")) {
@@ -224,7 +213,14 @@
                     $.get('/api/trading/exchangePairsExchangeSymbols?exchange=Binance', function (data) {
                         self.exchangeCoinsData = data;
                         self.$nextTick(function () {
-                            pagefunction();
+                            $(".select2").select2({
+                                theme: "bootstrap",
+                                width: "100%"
+                            });
+
+                            $('#currencySelector').change(function () {
+                                widgetManualBuyOrder.getTicker();
+                            });
                         });
                     });
                 });
