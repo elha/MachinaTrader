@@ -444,24 +444,7 @@ namespace MachinaTrader.TradeManagers
                 return;
             }
 
-            var trade = await CreateBuyOrder(signal, strategy);
-
-            // We found a trade and have set it all up!
-            if (trade != null)
-            {
-                // Save the order.
-                await Global.DataStore.SaveTradeAsync(trade);
-
-                //money area unavailable from wallet immediately
-                await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction()
-                {
-                    Amount = -(trade.OpenRate * trade.Quantity),
-                    Date = trade.OpenDate
-                });
-
-                // Send a notification that we found something suitable
-                await SendNotification($"Saved a BUY ORDER for: {this.TradeToString(trade)}");
-            }
+            await CreateBuyOrder(signal, strategy);
         }
 
         /// <summary>
@@ -471,15 +454,21 @@ namespace MachinaTrader.TradeManagers
         /// <param name="signalCandle"></param>
         /// <param name="strategy"></param>
         /// <returns></returns>
-        private async Task<Trade> CreateBuyOrder(TradeSignal signal, ITradingStrategy strategy)
+        private async Task CreateBuyOrder(TradeSignal signal, ITradingStrategy strategy)
         {
             var pair = signal.MarketName;
             var signalCandle = signal.SignalCandle;
 
+            string strategyName = "Unknown";
+            if (strategy != null)
+            {
+                strategyName = strategy.Name;
+            }
+
             // Take the amount to invest per trader OR the current balance for this trader.
             var fichesToSpend = Global.Configuration.TradeOptions.AmountToInvestPerTrader;
 
-            if (Global.Configuration.TradeOptions.ProfitStrategy == ProfitType.Reinvest)
+            if (Global.Configuration.TradeOptions.ProfitStrategy == ProfitType.Reinvest && !Global.Configuration.TradeOptions.PaperTrade)
             {
                 var exchangeQuoteBalance = Global.ExchangeApi.GetBalance(signal.QuoteCurrency).Result.Available;
                 fichesToSpend = exchangeQuoteBalance * Global.Configuration.TradeOptions.AmountToReinvestPercentage / 100;
@@ -497,7 +486,7 @@ namespace MachinaTrader.TradeManagers
             if (orderId == null)
             {
                 Global.Logger.Error($"Error to open a BUY Order for: {pair} {amount} {openRate}");
-                return null;
+                return;
             }
 
             var fullApi = await Global.ExchangeApi.GetFullApi();
@@ -516,7 +505,7 @@ namespace MachinaTrader.TradeManagers
                 IsOpen = true,
                 IsBuying = true,
                 IsSelling = false,
-                StrategyUsed = strategy.Name,
+                StrategyUsed = strategyName,
                 SellType = SellType.None,
                 TickerLast = ticker,
                 GlobalSymbol = symbol,
@@ -532,7 +521,103 @@ namespace MachinaTrader.TradeManagers
 
             //Global.Logger.Information($"Opened a BUY Order for: {this.TradeToString(trade)}");
 
-            return trade;
+            // Save the order.
+            await Global.DataStore.SaveTradeAsync(trade);
+
+            //money area unavailable from wallet immediately
+            await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction()
+            {
+                Amount = -(trade.OpenRate * trade.Quantity),
+                Date = trade.OpenDate
+            });
+
+            // Send a notification that we found something suitable
+            await SendNotification($"Saved a BUY ORDER for: {this.TradeToString(trade)}");
+        }
+
+
+        /// <summary>
+        /// Creates a buy order on the exchange.
+        /// </summary>
+        /// <param name="trade"></param>
+        /// <returns></returns>
+        public async Task CreateTradeOrder(Trade trade)
+        {
+            string globalExchangeCurrency = await Global.ExchangeApi.ExchangeCurrencyToGlobalCurrency(trade.Market);
+            string[] globalExchangeCurrencyArray = globalExchangeCurrency.Split(new string[] { "-" }, StringSplitOptions.None);
+
+            if (Global.Configuration.TradeOptions.ProfitStrategy == ProfitType.Reinvest && !Global.Configuration.TradeOptions.PaperTrade)
+            {
+                string quoteCurrency = trade.GlobalSymbol.ToString();
+                var test = quoteCurrency.Split(new string[] { "-" }, StringSplitOptions.None);
+                var exchangeQuoteBalance = Global.ExchangeApi.GetBalance(globalExchangeCurrencyArray[0]).Result.Available;
+            }
+
+            // The amount here is an indication and will probably not be precisely what you get.
+            var ticker = await Global.ExchangeApi.GetTicker(trade.Market);
+            var lastCandleHistory = await Global.ExchangeApi.GetTickerHistory(trade.Market, Period.Minute, DateTime.UtcNow.AddMinutes(-5));
+            Candle lastCandle = lastCandleHistory.LastOrDefault();
+
+            var openRate = GetTargetBid(ticker, lastCandle);
+
+            if (openRate < trade.OpenRate)
+            {
+                Global.Logger.Information($"Entered buy price is too high: {trade.OpenRate} - Set price based on your BuyInPriceStrategy: {openRate}");
+                trade.OpenRate = openRate;
+            }
+
+            var amount = trade.StakeAmount / trade.OpenRate;
+
+            var orderId = Global.Configuration.TradeOptions.PaperTrade ? GetOrderId() : await Global.ExchangeApi.Buy(trade.Market, amount, trade.OpenRate);
+
+            if (orderId == null)
+            {
+                Global.Logger.Error($"Error to open a BUY Order for: {trade.Market} {amount} {trade.OpenRate}");
+                return;
+            }
+
+            var fullApi = await Global.ExchangeApi.GetFullApi();
+
+            trade = new Trade()
+            {
+                Market = trade.Market,
+                StakeAmount = amount,
+                OpenRate = trade.OpenRate,
+                OpenDate = DateTime.UtcNow,
+                Quantity = trade.Quantity,
+                OpenOrderId = orderId,
+                BuyOrderId = orderId,
+                SellOrderId = null,
+                IsOpen = true,
+                IsBuying = true,
+                IsSelling = false,
+                StrategyUsed = "Manually",
+                SellType = SellType.None,
+                TickerLast = ticker,
+                SellOnPercentage = trade.SellOnPercentage,
+                GlobalSymbol = globalExchangeCurrency,
+                Exchange = fullApi.Name,
+                PaperTrade = Global.Configuration.TradeOptions.PaperTrade
+            };
+
+            if (Global.Configuration.TradeOptions.PlaceFirstStopAtSignalCandleLow)
+            {
+                trade.StopLossRate = lastCandle.Low;
+                Global.Logger.Information("Automatic stop set at signal candle low {Low}", lastCandle.Low.ToString("0.00000000"));
+            }
+
+            // Save the order.
+            await Global.DataStore.SaveTradeAsync(trade);
+
+            //money area unavailable from wallet immediately
+            await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction()
+            {
+                Amount = -(trade.OpenRate * trade.Quantity),
+                Date = trade.OpenDate
+            });
+
+            // Send a notification that we found something suitable
+            await SendNotification($"Saved a BUY ORDER for: {this.TradeToString(trade)}");
         }
 
         #endregion
@@ -893,19 +978,7 @@ namespace MachinaTrader.TradeManagers
             {
                 foreach (var notificationManager in Global.NotificationManagers)
                 {
-                    notificationManager.SendNotification(message);
-
-                    //if (notificationManager is SignalrNotificationManager)
-                    //{
-                    //    notificationManager.SendNotification(message);
-                    //}
-                    //else
-                    //{
-                    //    if (!Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation)
-                    //    {
-                    //        notificationManager.SendNotification(message);
-                    //    }
-                    //}
+                    await notificationManager.SendNotification(message);
                 }
             }
         }
