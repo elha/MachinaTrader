@@ -80,8 +80,8 @@ namespace MachinaTrader.Exchanges
                 case Exchange.HitBtc:
                     _api = new ExchangeSharp.ExchangeHitbtcAPI();
                     break;
-                case Exchange.Gdax:
-                    _api = new ExchangeSharp.ExchangeGdaxAPI();
+                case Exchange.Coinbase:
+                    _api = new ExchangeSharp.ExchangeCoinbaseAPI();
                     break;
                 case Exchange.Okex:
                     _api = new ExchangeSharp.ExchangeOkexAPI();
@@ -148,7 +148,7 @@ namespace MachinaTrader.Exchanges
         {
             var result = new List<MarketSummary>();
 
-            if (_exchange == Exchange.Huobi || _exchange == Exchange.Okex || _exchange == Exchange.Gdax || _exchange == Exchange.GdaxSimulation)
+            if (_exchange == Exchange.Huobi || _exchange == Exchange.Okex || _exchange == Exchange.Coinbase || _exchange == Exchange.CoinbaseSimulation)
             {
                 result = await GetExtendedMarketSummaries(quoteCurrency);
             }
@@ -397,7 +397,7 @@ namespace MachinaTrader.Exchanges
             var hh = 840;
 
             //gdax needs a small granularity
-            if (_exchange == Exchange.Gdax)
+            if (_exchange == Exchange.Coinbase)
             {
                 hh = 24;
                 if (period == Period.Minute)

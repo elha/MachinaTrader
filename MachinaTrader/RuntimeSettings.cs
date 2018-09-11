@@ -126,9 +126,9 @@ namespace MachinaTrader
             var exchangeOption = Global.Configuration.ExchangeOptions.FirstOrDefault();
             switch (exchangeOption.Exchange)
             {
-                case Exchange.GdaxSimulation:
-                    exchangeOption.Exchange = Exchange.Gdax;
-                    Global.ExchangeApi = new BaseExchange(exchangeOption, new ExchangeSimulationApi(new ExchangeGdaxAPI()));
+                case Exchange.CoinbaseSimulation:
+                    exchangeOption.Exchange = Exchange.Coinbase;
+                    Global.ExchangeApi = new BaseExchange(exchangeOption, new ExchangeSimulationApi(new ExchangeCoinbaseAPI()));
                     Global.DataStore = new MemoryDataStore();
                     exchangeOption.IsSimulation = true;
                     break;

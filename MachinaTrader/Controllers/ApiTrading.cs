@@ -8,6 +8,8 @@ using MachinaTrader.Models;
 using ExchangeSharp;
 using MachinaTrader.Globals;
 using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.Globals.Structure.Models;
+using MachinaTrader.Strategies;
 using MachinaTrader.TradeManagers;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json.Linq;
@@ -63,7 +65,7 @@ namespace MachinaTrader.Controllers
         public async Task<IActionResult> GetTopVoumeCurrencies(int limit = 20)
         {
             var fullApi = await Global.ExchangeApi.GetFullApi();
-            var getCurrencies = fullApi.GetTickers();
+            var getCurrencies = fullApi.GetTickersAsync().Result;
             var objListOrder = getCurrencies
                 .OrderByDescending(o => o.Value.Volume.ConvertedVolume)
                 .ToList();
@@ -284,6 +286,55 @@ namespace MachinaTrader.Controllers
             // Get trades
             var closedTrades = await Global.DataStore.GetClosedTradesAsync();
             return new JsonResult(closedTrades);
+        }
+
+        [HttpPost]
+        [Route("manualBuy")]
+        public async void PostManualBuy([FromBody]JObject data)
+        {
+            //Debug
+            Console.WriteLine(data);
+
+            if ((string)data["manualBuyCurrency"] == "" || (string)data["manualBuyCurrency"] == null)
+            {
+                return;
+            }
+
+            /*
+            //var externalTicker = await Global.ExchangeApi.GetTicker("LINKBTC");
+            var externalTicker = await Global.ExchangeApi.GetTickerHistory((string)data["manualBuyCurrency"], Period.Minute, DateTime.UtcNow.AddMinutes(-5));
+
+            //Dont care about Ticker for know -> Override Data with manually values
+            var lastExternalTicker = externalTicker.LastOrDefault();
+
+            lastExternalTicker.Open = (decimal)data["manualBuyPrice"];
+            lastExternalTicker.High = (decimal)data["manualBuyPrice"];
+            lastExternalTicker.Low = (decimal)data["manualBuyPrice"];
+            lastExternalTicker.Close = (decimal)data["manualBuyPrice"];
+
+            TradeSignal tradeSignal = new TradeSignal();
+
+            string globalExchangeCurrency = await Global.ExchangeApi.ExchangeCurrencyToGlobalCurrency((string)data["manualBuyCurrency"]);
+            var globalExchangeCurrencyArray = globalExchangeCurrency.Split("-");
+
+            tradeSignal.MarketName = (string)data["manualBuyCurrency"];
+            tradeSignal.QuoteCurrency = globalExchangeCurrencyArray[1];
+            tradeSignal.BaseCurrency = globalExchangeCurrencyArray[0];
+            tradeSignal.TradeAdvice = TradeAdvice.StrongBuy;
+            tradeSignal.SignalCandle = lastExternalTicker;
+            */
+
+            var trade = new Globals.Structure.Models.Trade()
+            {
+                Market = (string)data["manualBuyCurrency"],
+                OpenRate = (decimal)data["manualBuyPrice"],
+                Quantity = (decimal)data["manualBuyAmount"],
+                StakeAmount = (decimal)data["manualBuyOrderTotal"],
+            };
+
+
+            TradeManager tradeManager = new TradeManager();
+            await tradeManager.CreateTradeOrder(trade);
         }
     }
 }
