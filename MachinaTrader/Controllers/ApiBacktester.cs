@@ -46,7 +46,7 @@ namespace MachinaTrader.Controllers
 
             if (String.IsNullOrEmpty(coinsToBuy))
             {
-                IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
+                IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
                 var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
                 foreach (var coin in exchangeCoins)
                 {
@@ -87,7 +87,7 @@ namespace MachinaTrader.Controllers
 
             if (String.IsNullOrEmpty(coinsToBuy))
             {
-                IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
+                IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
                 var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
                 foreach (var coin in exchangeCoins)
                 {
@@ -128,7 +128,7 @@ namespace MachinaTrader.Controllers
 
             if (String.IsNullOrEmpty(coinsToBuy))
             {
-                IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
+                IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
                 var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
                 foreach (var coin in exchangeCoins)
                 {
@@ -196,7 +196,7 @@ namespace MachinaTrader.Controllers
 
             var symbolArray = new JArray();
 
-            IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
+            IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
             var exchangeCoins = api.GetSymbolsMetadataAsync().Result;
 
             if (!String.IsNullOrEmpty(baseCurrency))
@@ -231,7 +231,7 @@ namespace MachinaTrader.Controllers
             var coins = new List<string>();
             if (String.IsNullOrEmpty(coinsToBuy))
             {
-                IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
+                IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
                 var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
                 foreach (var coin in exchangeCoins)
                 {

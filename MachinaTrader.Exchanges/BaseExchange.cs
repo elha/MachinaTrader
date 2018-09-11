@@ -20,7 +20,7 @@ namespace MachinaTrader.Exchanges
     {
         public BaseExchange BaseExchange(string exchange)
         {
-            IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
+            IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
             var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json", optional: true);
             IConfiguration configuration = builder.Build();
 

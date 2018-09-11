@@ -25,7 +25,7 @@ namespace MachinaTrader.Controllers
         public async Task<ActionResult> ExchangePairsExchangeSymbols(string exchange)
         {
             JArray symbolArray = new JArray();
-            IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
+            IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
             var exchangeCoins = await api.GetSymbolsAsync();
             foreach (var coin in exchangeCoins)
             {
@@ -88,7 +88,7 @@ namespace MachinaTrader.Controllers
         [Route("globalToExchangeSymbol")]
         public string GlobalToExchangeSymbol(string exchange, string symbol)
         {
-            IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange.ToLower());
+            IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
             string exchangeSymbol = api.GlobalSymbolToExchangeSymbol(symbol);
             return exchangeSymbol;
         }
@@ -98,7 +98,7 @@ namespace MachinaTrader.Controllers
         public string GlobalToTradingViewSymbol(string exchange, string symbol)
         {
             //Trading view use same format as Binance -> BTC-ETH is ETHBTC
-            IExchangeAPI api = ExchangeAPI.GetExchangeAPI("binance");
+            IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
             string exchangeSymbol = api.GlobalSymbolToExchangeSymbol(symbol);
             return exchangeSymbol;
         }
