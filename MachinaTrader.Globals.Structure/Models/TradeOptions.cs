@@ -16,16 +16,16 @@ namespace MachinaTrader.Globals.Structure.Models
         public bool BuyEnabled { get; set; } = true;
         public bool SellEnabled { get; set; } = true;
 
-        public string BuyTimer { get; set; } = "0 0/5 * * * ?";
-        public string SellTimer { get; set; } = "0 0/5 * * * ?";
+        public string BuyTimer { get; set; } = "0 0/1 * * * ?";
+        public string SellTimer { get; set; } = "0 0/1 * * * ?";
 
         // Trading mode default is PaperTradeManager
         public bool PaperTrade { get; set; } = true;
 
         // Trader settings
         public decimal StartAmount { get; set; } = 1m;
-        public int MaxNumberOfConcurrentTrades { get; set; } = 10;
-        public int MaxOpenTimeBuy { get; set; } = 600;
+        public int MaxNumberOfConcurrentTrades { get; set; } = 1;
+        public int MaxOpenTimeBuy { get; set; } = 300;
         public decimal AmountToInvestPerTrader { get; set; } = 0.005m;
         public ProfitType ProfitStrategy { get; set; } = ProfitType.Reinvest;
         public decimal AmountToReinvestPercentage { get; set; } = 0.25m; //25% of wallet
@@ -63,10 +63,10 @@ namespace MachinaTrader.Globals.Structure.Models
         // Setting this to 0 means we will not look at volume and only look at our AlwaysTradeList. 
         // Setting this to any value higher than 0 means we will get a list of markets currently
         // trading a volume above this value and analyze those for buy signals.
-        public int MinimumAmountOfVolume { get; set; } = 300;
+        public int MinimumAmountOfVolume { get; set; } = 0;
 
         // Default strategy to use with trade managers.
-        public string DefaultStrategy { get; set; } = "TheScalper";
+        public string DefaultStrategy { get; set; } = "Lift";
 
         // Sets the bidding price. A value of 0.0 will use the ask price, 1.0 will use the last price and values between 
         // those interpolate between ask and last price. Using the ask price will guarantee quick success in bid, but

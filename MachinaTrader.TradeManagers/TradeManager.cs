@@ -141,22 +141,22 @@ namespace MachinaTrader.TradeManagers
                 var profitIsOverSellOrderAtProfit = (Global.Configuration.TradeOptions.ImmediatelyPlaceSellOrder && (currentProfit >= Global.Configuration.TradeOptions.ImmediatelyPlaceSellOrderAtProfit));
 
                 // Sell if defined percentage is reached
-                if (profitIsOverSellOrderAtProfit || profitIsOverSellOnPercentage)
-                {
-                    var orderId = Global.Configuration.TradeOptions.PaperTrade ? GetOrderId() : await Global.ExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
+                //if (profitIsOverSellOrderAtProfit || profitIsOverSellOnPercentage)
+                //{
+                //    var orderId = Global.Configuration.TradeOptions.PaperTrade ? GetOrderId() : await Global.ExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
 
-                    trade.OpenOrderId = orderId;
-                    trade.SellOrderId = orderId;
-                    trade.IsSelling = true;
-                    trade.CloseRate = trade.TickerLast.Bid;
-                    trade.SellType = SellType.Immediate;
+                //    trade.OpenOrderId = orderId;
+                //    trade.SellOrderId = orderId;
+                //    trade.IsSelling = true;
+                //    trade.CloseRate = trade.TickerLast.Bid;
+                //    trade.SellType = SellType.Immediate;
 
-                    await Global.DataStore.SaveTradeAsync(trade);
+                //    await Global.DataStore.SaveTradeAsync(trade);
 
-                    await SendNotification($"Opened a Selling Order by reached defined percentage: profit {currentProfit} for {this.TradeToString(trade)}");
+                //    await SendNotification($"Opened a Selling Order by reached defined percentage: profit {currentProfit} for {this.TradeToString(trade)}");
 
-                    continue;
-                }
+                //    continue;
+                //}
 
                 //Global.Logger.Information($"Checking sell signal for {this.TradeToString(trade)}");
 
@@ -203,16 +203,17 @@ namespace MachinaTrader.TradeManagers
 
             //Global.Logger.Information($"Market of exchange {Global.ExchangeApi.GetFullApi().Result.Name}: {markets.Count()}");
 
+            // If there are items on the only trade list remove the rest
+            if (Global.Configuration.TradeOptions.OnlyTradeList.Count > 0)
+                markets = markets.Where(m => Global.Configuration.TradeOptions.OnlyTradeList.Any(c => c.Contains(m.CurrencyPair.BaseCurrency))).ToList();
+
             // Check if there are markets matching our volume.
             markets = markets.Where(x =>
                 (x.Volume > Global.Configuration.TradeOptions.MinimumAmountOfVolume ||
                  Global.Configuration.TradeOptions.AlwaysTradeList.Contains(x.CurrencyPair.BaseCurrency)) &&
                  Global.Configuration.TradeOptions.QuoteCurrency.ToUpper() == x.CurrencyPair.QuoteCurrency.ToUpper()).ToList();
 
-            // If there are items on the only trade list remove the rest
-            if (Global.Configuration.TradeOptions.OnlyTradeList.Count > 0)
-                markets = markets.Where(m => Global.Configuration.TradeOptions.OnlyTradeList.Any(c => c.Contains(m.CurrencyPair.BaseCurrency))).ToList();
-
+         
             // Remove existing trades from the list to check.
             var activeTrades = await Global.DataStore.GetActiveTradesAsync();
             foreach (var trade in activeTrades)
