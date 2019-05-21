@@ -137,8 +137,8 @@ namespace MachinaTrader.TradeManagers
                     continue;
                 }
 
-                var profitIsOverSellOnPercentage = (trade.SellOnPercentage > 0 && (currentProfit >= (trade.SellOnPercentage / 100)));
-                var profitIsOverSellOrderAtProfit = (Global.Configuration.TradeOptions.ImmediatelyPlaceSellOrder && (currentProfit >= Global.Configuration.TradeOptions.ImmediatelyPlaceSellOrderAtProfit));
+                //var profitIsOverSellOnPercentage = (trade.SellOnPercentage > 0 && (currentProfit >= (trade.SellOnPercentage / 100)));
+                //var profitIsOverSellOrderAtProfit = (Global.Configuration.TradeOptions.ImmediatelyPlaceSellOrder && (currentProfit >= Global.Configuration.TradeOptions.ImmediatelyPlaceSellOrderAtProfit));
 
                 // Sell if defined percentage is reached
                 //if (profitIsOverSellOrderAtProfit || profitIsOverSellOnPercentage)

@@ -488,9 +488,10 @@ namespace MachinaTrader.Exchanges
                 _exchangeInfo = result;
             }
 
-            var eSymbol = _api.GlobalSymbolToExchangeSymbol(symbol);
+            //var eSymbol = _api.GlobalSymbolToExchangeSymbol(symbol);
 
-            return _exchangeInfo.FirstOrDefault(x => x.MarketName == eSymbol);
+            //return _exchangeInfo.FirstOrDefault(x => x.MarketName == eSymbol);
+            return _exchangeInfo.FirstOrDefault(x => x.MarketName == symbol);
         }
 
         public async Task<string> GlobalSymbolToExchangeSymbol(string symbol)
