@@ -155,12 +155,18 @@ namespace MachinaTrader
 
             foreach (var currency in Runtime.GlobalCurrencys)
             {
-                Runtime.ExchangeCurrencys.Add(fullApi.GlobalSymbolToExchangeSymbol(currency));
+                Runtime.ExchangeCurrencys.Add(fullApi.GlobalMarketSymbolToExchangeMarketSymbolAsync(currency).Result);
             }
 
             if (!exchangeOption.IsSimulation)
-                fullApi.GetTickersWebSocket(OnWebsocketTickersUpdated);
-
+            {
+                fullApi.GetTickersWebSocketAsync(OnWebsocketTickersUpdated);
+                //fullApi.GetTradesWebSocketAsync(OnWebsocketTickersUpdated);
+                //fullApi.GetCompletedOrderDetailsWebSocketAsync(OnWebsocketTickersUpdated);
+                //fullApi.GetDeltaOrderBookWebSocketAsync(OnWebsocketTickersUpdated);
+                //fullApi.GetOrderDetailsWebSocketAsync(OnWebsocketTickersUpdated);
+                //fullApi.GetUserDataWebSocketAsync(OnWebsocketTickersUpdated,"");
+            }
             // Telegram Notifications
             Runtime.GlobalTelegramNotificationOptions = Global.Configuration.TelegramOptions;
         }
