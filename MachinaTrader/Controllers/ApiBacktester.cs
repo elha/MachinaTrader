@@ -47,10 +47,10 @@ namespace MachinaTrader.Controllers
             if (String.IsNullOrEmpty(coinsToBuy))
             {
                 IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
-                var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
+                var exchangeCoins = api.GetMarketSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
                 foreach (var coin in exchangeCoins)
                 {
-                    coins.Add(api.ExchangeSymbolToGlobalSymbol(coin.MarketName));
+                    coins.Add(await api.ExchangeMarketSymbolToGlobalMarketSymbolAsync(coin.MarketSymbol));
                 }
             }
             else
@@ -88,10 +88,10 @@ namespace MachinaTrader.Controllers
             if (String.IsNullOrEmpty(coinsToBuy))
             {
                 IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
-                var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
+                var exchangeCoins = api.GetMarketSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
                 foreach (var coin in exchangeCoins)
                 {
-                    coins.Add(api.ExchangeSymbolToGlobalSymbol(coin.MarketName));
+                    coins.Add(await api.ExchangeMarketSymbolToGlobalMarketSymbolAsync(coin.MarketSymbol));
                 }
             }
             else
@@ -129,10 +129,10 @@ namespace MachinaTrader.Controllers
             if (String.IsNullOrEmpty(coinsToBuy))
             {
                 IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
-                var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
+                var exchangeCoins = api.GetMarketSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
                 foreach (var coin in exchangeCoins)
                 {
-                    coins.Add(api.ExchangeSymbolToGlobalSymbol(coin.MarketName));
+                    coins.Add(api.ExchangeMarketSymbolToGlobalMarketSymbolAsync(coin.MarketSymbol).Result);
                 }
             }
             else
@@ -197,7 +197,7 @@ namespace MachinaTrader.Controllers
             var symbolArray = new JArray();
 
             IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
-            var exchangeCoins = api.GetSymbolsMetadataAsync().Result;
+            var exchangeCoins = api.GetMarketSymbolsMetadataAsync().Result;
 
             if (!String.IsNullOrEmpty(baseCurrency))
             {
@@ -206,11 +206,11 @@ namespace MachinaTrader.Controllers
 
             foreach (var coin in exchangeCoins)
             {
-                symbolArray.Add(api.ExchangeSymbolToGlobalSymbol(coin.MarketName));
+                symbolArray.Add(api.ExchangeMarketSymbolToGlobalMarketSymbolAsync(coin.MarketSymbol));
             }
 
             var baseCurrencyArray = new JArray();
-            var exchangeBaseCurrencies = api.GetSymbolsMetadataAsync().Result.Select(m => m.BaseCurrency).Distinct();
+            var exchangeBaseCurrencies = api.GetMarketSymbolsMetadataAsync().Result.Select(m => m.BaseCurrency).Distinct();
             foreach (var currency in exchangeBaseCurrencies)
             {
                 baseCurrencyArray.Add(currency);
@@ -232,10 +232,10 @@ namespace MachinaTrader.Controllers
             if (String.IsNullOrEmpty(coinsToBuy))
             {
                 IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
-                var exchangeCoins = api.GetSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
+                var exchangeCoins = api.GetMarketSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == baseCurrency);
                 foreach (var coin in exchangeCoins)
                 {
-                    coins.Add(api.ExchangeSymbolToGlobalSymbol(coin.MarketName));
+                    coins.Add(api.ExchangeMarketSymbolToGlobalMarketSymbolAsync(coin.MarketSymbol).Result);
                 }
             }
             else
