@@ -1,0 +1,3 @@
+[submodule "thirdParty/ExchangeSharp"]
+	path = thirdParty/ExchangeSharp
+	url = https://github.com/dinhduongha/ExchangeSharp.git
