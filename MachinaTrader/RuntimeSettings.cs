@@ -128,13 +128,13 @@ namespace MachinaTrader
             {
                 case Exchange.CoinbaseSimulation:
                     exchangeOption.Exchange = Exchange.Coinbase;
-                    Global.ExchangeApi = new BaseExchange(exchangeOption, new ExchangeSimulationApi(new ExchangeCoinbaseAPI()));
+                    Global.ExchangeApi = new BaseExchange(exchangeOption, new ExchangeSimulationApi((ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeCoinbaseAPI>().Result));
                     Global.DataStore = new MemoryDataStore();
                     exchangeOption.IsSimulation = true;
                     break;
                 case Exchange.BinanceSimulation:
                     exchangeOption.Exchange = Exchange.Binance;
-                    Global.ExchangeApi = new BaseExchange(exchangeOption, new ExchangeSimulationApi(new ExchangeBinanceAPI()));
+                    Global.ExchangeApi = new BaseExchange(exchangeOption, new ExchangeSimulationApi((ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBinanceAPI>().Result));
                     Global.DataStore = new MemoryDataStore();
                     exchangeOption.IsSimulation = true;
                     break;

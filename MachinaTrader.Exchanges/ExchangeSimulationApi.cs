@@ -213,7 +213,7 @@ namespace MachinaTrader.Exchanges
         }
 
 
-        protected override async Task<ExchangeOrderResult> OnGetOrderDetailsAsync(string orderId, string symbol = null)
+        protected override async Task<ExchangeOrderResult> OnGetOrderDetailsAsync(string orderId, string symbol = null, bool isClientOrderId = false)
         {
             return _orders.FirstOrDefault(o => o.OrderId == orderId);
         }
@@ -227,11 +227,11 @@ namespace MachinaTrader.Exchanges
         {
             if (order.IsBuy)
             {
-                _wallet.Add(DateTime.UtcNow, -(order.Price * order.Amount));
+                _wallet.Add(DateTime.UtcNow, -((order.Price ?? 0) * order.Amount));
             }
             else
             {
-                _wallet.Add(DateTime.UtcNow, order.Price * order.Amount);
+                _wallet.Add(DateTime.UtcNow, (order.Price ?? 0) * order.Amount);
             }
 
             var orderResult = new ExchangeOrderResult()

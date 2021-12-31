@@ -63,47 +63,47 @@ namespace MachinaTrader.Exchanges
             switch (_exchange)
             {
                 case Exchange.Binance:
-                    var api = new ExchangeSharp.ExchangeBinanceAPI();
+                    var api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBinanceAPI>().Result;
 //                    api.
                     _api = api;
                     break;
                 case Exchange.Bitfinex:
-                    _api = new ExchangeSharp.ExchangeBitfinexAPI();
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBitfinexAPI>().Result;
                     break;
                 case Exchange.Bittrex:
-                    _api = new ExchangeSharp.ExchangeBittrexAPI();
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBittrexAPI>().Result;
                     break;
                 case Exchange.Poloniex:
-                    _api = new ExchangeSharp.ExchangePoloniexAPI();
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangePoloniexAPI>().Result;
                     break;
                 case Exchange.Huobi:
-                    _api = new ExchangeSharp.ExchangeHuobiAPI();
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeHuobiAPI>().Result;
                     break;
                 case Exchange.HitBtc:
-                    _api = new ExchangeSharp.ExchangeHitBTCAPI();
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeHitBTCAPI>().Result;
                     break;
                 case Exchange.Coinbase:
-                    _api = new ExchangeSharp.ExchangeCoinbaseAPI();
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeCoinbaseAPI>().Result;
                     break;
                 case Exchange.Okex:
-                    _api = new ExchangeSharp.ExchangeOKExAPI();
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeOKExAPI>().Result;
                     break;
                 //case Exchange.Cryptopia:
-                //    _api = new ExchangeSharp.ExchangeCryptopiaAPI();
+                //    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeCryptopiaAPI>().Result;
                 //    break;
                 case Exchange.Kucoin:
-                    _api = new ExchangeSharp.ExchangeKuCoinAPI();
-                    _api = new ExchangeSharp.ExchangeBithumbAPI();
-                    _api = new ExchangeSharp.ExchangeBitMEXAPI();
-                    _api = new ExchangeSharp.ExchangeBitstampAPI();
-//                    _api = new ExchangeSharp.ExchangeBleutradeAPI();
-                    _api = new ExchangeSharp.ExchangeGeminiAPI();
-                    _api = new ExchangeSharp.ExchangeKrakenAPI();
-//                    _api = new ExchangeSharp.ExchangeKucoinAPI();
-                    _api = new ExchangeSharp.ExchangeLivecoinAPI();
-//                    _api = new ExchangeSharp.ExchangeTuxExchangeAPI();
-                    _api = new ExchangeSharp.ExchangeYobitAPI();
-                    _api = new ExchangeSharp.ExchangeZBcomAPI();
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeKuCoinAPI>().Result;
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBithumbAPI>().Result;
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBitMEXAPI>().Result;
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBitstampAPI>().Result;
+//                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBleutradeAPI>().Result;
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeGeminiAPI>().Result;
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeKrakenAPI>().Result;
+//                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeKucoinAPI>().Result;
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeLivecoinAPI>().Result;
+//                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeTuxExchangeAPI>().Result;
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeYobitAPI>().Result;
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeZBcomAPI>().Result;
                     break;
                 default:
                     break;
@@ -234,11 +234,11 @@ namespace MachinaTrader.Exchanges
                 {
                     Exchange = _exchange.ToString(),
                     OriginalQuantity = x.Amount,
-                    ExecutedQuantity = x.AmountFilled,
+                    ExecutedQuantity = x.AmountFilled ?? 0,
                     OrderId = x.OrderId,
                     Side = x.IsBuy ? OrderSide.Buy : OrderSide.Sell,
                     Market = x.MarketSymbol,
-                    Price = x.Price,
+                    Price = x.Price ?? 0,
                     OrderDate = x.OrderDate,
                     Status = x.Result.ToOrderStatus()
                 }).ToList();
@@ -266,9 +266,9 @@ namespace MachinaTrader.Exchanges
                 {
                     Exchange = _exchange.ToString(),
                     OriginalQuantity = order.Amount,
-                    ExecutedQuantity = order.AmountFilled,
+                    ExecutedQuantity = order.AmountFilled ?? 0,
                     OrderId = order.OrderId,
-                    Price = order.Price,
+                    Price = order.Price ?? 0,
                     Market = order.MarketSymbol,
                     Side = order.IsBuy ? OrderSide.Buy : OrderSide.Sell,
                     OrderDate = order.OrderDate,
