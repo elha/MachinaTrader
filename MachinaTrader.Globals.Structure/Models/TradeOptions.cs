@@ -66,7 +66,7 @@ namespace MachinaTrader.Globals.Structure.Models
         public int MinimumAmountOfVolume { get; set; } = 0;
 
         // Default strategy to use with trade managers.
-        public string DefaultStrategy { get; set; } = "Lift";
+        public string DefaultStrategy { get; set; } = "BuyTheDip";
 
         // Sets the bidding price. A value of 0.0 will use the ask price, 1.0 will use the last price and values between 
         // those interpolate between ask and last price. Using the ask price will guarantee quick success in bid, but

@@ -13,6 +13,7 @@ namespace MachinaTrader.Globals.Structure.Enums
 		Cryptopia = 8,
         Kucoin = 9,
         CoinbaseSimulation = 10,
-        BinanceSimulation = 11
+        BinanceSimulation = 11,
+        Kraken = 12
     }
 }

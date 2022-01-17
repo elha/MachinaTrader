@@ -155,8 +155,12 @@ namespace MachinaTrader
 
             foreach (var currency in Runtime.GlobalCurrencys)
             {
-                Runtime.ExchangeCurrencys.Add(fullApi.GlobalMarketSymbolToExchangeMarketSymbolAsync(currency).Result);
-            }
+                try
+                {
+                    Runtime.ExchangeCurrencys.Add(fullApi.GlobalMarketSymbolToExchangeMarketSymbolAsync(currency).Result);
+                }
+                catch (Exception ex) { }
+             }
 
             if (!exchangeOption.IsSimulation)
             {

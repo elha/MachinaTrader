@@ -19,6 +19,8 @@ namespace MachinaTrader.Exchanges
                     return OrderStatus.PartiallyFilled;
                 case ExchangeSharp.ExchangeAPIOrderResult.PendingOpen:
                     return OrderStatus.New;
+                case ExchangeSharp.ExchangeAPIOrderResult.Open:
+                    return OrderStatus.New;
                 case ExchangeSharp.ExchangeAPIOrderResult.PendingCancel:
                     return OrderStatus.PendingCancel;
                 case ExchangeSharp.ExchangeAPIOrderResult.Unknown:

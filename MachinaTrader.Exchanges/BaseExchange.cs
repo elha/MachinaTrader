@@ -98,12 +98,14 @@ namespace MachinaTrader.Exchanges
                     _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBitstampAPI>().Result;
 //                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBleutradeAPI>().Result;
                     _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeGeminiAPI>().Result;
-                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeKrakenAPI>().Result;
 //                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeKucoinAPI>().Result;
                     _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeLivecoinAPI>().Result;
 //                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeTuxExchangeAPI>().Result;
                     _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeYobitAPI>().Result;
                     _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeZBcomAPI>().Result;
+                    break;
+                case Exchange.Kraken:
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeKrakenAPI>().Result;
                     break;
                 default:
                     break;
@@ -122,6 +124,8 @@ namespace MachinaTrader.Exchanges
 
         public async Task<string> Buy(string market, decimal quantity, decimal rate)
         {
+            market = GlobalSymbolToExchangeSymbol(market).Result;
+
             var request = new ExchangeOrderRequest()
             {
                 Amount = quantity,
@@ -204,20 +208,19 @@ namespace MachinaTrader.Exchanges
                 //        });
                 //    });
                 //    Task.WaitAll(tasks);
-
                 foreach (var summary in summaries)
                 {
                     var info = await GetSymbolInfo(summary.Key);
-
-                    result.Add(new MarketSummary()
-                    {
-                        CurrencyPair = new CurrencyPair() { BaseCurrency = info.QuoteCurrency, QuoteCurrency = info.BaseCurrency },
-                        MarketName = summary.Key,
-                        Ask = summary.Value.Ask,
-                        Bid = summary.Value.Bid,
-                        Last = summary.Value.Last,
-                        Volume = summary.Value.Volume.QuoteCurrencyVolume,
-                    });
+                    if(info != null && (quoteCurrency == null || ExchangeCurrencyToGlobalCurrency(info.QuoteCurrency).Result == quoteCurrency))
+                        result.Add(new MarketSummary()
+                        {
+                            CurrencyPair = new CurrencyPair() { BaseCurrency = ExchangeCurrencyToGlobalCurrency(info.BaseCurrency).Result, QuoteCurrency = ExchangeCurrencyToGlobalCurrency(info.QuoteCurrency).Result },
+                            MarketName = summary.Key,
+                            Ask = summary.Value.Ask,
+                            Bid = summary.Value.Bid,
+                            Last = summary.Value.Last,
+                            Volume = summary.Value.Volume.QuoteCurrencyVolume,
+                        });
                 }
             }
 
@@ -293,6 +296,7 @@ namespace MachinaTrader.Exchanges
 
         public async Task<Ticker> GetTicker(string market)
         {
+            market = GlobalSymbolToExchangeSymbol(market).Result;
             var ticker = await _api.GetTickerAsync(market);
 
             if (ticker != null)
@@ -473,6 +477,8 @@ namespace MachinaTrader.Exchanges
 
         public async Task<string> Sell(string market, decimal quantity, decimal rate)
         {
+            market = GlobalSymbolToExchangeSymbol(market).Result;
+
             var request = new ExchangeOrderRequest()
             {
                 Amount = quantity,
@@ -506,7 +512,7 @@ namespace MachinaTrader.Exchanges
             //var eSymbol = _api.GlobalSymbolToExchangeSymbol(symbol);
 
             //return _exchangeInfo.FirstOrDefault(x => x.MarketName == eSymbol);
-            return _exchangeInfo.FirstOrDefault(x => x.MarketSymbol == symbol);
+            return _exchangeInfo.FirstOrDefault(x => x.MarketSymbol == symbol || x.AltMarketSymbol == symbol);
         }
 
         public async Task<string> GlobalSymbolToExchangeSymbol(string symbol)
@@ -597,7 +603,7 @@ namespace MachinaTrader.Exchanges
                     {
                         summaries.Add(new MarketSummary()
                         {
-                            CurrencyPair = new CurrencyPair() { BaseCurrency = symbol.QuoteCurrency, QuoteCurrency = symbol.BaseCurrency },
+                            CurrencyPair = new CurrencyPair() { BaseCurrency = ExchangeCurrencyToGlobalCurrency(symbol.BaseCurrency).Result, QuoteCurrency = ExchangeCurrencyToGlobalCurrency(symbol.QuoteCurrency).Result },
                             MarketName = item,
                             Ask = ticker.Ask,
                             Bid = ticker.Bid,

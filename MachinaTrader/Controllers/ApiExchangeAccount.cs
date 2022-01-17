@@ -41,16 +41,17 @@ namespace MachinaTrader.Controllers
                     
                     if (tickers.Count() > 1)
                     {
-                        var tickerUsd = tickers.Where(t => t.Key.ToUpper().Contains("USD") && t.Key.ToUpper().Contains("BTC")).ToList();
-                        var tickerDisplayCurrency = tickers.Where(t => t.Key.ToUpper().Contains(displayOptions.DisplayFiatCurrency) && t.Key.ToUpper().Contains("BTC")).ToList();
-                        var usdToBtcTicker = tickerUsd.First(t => t.Key.EndsWith("BTC"));
-                        var btcToUsdTicker = tickerUsd.First(t => t.Key.StartsWith("BTC"));
+                        var tickerBtcUsd = tickers.FirstOrDefault(t => t.Value.Volume.QuoteCurrency == fullApi.GlobalCurrencyToExchangeCurrency("USD")
+                                && t.Value.Volume.BaseCurrency == fullApi.GlobalCurrencyToExchangeCurrency("BTC"));
+                        //var tickerDisplayCurrency = tickers.Where(t => t.Key.ToUpper().Contains(displayOptions.DisplayFiatCurrency) && t.Key.ToUpper().Contains("BTC")).ToList();
+                        var tickerDisplayCurrency = tickers.FirstOrDefault(t => t.Value.Volume.QuoteCurrency == fullApi.GlobalCurrencyToExchangeCurrency(displayOptions.DisplayFiatCurrency)
+                        && t.Value.Volume.BaseCurrency == fullApi.GlobalCurrencyToExchangeCurrency("BTC"));
 
                         var dcTicker = new KeyValuePair<string,ExchangeTicker>();
-                        if (tickerDisplayCurrency.Count == 0)
+                        if (tickerDisplayCurrency.Key == null)
                             Global.Logger.Information("Account: Display currency at this exchange not available!");
                         else
-                            dcTicker = tickerDisplayCurrency.First(t => t.Key.StartsWith("BTC"));
+                            dcTicker = tickerDisplayCurrency;
 
                         // Calculate stuff
                         foreach (var balance in balances)
@@ -87,27 +88,21 @@ namespace MachinaTrader.Controllers
 
                             // Calculate special market USD, EUR, BTC
                             if (balanceEntry.Market.ToUpper().Contains("USD") ||
-                                    balanceEntry.Market.ToUpper().Contains("EUR") ||
                                     balanceEntry.Market.ToUpper().Contains("BTC"))
                                 {
                                     if (balanceEntry.Market.ToUpper().Contains("USD"))
                                     {
                                         balanceEntry.BalanceInUsd = balance.Value;
-                                        balanceEntry.BalanceInBtc = balanceEntry.BalanceInUsd * usdToBtcTicker.Value.Last;
-                                    }
-
-                                    if (balanceEntry.Market.ToUpper().Contains("EUR"))
-                                    {
-                                        var t = "";
+                                        balanceEntry.BalanceInBtc = balanceEntry.BalanceInUsd / tickerBtcUsd.Value.Last;
                                     }
 
                                     if (balanceEntry.Market.ToUpper().Contains("BTC"))
                                     {
                                         balanceEntry.BalanceInBtc = balance.Value;
-                                        balanceEntry.BalanceInUsd = balanceEntry.BalanceInBtc * btcToUsdTicker.Value.Last;
+                                        balanceEntry.BalanceInUsd = balanceEntry.BalanceInBtc * tickerBtcUsd.Value.Last;
                                     }
 
-                                    if (tickerDisplayCurrency.Count >= 1)
+                                    if (tickerDisplayCurrency.Key != null)
                                         balanceEntry.BalanceInDisplayCurrency =
                                             balanceEntry.BalanceInBtc * dcTicker.Value.Last;
                                 }
@@ -117,8 +112,8 @@ namespace MachinaTrader.Controllers
                                     if (ticker.Count >= 1)
                                     {
                                         balanceEntry.BalanceInBtc = (balance.Value * ticker[0].Value.Last);
-                                        balanceEntry.BalanceInUsd = balanceEntry.BalanceInBtc * btcToUsdTicker.Value.Last;
-                                        if (tickerDisplayCurrency.Count >= 1)
+                                        balanceEntry.BalanceInUsd = balanceEntry.BalanceInBtc * tickerBtcUsd.Value.Last;
+                                        if (tickerDisplayCurrency.Key != null)
                                             balanceEntry.BalanceInDisplayCurrency =
                                                 balanceEntry.BalanceInBtc * dcTicker.Value.Last;
                                     }

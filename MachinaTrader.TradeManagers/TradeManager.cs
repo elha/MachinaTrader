@@ -266,7 +266,7 @@ namespace MachinaTrader.TradeManagers
                 var signal = await GetStrategySignal(market.MarketName, strategy);
 
                 // A match was made, buy that please!
-                if (signal?.TradeAdvice == TradeAdvice.Buy)
+                if (signal?.TradeAdvice == TradeAdvice.Buy || signal?.TradeAdvice == TradeAdvice.Sell)
                 {
                     //Global.Logger.Information($"Found BUY SIGNAL {signal.SignalCandle.Timestamp} for: {market.MarketName} at {signal.SignalCandle.Close} {Global.Configuration.TradeOptions.QuoteCurrency}");
 

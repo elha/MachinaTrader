@@ -206,7 +206,7 @@ namespace MachinaTrader.Controllers
 
             foreach (var coin in exchangeCoins)
             {
-                symbolArray.Add(api.ExchangeMarketSymbolToGlobalMarketSymbolAsync(coin.MarketSymbol));
+                symbolArray.Add(api.ExchangeMarketSymbolToGlobalMarketSymbolAsync(coin.MarketSymbol).Result);
             }
 
             var baseCurrencyArray = new JArray();

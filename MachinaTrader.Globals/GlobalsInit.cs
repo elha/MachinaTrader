@@ -147,8 +147,8 @@ namespace MachinaTrader.Globals
                 //Init Global Config with default currency array
                 Global.Configuration = MergeObjects.MergeCsDictionaryAndSave(new MainConfig(), Global.DataPath + "/MainConfig.json").ToObject<MainConfig>();
                 Global.Configuration.TradeOptions.MarketBlackList = new List<string> { };
-                Global.Configuration.TradeOptions.OnlyTradeList = new List<string> { "ETHBTC", "LTCBTC" };
-                Global.Configuration.TradeOptions.AlwaysTradeList = new List<string> { "ETHBTC", "LTCBTC" };
+                Global.Configuration.TradeOptions.OnlyTradeList = new List<string> { "ETHUSD" };
+                Global.Configuration.TradeOptions.AlwaysTradeList = new List<string> { "ETHUSD" };
                 var defaultExchangeOptions = new ExchangeOptions
                 {
                     Exchange = Exchange.Binance,

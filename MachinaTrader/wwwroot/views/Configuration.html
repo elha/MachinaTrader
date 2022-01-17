@@ -642,7 +642,7 @@
                             <div style="display: none;">
                                 Always trade this coins
                                 <br /> Depends on your current exchange.
-                                <br /><br /><strong>Default:</strong> <i>ETHBTC</i>
+                                <br /><br /><strong>Default:</strong> <i>ETH</i>
                             </div>
                         </td>
                         <td>
@@ -860,7 +860,7 @@
                     self.apiMainConfigData = data;
                     $.get('/api/backtester/backtesterStrategy', function (data) {
                         self.allStrategiesData = data;
-                        $.get('/api/trading/exchangePairsExchangeSymbols?exchange=Binance', function (data) {
+                        $.get('/api/trading/exchangeCurrencies', function (data) {
                             self.exchangeCoinsData = data;
                             self.$nextTick(function () {
                                 initialBuyTimerCron = self.apiMainConfigData['tradeOptions']['buyTimer'];

@@ -54,6 +54,8 @@ namespace MachinaTrader.Backtester
                                 StrategyName = strategy.Name
                             });
 
+                            var feePercentTwoTrades = 0.0018m * 2m;
+                            var feeTotalTwoTrades = feePercentTwoTrades * tradeAmount;
                             // Calculate win/lose forwards from buy point
                             for (int j = i; j < trend.Count; j++)
                             {
@@ -62,10 +64,10 @@ namespace MachinaTrader.Backtester
                                     || ShouldSell((double)candles[i].Close, (double)candles[j].Close, candles[j].Timestamp) != SellType.None
                                     )
                                 {
-                                    // We ignore fees for now. Goal of the backtester is to compare strategy efficiency.
-                                    var currentProfitPercentage = ((candles[j].Close - candles[i].Close) / candles[i].Close) * 100;
+
+                                    var currentProfitPercentage = (((candles[j].Close - candles[i].Close) / candles[i].Close) - feePercentTwoTrades) * 100;
                                     var quantity = tradeAmount / candles[i].Close;
-                                    var currentProfit = (candles[j].Close - candles[i].Close) * quantity;
+                                    var currentProfit = (candles[j].Close - candles[i].Close) * quantity - feeTotalTwoTrades;
 
                                     backTestResult.Trades.Add(new BackTestTradeResult
                                     {
@@ -149,10 +151,12 @@ namespace MachinaTrader.Backtester
                 }
                 else if (signal.TradeAdvice == TradeAdvice.Sell)
                 {
-                    cct = cct - 1;                   
-
-                    wallet = wallet + (tradeAmount + signal.PercentageProfit * tradeAmount);
-
+                    cct = cct - 1;
+                    
+                    // reinvest everything
+                    tradeAmount += signal.PercentageProfit * tradeAmount * 0.01m;
+                    wallet = wallet + tradeAmount;
+                    
                     if (wallet < lowWallet)
                         lowWallet = wallet;
                 }

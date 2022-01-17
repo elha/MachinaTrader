@@ -35,6 +35,20 @@ namespace MachinaTrader.Controllers
         }
 
         [HttpGet]
+        [Route("exchangeCurrencies")]
+        public async Task<ActionResult> ExchangeCurrencies(string exchange = "kraken")
+        {
+            JArray symbolArray = new JArray();
+            IExchangeAPI api = ExchangeAPI.GetExchangeAPI(exchange);
+            var exchangeCoins = api.GetCurrenciesAsync().Result;
+            foreach (var coin in exchangeCoins)
+            {
+                symbolArray.Add(coin.Key);
+            }
+            return new JsonResult(symbolArray);
+        }
+
+        [HttpGet]
         [Route("balance")]
         public async Task<IActionResult> GetBalance()
         {

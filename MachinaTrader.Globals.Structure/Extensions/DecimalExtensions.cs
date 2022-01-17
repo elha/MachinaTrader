@@ -281,6 +281,26 @@ namespace MachinaTrader.Globals.Structure.Extensions
 			return result;
 		}
 
-		#endregion
-	}
+        #endregion
+
+        #region Rises
+
+        public static List<bool> Rises(this List<decimal?> source)
+        {
+            var result = new List<bool>();
+
+            for (int i = 0; i < source.Count; i++)
+            {
+                if (i == 0)
+                    result.Add(false);
+                else if (!source[i].HasValue || !source[i-1].HasValue)
+                    result.Add(false);
+                else
+                    result.Add(source[i].Value > source[i - 1].Value);
+            }
+
+            return result;
+        }
+        #endregion
+    }
 }
