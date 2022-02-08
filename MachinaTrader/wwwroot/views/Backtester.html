@@ -61,7 +61,7 @@
 
                 <div class="col-1">
                     <button type="button" class="btn btn-success" style="width: 100%;" id="startButton" onclick="runStrategy();">Start</button>
-                </div>            
+                </div>
             </div>
 
             <div class="row card-body-header">
@@ -115,10 +115,13 @@
             <div class="row card-body-header">
                 <div class="col-4">
                     <div class="form-group row">
-                        <label for="exchangeCoinsId" class="col-3 col-form-label">Coin:</label>
-                        <div class='col-9 input-group date' id='exchangeCoinsId'>
-                            <select name="display" id="currencyToCheck" class="select2-multiple" data-live-search="true" data-size="10" data-width="auto">
-                                <option v-for="(value, key) in exchangeCoinsData" v-bind:value="value" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{value}}</option>
+                        <label for="exchangeQuoteCurrencyId" class="col-3 col-form-label">Currency:</label>
+                        <div class='col-9 input-group date' id='exchangeQuoteCurrencyId'>
+                            <select name="display" id="quoteCurrencyToCheck" class="selectpicker">
+                                <option value="USDT">USDT</option>
+                                <option value="BTC">BTC</option>
+                                <option value="ETH">ETH</option>
+                                <option value="USD">USD</option>
                             </select>
                         </div>
                     </div>
@@ -126,11 +129,9 @@
 
                 <div class="col-4">
                     <div class="form-group row">
-                        <label for="exchangeBaseCurrencyId" class="col-3 col-form-label">Currency:</label>
-                        <div class='col-9 input-group date' id='exchangeBaseCurrencyId'>
-                            <select name="display" id="baseCurrencyToCheck" class="selectpicker">
-                                <option v-for="(value, key) in exchangeBaseCurrenciesData" v-bind:value="value" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{value}}</option>
-                            </select>
+                        <label for="exchangeCoinsId" class="col-3 col-form-label">Coins (first,second):</label>
+                        <div class='col-9 input-group date' id='exchangeCoinsId'>
+                             <input type='text' id="currencyToCheck" class="form-control" />
                         </div>
                     </div>
                 </div>
@@ -140,7 +141,7 @@
                         <label for="exchangeExchangeId" class="col-3 col-form-label">Exchange:</label>
                         <div class='col-9 input-group date' id='exchangeExchangeId'>
                             <select name="display" id="exchangeSelect" class="selectpicker">
-                                <option value="Binance" data-image="/img/exchange/binance.png">Binance</option>
+                                <option value="Binance" selected="selected" data-image="/img/exchange/binance.png">Binance</option>
                                 <option value="Coinbase" data-image="/img/exchange/gdax.png">Coinbase</option>
                                 <option value="Bittrex" data-image="/img/exchange/bittrex.png">Bittrex</option>
                                 <option value="Poloniex" data-image="/img/exchange/poloniex.png">Poloniex</option>
@@ -171,7 +172,7 @@
                         <div class='col-9 input-group date'>
                             <input type='text' id="tradeAmountId" class="form-control" />
                         </div>
-                    </div>                   
+                    </div>
                 </div>
 
                 <div class="col-3">
@@ -180,7 +181,7 @@
                         <div class='col-9 input-group date' id='saveSignalsId'>
                             <select name="display" id="saveSignalsSelect" class="selectpicker">
                                 <option value="false">no</option>
-                                <option value="true">yes</option>
+                                <option value="true" selected="selected">yes</option>
                             </select>
                         </div>
                     </div>
@@ -232,7 +233,7 @@
 </div><!-- /.modal -->
 
 <div class="modal fade" id="signalsModal">
-    <div class="modal-dialog" style="max-width: 95% !important">
+    <div class="modal-dialog" style="max-width: 100% !important">
         <div id="signalsModalContent" class="modal-content">
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
@@ -282,23 +283,6 @@
             width: "100%"
         });
 
-        $('.select2-multiple').select2({
-            multiple: true,
-            theme: "bootstrap",
-            templateResult: selectPickerImage,
-            templateSelection: selectPickerImage,
-            width: "100%"
-        })
-
-        $('#exchangeSelect').change(function () {
-            widgetBackendTester.updateSymbols();
-        });
-
-        $('#baseCurrencyToCheck').change(function () {
-            widgetBackendTester.updateSymbolsByCurrency();
-            widgetBackendTester.updateCandleAge();
-        });
-
         $('#currencyToCheck').change(function () {
             widgetBackendTester.updateCandleAge();
         });
@@ -314,13 +298,25 @@
         $('#datetimepicker2').datetimepicker({
             format: 'YYYY-MM-DD'
         });
+
+        $("#inputFromDate").val("2021-07-15");
+        $("#inputToDate").val("2022-01-15");
+
+        $("#tradeAmountId").val(100);
+        $("#startingWalletId").val(1000);
+        $("#quoteCurrencyToCheck").val("USDT");
+        $("#currencyToCheck").val("ETH-USDT");
+
+        widgetBackendTester.updateCandleAge();
     };
 
-    function loadSignalsViewModal(url, exchangeVal, marketVal, candleSizeVal, tradingStrategyVal) {
+    function loadSignalsViewModal(url, exchangeVal, marketVal, candleSizeVal, tradingStrategyVal, startDateVal, endDateVal) {
         exchange = exchangeVal;
         market = marketVal;
         candleSize = candleSizeVal;
         tradingStrategy = tradingStrategyVal;
+        startDate = startDateVal;
+        endDate = endDateVal;
         $.get(url, function (data) {
             $('#signalsModalContent').html(data);
             $('#signalsModal').modal('show');
@@ -329,11 +325,9 @@
 
     var refeshCandles = function () {
         $("#refreshButton").prop("disabled", true);
-        $("#startButton").prop("disabled", true);
 
-        axios.get('/api/backtester/refreshCandles?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val() ).then((response) => {
+        axios.get('/api/backtester/refreshCandles?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val()).then((response) => {
             $("#refreshButton").prop("disabled", false);
-            $("#startButton").prop("disabled", false);
             widgetBackendTester.updateCandleAge();
         })
         .catch((error) => {
@@ -343,11 +337,9 @@
 
     var fillCandlesGaps = function () {
         $("#refreshButton").prop("disabled", true);
-        $("#startButton").prop("disabled", true);
 
-        axios.get('/api/backtester/fillCandlesGaps?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val() + '&from=' + $('#inputFromDate').val() + '&to=' + $('#inputToDate').val()).then((response) => {
+        axios.get('/api/backtester/fillCandlesGaps?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&from=' + $('#inputFromDate').val() + '&to=' + $('#inputToDate').val()).then((response) => {
             $("#refreshButton").prop("disabled", false);
-            $("#startButton").prop("disabled", false);
 
             widgetBackendTester.updateCandleAge();
         })
@@ -357,6 +349,8 @@
     };
     
     var runStrategy = function () {
+        $("#startButton").prop("disabled", true);
+
         if (table != null) {
             table.clear().draw();
             dataArray = new Array();
@@ -367,7 +361,7 @@
             dataArraySummary = new Array();
         }
 
-        axios.get('/api/backtester/backtesterResults?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&strategy=' + $("#tradingStrategy").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val() + '&from=' + $('#inputFromDate').val() + '&to=' + $('#inputToDate').val() + '&saveSignals=' + $("#saveSignalsSelect").val() + '&startingWallet=' + $("#startingWalletId").val() + '&tradeAmount=' + $("#tradeAmountId").val()).then((response) => {
+        axios.get('/api/backtester/backtesterResults?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&strategy=' + $("#tradingStrategy").val() + '&quoteCurrency=' + $("#quoteCurrencyToCheck").val() + '&from=' + $('#inputFromDate').val() + '&to=' + $('#inputToDate').val() + '&saveSignals=' + $("#saveSignalsSelect").val() + '&startingWallet=' + $("#startingWalletId").val() + '&tradeAmount=' + $("#tradeAmountId").val()).then((response) => {
         }).catch((error) => {
             console.log(error);
         });
@@ -410,7 +404,7 @@
                         "sClass": "center",
                         responsivePriority: 2,
                         mRender: function (data, type, full, meta) {
-                            var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadSignalsViewModal(\'/views/SignalsWidget.html\', \'' + $("#exchangeSelect").val() + '\', \'' + full.Market + '\', \'' + $("#candleSize").val() + '\', \'' + full.Strategy + '\' )">signals</a>';
+                            var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadSignalsViewModal(\'/views/SignalsWidget.html\', \'' + $("#exchangeSelect").val() + '\', \'' + full.Market + '\', \'' + $("#candleSize").val() + '\', \'' + full.Strategy + '\' , \'' + full.StartDate + '\' , \'' + full.EndDate + '\' )">signals</a>';
                             return formatted;
                         }
                     },
@@ -434,7 +428,7 @@
                         "sClass": "center",
                         responsivePriority: 2,
                         mRender: function (data, type, row) {
-                            var formatted = (row.SuccessRate).toFixed(2) + " %";
+                            var formatted = (row.SuccessRate).toFixed(1);
                             return formatted;
                         }
                     },
@@ -446,7 +440,7 @@
                         "sClass": "center",
                         responsivePriority: 2,
                         mRender: function (data, type, row) {
-                            var formatted = (row.TotalProfit).toFixed(3) + " BTC";
+                            var formatted = (row.TotalProfit).toFixed(1);
                             return formatted;
                         },
                         createdCell: function (td, cellData, rowData, row, col) {
@@ -462,7 +456,7 @@
                         "sClass": "center",
                         responsivePriority: 2,
                         mRender: function (data, type, row) {
-                            var formatted = (row.TotalProfitPercentage).toFixed(2) + " %";
+                            var formatted = (row.TotalProfitPercentage).toFixed(1);
                             return formatted;
                         },
                         createdCell: function (td, cellData, rowData, row, col) {
@@ -478,7 +472,7 @@
                         "sClass": "center",
                         responsivePriority: 2,
                         mRender: function (data, type, row) {
-                            var formatted = (row.AverageDuration).toFixed(2) + " hours";
+                            var formatted = (row.AverageDuration).toFixed(1) + " h";
                             return formatted;
                         }
                     },
@@ -490,7 +484,7 @@
                         "sClass": "center",
                         responsivePriority: 2,
                         mRender: function (data, type, row) {
-                            var formatted = row.DataPeriod + " days";
+                            var formatted = row.DataPeriod;
                             return formatted;
                         }
                     }
@@ -537,7 +531,7 @@
                         "mDataProp": "LowWallet",
                         responsivePriority: 0,
                         mRender: function (data, type, row) {
-                            var formatted = (row.LowWallet).toFixed(3) + " " + row.BaseCurrency;
+                            var formatted = (row.LowWallet).toFixed(1);
                             return formatted;
                         },
                         createdCell: function (td, cellData, rowData, row, col) {
@@ -565,7 +559,7 @@
                         "sClass": "center",
                         responsivePriority: 2,
                         mRender: function (data, type, row) {
-                            var formatted = (row.SuccessRate).toFixed(2) + " %";
+                            var formatted = (row.SuccessRate).toFixed(1);
                             return formatted;
                         }
                     },
@@ -577,7 +571,7 @@
                         "sClass": "center",
                         responsivePriority: 2,
                         mRender: function (data, type, row) {
-                            var formatted = (row.TotalProfit).toFixed(3) + " BTC";
+                            var formatted = (row.TotalProfit).toFixed(1);
                             return formatted;
                         },
                         createdCell: function (td, cellData, rowData, row, col) {
@@ -593,7 +587,7 @@
                         "sClass": "center",
                         responsivePriority: 2,
                         mRender: function (data, type, row) {
-                            var formatted = (row.TotalProfitPercentage).toFixed(2) + " %";
+                            var formatted = (row.TotalProfitPercentage).toFixed(1);
                             return formatted;
                         },
                         createdCell: function (td, cellData, rowData, row, col) {
@@ -609,7 +603,7 @@
                         "sClass": "center",
                         responsivePriority: 2,
                         mRender: function (data, type, row) {
-                            var formatted = (row.AverageDuration).toFixed(2) + " hours";
+                            var formatted = (row.AverageDuration).toFixed(1) + " h";
                             return formatted;
                         }
                     },
@@ -621,7 +615,7 @@
                         "sClass": "center",
                         responsivePriority: 2,
                         mRender: function (data, type, row) {
-                            var formatted = row.DataPeriod + " days";
+                            var formatted = row.DataPeriod + " d";
                             return formatted;
                         }
                     }
@@ -674,6 +668,17 @@
                     }
                 };
 
+                connectionBacktester.on('Status',
+                    function (msg) {
+                        var m = JSON.parse(msg);
+                        if (m.status == "completed") {
+                            $("#startButton").prop("disabled", false);
+                            $("#startButton").text("Start");
+                        }
+                        else
+                            $("#startButton").text(m.progress);
+                    });
+
                 connectionBacktester.on('Send',
                     function (msg) {
                         if (backtestData == null) {
@@ -711,7 +716,6 @@
                     self.allStrategiesData = data;
                     self.$nextTick(function () {
                         pagefunction();
-                        self.updateSymbols();
                     });
                 });
             },
@@ -721,27 +725,9 @@
             toBase64: function (date) {
                 return btoa(date);
             },
-            updateSymbols: function () {
-                var self = this;
-                $.get('/api/backtester/exchangePairs?exchange=' + $("#exchangeSelect").val(), function (data) {
-                    self.exchangeCoinsData = data[0];
-                    self.exchangeBaseCurrenciesData = data[1];
-                    self.$nextTick(function () {
-                        //pagefunction();
-                        //self.updateCandleAge();
-                    });
-                });
-            },
-            updateSymbolsByCurrency: function () {
-                var self = this;
-
-                $.get('/api/backtester/exchangePairs?exchange=' + $("#exchangeSelect").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val(), function (data) {
-                    self.exchangeCoinsData = data[0];
-                });
-            },
             updateCandleAge: function () {
                 var self = this;
-                $.get('/api/backtester/candlesAge?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&baseCurrency=' + $("#baseCurrencyToCheck").val(), function (data) {
+                $.get('/api/backtester/candlesAge?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&quoteCurrency=' + $("#quoteCurrencyToCheck").val(), function (data) {
                     self.candleAgeData = data["result"];
                     if (data["result"].length === 0) {
                         $("#startButton").prop("disabled", true);

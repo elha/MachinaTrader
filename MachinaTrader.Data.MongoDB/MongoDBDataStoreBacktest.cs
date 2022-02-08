@@ -163,8 +163,9 @@ namespace MachinaTrader.Data.MongoDB
             {
                 await itemCollection.DeleteManyAsync(i => i.StrategyName == item.StrategyName);
             }
-
-            await itemCollection.InsertManyAsync(items);
+            
+            if (items.Count>0)
+                await itemCollection.InsertManyAsync(items);
         }
 
         public async Task<List<TradeSignal>> GetBacktestSignalsByStrategy(BacktestOptions backtestOptions, string strategy)

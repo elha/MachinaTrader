@@ -7,12 +7,13 @@ using MachinaTrader.Globals.Helpers;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Extensions;
 using System.Linq;
+using MachinaTrader.Globals;
 
 namespace MachinaTrader.Backtester
 {
     public class BackTestRunner
     {
-        public async Task<List<BackTestResult>> RunSingleStrategy(ITradingStrategy strategy, BacktestOptions backtestOptions, IDataStoreBacktest dataStore, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount)
+        public async Task<List<BackTestResult>> RunSingleStrategy(ITradingStrategy strategy, BacktestOptions backtestOptions, Dictionary<string, List<Candle>> candleStore, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount)
         {
             var results = new List<BackTestResult>();
             var allSignals = new List<TradeSignal>();
@@ -20,26 +21,20 @@ namespace MachinaTrader.Backtester
             // Go through our coinpairs and backtest them.
             foreach (string globalSymbol in backtestOptions.Coins)
             {
-                var candleProvider = new DatabaseCandleProvider();
+            
                 backtestOptions.Coin = globalSymbol;
-
-                // This creates a list of buy signals.
-                var candles = await candleProvider.GetCandles(backtestOptions, dataStore);
-                if (candles == null || !candles.Any())
-                    continue;
-
-                candles = await candles.FillCandleGaps((Period)Enum.Parse(typeof(Period), backtestOptions.CandlePeriod.ToString(), true));
 
                 var backTestResult = new BackTestResult { Market = globalSymbol };
 
                 try
                 {
+                    var candles = candleStore[globalSymbol];
                     var trend = strategy.Prepare(candles);
                     var signals = new List<TradeSignal>();
 
                     for (int i = 0; i < trend.Count; i++)
                     {
-                        if (trend[i] == TradeAdvice.Buy)
+                        if (trend[i].Advice == TradeAdviceEnum.Buy)
                         {
                             var id = Guid.NewGuid();
 
@@ -48,23 +43,20 @@ namespace MachinaTrader.Backtester
                                 Id = id,
                                 MarketName = globalSymbol,
                                 Price = candles[i].Close,
-                                TradeAdvice = TradeAdvice.Buy,
+                                TradeAdvice = trend[i],
                                 SignalCandle = candles[i],
                                 Timestamp = candles[i].Timestamp,
                                 StrategyName = strategy.Name
                             });
 
-                            var feePercentTwoTrades = 0.0018m * 2m;
-                            var feeTotalTwoTrades = feePercentTwoTrades * tradeAmount;
-                            // Calculate win/lose forwards from buy point
+
+                            // find next Sell
                             for (int j = i; j < trend.Count; j++)
                             {
-                                // Sell as soon as the strategy tells us to..
-                                if (trend[j] == TradeAdvice.Sell
-                                    || ShouldSell((double)candles[i].Close, (double)candles[j].Close, candles[j].Timestamp) != SellType.None
-                                    )
+                                if (trend[j].Advice == TradeAdviceEnum.Sell)
                                 {
-
+                                    var feePercentTwoTrades = 0.0018m * 2m;
+                                    var feeTotalTwoTrades = feePercentTwoTrades * tradeAmount;
                                     var currentProfitPercentage = (((candles[j].Close - candles[i].Close) / candles[i].Close) - feePercentTwoTrades) * 100;
                                     var quantity = tradeAmount / candles[i].Close;
                                     var currentProfit = (candles[j].Close - candles[i].Close) * quantity - feeTotalTwoTrades;
@@ -88,7 +80,7 @@ namespace MachinaTrader.Backtester
                                         ParentId = id,
                                         MarketName = globalSymbol,
                                         Price = candles[j].Close,
-                                        TradeAdvice = TradeAdvice.Sell,
+                                        TradeAdvice = trend[j],
                                         SignalCandle = candles[j],
                                         Profit = currentProfit,
                                         PercentageProfit = currentProfitPercentage,
@@ -106,7 +98,10 @@ namespace MachinaTrader.Backtester
                     }
 
                     if (saveSignals)
-                        await candleProvider.SaveTradeSignals(backtestOptions, dataStore, signals);
+                    {
+                        var candleProvider = new DatabaseCandleProvider();
+                        await candleProvider.SaveTradeSignals(backtestOptions, Global.DataStoreBacktest, signals);
+                    }
 
                     allSignals.AddRange(signals);
                 }
@@ -140,7 +135,7 @@ namespace MachinaTrader.Backtester
             {
                 var signal = allSignals[i];
     
-                if (signal.TradeAdvice == TradeAdvice.Buy)
+                if (signal.TradeAdvice.Advice == TradeAdviceEnum.Buy)
                 {
                     cct = cct + 1;
 
@@ -149,7 +144,7 @@ namespace MachinaTrader.Backtester
 
                     wallet = wallet - tradeAmount;
                 }
-                else if (signal.TradeAdvice == TradeAdvice.Sell)
+                else if (signal.TradeAdvice.Advice == TradeAdviceEnum.Sell)
                 {
                     cct = cct - 1;
                     

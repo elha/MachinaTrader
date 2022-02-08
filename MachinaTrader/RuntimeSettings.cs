@@ -96,29 +96,38 @@ namespace MachinaTrader
                 .WithIdentity("buyTimerJobTrigger", "buyTimerJob")
                 .Build();
 
-            ITrigger buyTimerJobTrigger = TriggerBuilder.Create()
-                .WithIdentity("buyTimerJobTrigger", "buyTimerJob")
-                .WithCronSchedule(Global.Configuration.TradeOptions.BuyTimer)
-                .UsingJobData("force", false)
-                .Build();
+            ITrigger buyTimerJobTrigger;
 
-            await scheduler.ScheduleJob(buyTimerJob, buyTimerJobTrigger);
+            if (Global.Configuration.TradeOptions.BuyTimer != "")
+            {
+                buyTimerJobTrigger = TriggerBuilder.Create()
+                    .WithIdentity("buyTimerJobTrigger", "buyTimerJob")
+                    .WithCronSchedule(Global.Configuration.TradeOptions.BuyTimer)
+                    .UsingJobData("force", false)
+                    .Build();
+
+                await scheduler.ScheduleJob(buyTimerJob, buyTimerJobTrigger);
+                Global.Logger.Information($"Buy Cron will run at: {buyTimerJobTrigger.GetNextFireTimeUtc() ?? DateTime.MinValue:r}");
+            }
 
             IJobDetail sellTimerJob = JobBuilder.Create<Timers.SellTimer>()
                 .WithIdentity("sellTimerJobTrigger", "sellTimerJob")
                 .Build();
 
-            ITrigger sellTimerJobTrigger = TriggerBuilder.Create()
+            ITrigger sellTimerJobTrigger;
+            if (Global.Configuration.TradeOptions.SellTimer != "")
+            {
+                sellTimerJobTrigger = TriggerBuilder.Create()
                 .WithIdentity("sellTimerJobTrigger", "sellTimerJob")
                 .WithCronSchedule(Global.Configuration.TradeOptions.SellTimer)
                 .UsingJobData("force", false)
                 .Build();
+                await scheduler.ScheduleJob(sellTimerJob, sellTimerJobTrigger);
+                Global.Logger.Information($"Sell Cron will run at: {sellTimerJobTrigger.GetNextFireTimeUtc() ?? DateTime.MinValue:r}");
+            }
 
-            await scheduler.ScheduleJob(sellTimerJob, sellTimerJobTrigger);
 
             await scheduler.Start();
-            Global.Logger.Information($"Buy Cron will run at: {buyTimerJobTrigger.GetNextFireTimeUtc() ?? DateTime.MinValue:r}");
-            Global.Logger.Information($"Sell Cron will run at: {sellTimerJobTrigger.GetNextFireTimeUtc() ?? DateTime.MinValue:r}");
         }
 
         public static void LoadSettings()

@@ -1,62 +1,152 @@
 <script src="/js/techan.min.js"></script>
 <style>
-path.candle { stroke: #000000; }
-    path.candle.body { stroke-width: 0; }
-    path.candle.up { fill: #00AA00; stroke: #00AA00; }
-    path.candle.down { fill: #FF0000; stroke: #FF0000; }
+    path.candle {
+        stroke: #000000;
+    }
 
-path.ohlc { stroke: #000000; stroke-width: 1; }
-    path.ohlc.up { stroke: #00AA00; }
-    path.ohlc.down { stroke: #FF0000; }
+        path.candle.body {
+            stroke-width: 0;
+        }
 
-path.volume { fill: #EEEEEE; }
+        path.candle.up {
+            fill: #00AA00;
+            stroke: #00AA00;
+        }
 
-path.line { fill: none; stroke: #BF5FFF; stroke-width: 1; }
+        path.candle.down {
+            fill: #FF0000;
+            stroke: #FF0000;
+        }
 
-.extent { stroke: #fff; fill-opacity: .125; shape-rendering: crispEdges; }
+    path.ohlc {
+        stroke: #000000;
+        stroke-width: 1;
+    }
 
-.crosshair { cursor: crosshair; }
-    .crosshair path.wire { stroke: #DDDDDD; stroke-dasharray: 1, 1; }
-    .crosshair .axisannotation path { fill: #DDDDDD; }
+        path.ohlc.up {
+            stroke: #00AA00;
+        }
 
-.tradearrow path.tradearrow { stroke-width: 1; }
-.tradearrow path.buy { fill: rgb(9, 253, 4); stroke: #000000; }
-.tradearrow path.sell { fill: rgb(235, 0, 255); stroke: #000000; }
+        path.ohlc.down {
+            stroke: #FF0000;
+        }
 
-.bollinger path { fill: none; stroke-width: 0; }
-    .bollinger path.middle { stroke: #ffffff; stroke: rgba(255,255,255,0.5); stroke-width: 2; stroke-dasharray: 10, 8; }
-    .bollinger path.band { fill: rgba(182, 187, 187, 0.30); stroke-width: 0; }
+    path.volume {
+        fill: #EEEEEE;
+    }
 
-path.macd { stroke: #0000AA; }
+    path.line {
+        fill: none;
+        stroke: #BF5FFF;
+        stroke-width: 1;
+    }
 
-.ma-0 path.line { stroke: #1f77b4; }
-.ma-1 path.line { stroke: #aec7e8; }
-.ma-2 path.line { stroke: red; }
-.ma-3 path.line { stroke: #000000; }
+    .extent {
+        stroke: #fff;
+        fill-opacity: .125;
+        shape-rendering: crispEdges;
+    }
 
-path.line { fill: none; }
-.data_line1 { fill: none; stroke: purple; }
+    .crosshair {
+        cursor: crosshair;
+    }
+
+        .crosshair path.wire {
+            stroke: #DDDDDD;
+            stroke-dasharray: 1, 1;
+        }
+
+        .crosshair .axisannotation path {
+            fill: #DDDDDD;
+        }
+
+    .tradearrow path.tradearrow {
+        stroke-width: 1;
+    }
+
+    .tradearrow path.buy {
+        fill: rgb(9, 253, 4);
+        stroke: #000000;
+    }
+
+    .tradearrow path.sell {
+        fill: rgb(235, 0, 255);
+        stroke: #000000;
+    }
+
+    .bollinger path {
+        fill: none;
+        stroke-width: 0;
+    }
+
+        .bollinger path.middle {
+            stroke: #ffffff;
+            stroke: rgba(255,255,255,0.5);
+            stroke-width: 2;
+            stroke-dasharray: 10, 8;
+        }
+
+        .bollinger path.band {
+            fill: rgba(182, 187, 187, 0.30);
+            stroke-width: 0;
+        }
+
+    path.macd {
+        stroke: #0000AA;
+    }
+
+    .ma-0 path.line {
+        stroke: #1f77b4;
+    }
+
+    .ma-1 path.line {
+        stroke: #aec7e8;
+    }
+
+    .ma-2 path.line {
+        stroke: red;
+    }
+
+    .ma-3 path.line {
+        stroke: #000000;
+    }
+
+    path.line {
+        fill: none;
+    }
+
+    .data_line1 {
+        fill: none;
+        stroke: purple;
+    }
 </style>
+
+<script type="text/javascript">
+    window.signals = null;
+</script>
 
 <div id="widgetSignalsModalModal">
     <div class="modal-header">
-        <h4 class="modal-title" id="modal-title"><i class="fas fa-chart-line"></i> Exchange: {{exchange}} Market: {{market}} candleSize: {{candleSize}} tradingStrategy: {{tradingStrategy}}</h4>
+        <h4 class="modal-title" id="modal-title"><i class="fas fa-chart-line"></i> Exchange: {{exchange}} Market: {{market}} candleSize: {{candleSize}} tradingStrategy: {{tradingStrategy}} startDate: {{startDate}} endDate: {{endDate}}</h4>
+        <button type="button" id="trades" onclick="copyTrades()">excel</button>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
     </div>
 
     <div class="modal-body">
-       
+
             <div class="row">
 
-                <div class="col-md-8" id="charts">
+                <div class="col-md-12" id="charts">
                     <script type="text/javascript">
-                        $(document).ready(function () {                      
+                        $(document).ready(function () {
+                            var useWidth = screen.availWidth - 150;
+                            var useHeight = screen.availHeight - 250;
 
                             var margin = { top: 20, right: 20, bottom: 100, left: 80 },
-                                margin2 = { top: 620, right: 20, bottom: 20, left: 80 },
-                                width = 1000 - margin.left - margin.right,
-                                height = 700 - margin.top - margin.bottom,
-                                height2 = 700 - margin2.top - margin2.bottom;
+                                margin2 = { top: useHeight - 80, right: 20, bottom: 20, left: 80 },
+                                width = useWidth - margin.left - margin.right,
+                                height = useHeight - margin.top - margin.bottom,
+                                height2 = useHeight - margin2.top - margin2.bottom;
 
                             var parseDate = d3.timeParse("%Y-%m-%dT%H:%M:%S");
 
@@ -75,11 +165,6 @@ path.line { fill: none; }
                             var volume = techan.plot.volume().xScale(x).yScale(yVolume);
 
                             var close = techan.plot.close().xScale(x2).yScale(y2);
-
-                            var sma0 = techan.plot.sma().xScale(x).yScale(y);
-                            var sma1 = techan.plot.sma().xScale(x).yScale(y);
-                            var ema2 = techan.plot.ema().xScale(x).yScale(y);
-                            var ema3 = techan.plot.ema().xScale(x).yScale(y);
 
                             var plotLine1 = d3.line()
                                 .defined(function (d) {
@@ -139,10 +224,6 @@ path.line { fill: none; }
                                 .attr("height", y(0) - y(1));
 
                             focus.append("g")
-                                .attr("class", "bollinger")
-                                .attr("clip-path", "url(#clip)");
-
-                            focus.append("g")
                                 .attr("class", "volume")
                                 .attr("clip-path", "url(#clip)");
 
@@ -152,26 +233,6 @@ path.line { fill: none; }
 
                             focus.append("g")
                                 .attr("class", "tradearrow")
-                                .attr("clip-path", "url(#clip)");
-
-                            focus.append("g")
-                                .attr("class", "macd")
-                                .attr("clip-path", "url(#clip)");
-
-                            focus.append("g")
-                                .attr("class", "indicator sma ma-0")
-                                .attr("clip-path", "url(#clip)");
-
-                            focus.append("g")
-                                .attr("class", "indicator sma ma-1")
-                                .attr("clip-path", "url(#clip)");
-
-                            focus.append("g")
-                                .attr("class", "indicator ema ma-2")
-                                .attr("clip-path", "url(#clip)");
-
-                            focus.append("g")
-                                .attr("class", "indicator ema ma-3")
                                 .attr("clip-path", "url(#clip)");
 
                             focus.append("g")
@@ -187,46 +248,6 @@ path.line { fill: none; }
                             focus.append('g')
                                 .attr("class", "crosshair")
                                 .call(crosshair);
-
-                            //focus.append("g")
-                            //	.attr("class", "y axis")
-                            //	.append("text")
-                            //	.attr("transform", "rotate(-90)")
-                            //	.attr("y", 6)
-                            //	.attr("x", -56)
-                            //	.attr("dy", ".71em")
-                            //	.style("text-anchor", "end")
-                            //	.text("MACD");
-
-                            focus.append("g")
-                                .attr("class", "y axis")
-                                .append("text")
-                                .attr("y", 0)
-                                .attr("x", 50)
-                                .attr("dy", ".71em")
-                                .style("text-anchor", "end")
-                                .style("fill", "#1f77b4")
-                                .text("SMA10");
-
-                            focus.append("g")
-                                .attr("class", "y axis")
-                                .append("text")
-                                .attr("y", 0)
-                                .attr("x", 100)
-                                .attr("dy", ".71em")
-                                .style("text-anchor", "end")
-                                .style("fill", "#aec7e8")
-                                .text("SMA20");
-
-                            focus.append("g")
-                                .attr("class", "y axis")
-                                .append("text")
-                                .attr("y", 0)
-                                .attr("x", 150)
-                                .attr("dy", ".71em")
-                                .style("text-anchor", "end")
-                                .style("fill", "#ff7f0e")
-                                .text("EMA50");
 
                             var context = svg.append("g")
                                 .attr("class", "context")
@@ -246,7 +267,7 @@ path.line { fill: none; }
                                 .attr("class", "y axis")
                                 .call(yAxis2);
 
-                            var url = '/api/backtester/getTickers?exchange=' + widgetSignalsModalModal.exchange + '&coinsToBuy=' + widgetSignalsModalModal.market + '&candleSize=' + widgetSignalsModalModal.candleSize + '&strategy=' + widgetSignalsModalModal.tradingStrategy + '';
+                            var url = '/api/backtester/getTickers?exchange=' + widgetSignalsModalModal.exchange + '&coinsToBuy=' + widgetSignalsModalModal.market + '&candleSize=' + widgetSignalsModalModal.candleSize + '&strategy=' + widgetSignalsModalModal.tradingStrategy + '&startDate=' + widgetSignalsModalModal.startDate + '&endDate=' + widgetSignalsModalModal.endDate + '';
 
                             $.getJSON(url, null, function (data) {
 
@@ -266,19 +287,7 @@ path.line { fill: none; }
                                     };
                                 }).sort(function (a, b) { return d3.ascending(accessor.d(a), accessor.d(b)); });
 
-                                var macdAccessor = macd.accessor();
-                                var macdData = data.map(function (d) {
-                                    return {
-                                        date: parseDate(d.timestamp.slice(0, -1)),
-                                        open: +d.open,
-                                        high: +d.high,
-                                        low: +d.low,
-                                        close: +d.close,
-                                        volume: +d.volume
-                                    };
-                                }).sort(function (a, b) { return d3.ascending(macdAccessor.d(a), macdAccessor.d(b)); });
-
-                                var url2 = '/api/backtester/getSignals?exchange=' + widgetSignalsModalModal.exchange + '&coinsToBuy=' + widgetSignalsModalModal.market + '&candleSize=' + widgetSignalsModalModal.candleSize + '&strategy=' + widgetSignalsModalModal.tradingStrategy + '';
+                                var url2 = '/api/backtester/getSignals?exchange=' + widgetSignalsModalModal.exchange + '&coinsToBuy=' + widgetSignalsModalModal.market + '&candleSize=' + widgetSignalsModalModal.candleSize + '&strategy=' + widgetSignalsModalModal.tradingStrategy + '&startDate=' + widgetSignalsModalModal.startDate + '&endDate=' + widgetSignalsModalModal.endDate + '';
 
                                 $.getJSON(url2, null, function (signals) {
                                     var trades = signals.map(function (d) {
@@ -287,7 +296,7 @@ path.line { fill: none; }
                                             price: +d.price,
                                             //high: +d.high,
                                             //low: +d.low,
-                                            type: (d.tradeAdvice === 1 ? "buy" : "sell")
+                                            type: (d.tradeAdvice.advice === 1 ? "buy" : "sell")
                                         };
                                     }).sort(function (a, b) { return d3.ascending(accessor.d(a), accessor.d(b)); });
 
@@ -297,7 +306,7 @@ path.line { fill: none; }
                                             price: +d.price,
                                             //high: +d.high,
                                             //low: +d.low,
-                                            type: (d.tradeAdvice === 1 ? "buy" : "sell"),
+                                            type: (d.tradeAdvice.advice === 1 ? "buy" : "sell"),
 
                                             profit: d.profit,
                                             percentageProfit: d.percentageProfit
@@ -306,22 +315,7 @@ path.line { fill: none; }
                                         };
                                     }).sort(function (a, b) { return d3.ascending(accessor.d(a), accessor.d(b)); });
 
-                                    var prepareTradeSignal = function (value) {
-                                        var sigInfo = (value.type + " " + value.date.slice(0, -1).replace("T", " ") + " " + value.price + " ");
-                                        if (value.type == "sell") {
-                                            return sigInfo + " $ " + value.percentageProfit + " $ ";
-                                        } else {
-                                            return sigInfo;
-                                        }
-                                    };
-
-                                    $("#mySelect").empty();
-                                    $.each(trades2, function (index, value) {
-                                        $("#mySelect").append($("<option>", {
-                                            value: index,
-                                            text: prepareTradeSignal(value)
-                                        }));
-                                    });
+                                    window.signals = signals;
 
                                     x.domain(candles.map(accessor.d));
                                     x2.domain(x.domain());
@@ -398,27 +392,13 @@ path.line { fill: none; }
                                 focus.select("g.x.axis").call(xAxis);
                                 focus.select("g.y.axis").call(yAxis);
                             }
-                           
+
                         });
-                    </script>
+</script>
                 </div>
-
-                <div class="col-md-1">
-                    <select id="mySelect" size="40"></select>
-                </div>
-
             </div>
-        
-    </div>
 
-    <div class="modal-footer">
-        <div class="col-md-12" style="padding-top: 10px;">
-            <div style="text-align: center;">
-                <button type="button" class="btn btn-primary btn-block margin-right" onclick="$('#signalsModal').modal('hide');">Close</button>
-            </div>
-        </div>
     </div>
-
 </div>
 
 
@@ -459,6 +439,24 @@ path.line { fill: none; }
         tradingStrategy = "";
     }
 
+    if (typeof (startDate) != "undefined") {
+        startDate = startDate;
+    }
+    else if (getParam('startDate') != null) {
+        startDate = getParam('startDate');
+    } else {
+        startDate = "";
+    }
+
+    if (typeof (endDate) != "undefined") {
+        endDate = endDate;
+    }
+    else if (getParam('endDate') != null) {
+        endDate = getParam('endDate');
+    } else {
+        endDate = "";
+    }
+
     var widgetSignalsModalModal = new Vue({
         el: '#widgetSignalsModalModal',
         parent: vueMain,
@@ -467,7 +465,9 @@ path.line { fill: none; }
             exchange: exchange,
             market: market,
             candleSize: candleSize,
-            tradingStrategy: tradingStrategy
+            tradingStrategy: tradingStrategy,
+            startDate: startDate,
+            endDate: endDate
         },
         created: function () {
             this.fetchData();
@@ -480,4 +480,21 @@ path.line { fill: none; }
 
         },
     });
+
+
+    function copyTrades() {
+        var trades = "type;date;price;percent;comment";
+
+        window.signals.forEach((value) => {
+            trades += "\n" + ((value.tradeAdvice.advice == 1) ? "buy" : "sell") + ";"
+                + value.timestamp.slice(0, -1).replace("T", " ") + ";"
+                + value.price.toFixed(2) + ";"
+                + ((value.percentageProfit == 0) ? "" : value.percentageProfit.toFixed(2)) + ";"
+                + (value.tradeAdvice.comment ?? "");
+        });
+
+        window.open("data:text/csv;charset=utf-8," + trades, "", "_blank")
+    }
+
+
 </script>

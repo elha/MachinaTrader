@@ -197,9 +197,9 @@ namespace MachinaTrader.Controllers
                 await Global.ExchangeApi.CancelOrder(trade.SellOrderId, trade.Market);
                 trade.IsSelling = false;
                 trade.OpenOrderId = null;
-                //trade.IsOpen = false;
-                //trade.SellType = SellType.Cancelled;
-                //trade.CloseDate = DateTime.UtcNow;
+                trade.IsOpen = false;
+                trade.SellType = SellType.Cancelled;
+                trade.CloseDate = DateTime.UtcNow;
                 await Global.DataStore.SaveTradeAsync(trade);
             }
 

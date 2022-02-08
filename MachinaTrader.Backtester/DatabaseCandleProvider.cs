@@ -14,16 +14,17 @@ namespace MachinaTrader.Backtester
 {
     public class DatabaseCandleProvider
     {
-        public async Task<List<Candle>> GetCandles(BacktestOptions backtestOptions, IDataStoreBacktest dataStore)
+        public List<Candle> GetCandles(BacktestOptions backtestOptions, IDataStoreBacktest dataStore)
         {
             if (backtestOptions.EndDate == DateTime.MinValue)
             {
                 backtestOptions.EndDate = DateTime.UtcNow;
             }
 
-            List<Candle> candles = await dataStore.GetBacktestCandlesBetweenTime(backtestOptions);
-
-            return candles;
+            lock (dataStore)
+            {
+                return  dataStore.GetBacktestCandlesBetweenTime(backtestOptions).Result;
+            }
         }
 
         public async Task SaveTradeSignals(BacktestOptions backtestOptions, IDataStoreBacktest dataStore, List<TradeSignal> signals)
@@ -98,7 +99,7 @@ namespace MachinaTrader.Backtester
                 backtestOptions.EndDate = databaseLastCandle.Timestamp;
 
                 var candleProvider = new DatabaseCandleProvider();
-                var _candle15 = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest).Result;
+                var _candle15 = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest);
                 _candle15 = await _candle15.FillCandleGaps((Period)Enum.Parse(typeof(Period), backtestOptions.CandlePeriod.ToString(), true));
 
                 Global.AppCache.Remove(backtestOptions.Coin + backtestOptions.CandlePeriod);
@@ -121,7 +122,7 @@ namespace MachinaTrader.Backtester
                 backtestOptions.StartDate = database1FirstCandle.Timestamp;
                 backtestOptions.EndDate = database1LastCandle.Timestamp;
 
-                var _candle1 = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest).Result;
+                var _candle1 = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest);
                 _candle1 = await _candle1.FillCandleGaps((Period)Enum.Parse(typeof(Period), backtestOptions.CandlePeriod.ToString(), true));
 
                 Global.AppCache.Remove(backtestOptions.Coin + backtestOptions.CandlePeriod);

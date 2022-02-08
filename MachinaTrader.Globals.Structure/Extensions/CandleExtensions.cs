@@ -29,6 +29,11 @@ namespace MachinaTrader.Globals.Structure.Extensions
             return source.Select(x => x.Close).ToList();
         }
 
+        public static List<decimal> Volume(this List<Candle> source)
+        {
+            return source.Select(x => x.Volume).ToList();
+        }
+
         public static List<decimal> Hl2(this List<Candle> source)
         {
             return source.Select(x => (x.High + x.Low) / 2).ToList();

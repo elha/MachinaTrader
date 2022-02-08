@@ -29,16 +29,16 @@ namespace MachinaTrader.Backtester
             return strategies;
         }
 
-        public static async Task<List<BackTestResult>> BackTest(ITradingStrategy strategy, BacktestOptions backtestOptions, IDataStoreBacktest dataStore, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount)
+        public static async Task<List<BackTestResult>> BackTest(ITradingStrategy strategy, BacktestOptions backtestOptions, Dictionary<string, List<Candle>> candles, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount)
         {
             var runner = new BackTestRunner();
-            var results = await runner.RunSingleStrategy(strategy, backtestOptions, dataStore, baseCurrency, saveSignals, startingWallet, tradeAmount);
+            var results = await runner.RunSingleStrategy(strategy, backtestOptions, candles, baseCurrency, saveSignals, startingWallet, tradeAmount);
             return results;
         }
 
-        public static async Task<JArray> BackTestJson(ITradingStrategy strategy, BacktestOptions backtestOptions, IDataStoreBacktest dataStore, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount)
+        public static async Task<JArray> BackTestJson(ITradingStrategy strategy, BacktestOptions backtestOptions, Dictionary<string, List<Candle>> candles, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount)
         {
-            var results = await BackTest(strategy, backtestOptions, dataStore, baseCurrency, saveSignals, startingWallet, tradeAmount);
+            var results = await BackTest(strategy, backtestOptions, candles, baseCurrency, saveSignals, startingWallet, tradeAmount);
 
             var jArrayResult = new JArray();
 
@@ -68,6 +68,8 @@ namespace MachinaTrader.Backtester
                 currentResult1["AverageDuration"] = resultsSummary.AverageDuration;
                 currentResult1["DataPeriod"] = resultsSummary.DataPeriod;
                 currentResult1["BaseCurrency"] = baseCurrency;
+                currentResult1["StartDate"] = backtestOptions.StartDate;
+                currentResult1["EndDate"] = backtestOptions.EndDate;
                 jArrayResult.Add(currentResult1);
 
                 foreach (var result in results)
@@ -82,6 +84,8 @@ namespace MachinaTrader.Backtester
                     currentResult["TotalProfitPercentage"] = result.TotalProfitPercentage;
                     currentResult["AverageDuration"] = result.AverageDuration;
                     currentResult["DataPeriod"] = result.DataPeriod;
+                    currentResult["StartDate"] = backtestOptions.StartDate;
+                    currentResult["EndDate"] = backtestOptions.EndDate;
 
                     jArrayResult.Add(currentResult);
                 }

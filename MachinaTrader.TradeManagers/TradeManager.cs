@@ -163,7 +163,7 @@ namespace MachinaTrader.TradeManagers
                 var signal = await GetStrategySignal(trade.Market, strategy);
 
                 // If the strategy is telling us to sell we need to do so.
-                if (signal?.TradeAdvice == TradeAdvice.Sell)
+                if (signal?.TradeAdvice.Advice == TradeAdviceEnum.Sell)
                 {
                     // Create a sell order for our strategy.
                     var ticker = await Global.ExchangeApi.GetTicker(trade.Market);
@@ -266,7 +266,7 @@ namespace MachinaTrader.TradeManagers
                 var signal = await GetStrategySignal(market.MarketName, strategy);
 
                 // A match was made, buy that please!
-                if (signal?.TradeAdvice == TradeAdvice.Buy || signal?.TradeAdvice == TradeAdvice.Sell)
+                if (signal?.TradeAdvice.Advice == TradeAdviceEnum.Buy || signal?.TradeAdvice.Advice == TradeAdviceEnum.Sell)
                 {
                     //Global.Logger.Information($"Found BUY SIGNAL {signal.SignalCandle.Timestamp} for: {market.MarketName} at {signal.SignalCandle.Close} {Global.Configuration.TradeOptions.QuoteCurrency}");
 
@@ -355,7 +355,7 @@ namespace MachinaTrader.TradeManagers
                 //Global.Logger.Warning("Not enough candle data for {Market}...", market);
                 return new TradeSignal
                 {
-                    TradeAdvice = TradeAdvice.Hold,
+                    TradeAdvice = TradeAdvice.Factory.Hold,
                     MarketName = market
                 };
             }

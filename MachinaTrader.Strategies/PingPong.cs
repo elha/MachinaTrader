@@ -21,13 +21,12 @@ namespace MachinaTrader.Strategies
             
             for (int i = 0; i < candles.Count; i++)
             {
-                if (i+1 == candles.Count)
-                    if(System.DateTime.Now.Minute % 2 == 0)
-                        result.Add(TradeAdvice.Buy);
-                    else
-                        result.Add(TradeAdvice.Sell);
+                if (candles[i].Timestamp.Minute == 1)
+                    result.Add(TradeAdvice.Factory.Buy);
+                else if (candles[i].Timestamp.Minute == 45)
+                    result.Add(TradeAdvice.Factory.Sell);
                 else
-                    result.Add(TradeAdvice.Hold);
+                    result.Add(TradeAdvice.Factory.Hold);
             }
 
             return result;

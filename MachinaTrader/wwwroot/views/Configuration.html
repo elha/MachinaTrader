@@ -374,7 +374,7 @@
                             <input type="text" class="form-control float" name="TradeOptions.MaxNumberOfConcurrentTrades" v-bind:value="apiMainConfigData['tradeOptions']['maxNumberOfConcurrentTrades']" />
                         </td>
                     </tr>
-                    
+
                     <tr>
                         <td>
                             <span class="qTip" title="Start amount">Start Amount <i class="fal fa-question-circle"></i></span>
@@ -409,6 +409,18 @@
                         </td>
                         <td>
                             <input type="text" class="form-control integer" name="TradeOptions.ProfitStrategy" v-bind:value="apiMainConfigData['tradeOptions']['profitStrategy']" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="qTip" title="Percentage of total Balance to reinvest per trade">AmountToReinvestPercentage <i class="fal fa-question-circle"></i></span>
+                            <div style="display: none;">
+                                Percentage of total Balance to reinvest per trade
+                                <br /><br /><strong>Default:</strong> <i>0.25</i>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control float" name="TradeOptions.AmountToReinvestPercentage" v-bind:value="apiMainConfigData['tradeOptions']['amountToReinvestPercentage']" />
                         </td>
                     </tr>
                     <tr>
@@ -584,16 +596,16 @@
                         </td>
                     </tr>
                     <!--<tr>
-                        <td>
-                            <span class="qTip" title="">ReturnOnInvestment <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                <p></p>
-                            </div>
-                        </td>
-                        <td>
-                            <input type="text" class="form-control string" name="TradeOptions.ReturnOnInvestment" v-bind:value="apiMainConfigData['tradeOptions']['returnOnInvestment']" />
-                        </td>
-                    </tr>-->
+        <td>
+            <span class="qTip" title="">ReturnOnInvestment <i class="fal fa-question-circle"></i></span>
+            <div style="display: none;">
+                <p></p>
+            </div>
+        </td>
+        <td>
+            <input type="text" class="form-control string" name="TradeOptions.ReturnOnInvestment" v-bind:value="apiMainConfigData['tradeOptions']['returnOnInvestment']" />
+        </td>
+    </tr>-->
                     <tr>
                         <td>
                             <span class="qTip" title="QuoteCurrency">QuoteCurrency <i class="fal fa-question-circle"></i></span>
