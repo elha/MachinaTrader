@@ -71,7 +71,7 @@
                 <div class="col-8">
                     <div class="input-group">
                         <input type="text" name="manualBuyAmount" v-if="!currentCurrencyAsk" class="form-control float" value="">
-                        <input type="text" name="manualBuyAmount" v-if="currentCurrencyAsk" class="form-control float" :value="((apiMainConfigData.tradeOptions.amountToInvestPerTrader/currentCurrencyAskManual).toFixed(8))">
+                        <input type="text" name="manualBuyAmount" v-if="currentCurrencyAsk" class="form-control float" :value="((apiMainConfigData.tradeOptions.AmountToInvestPerTrade/currentCurrencyAskManual).toFixed(8))">
                         <span class="input-group-append">COIN</span>
                     </div>
                 </div>
@@ -141,7 +141,7 @@
                 </div>
                 <div class="col-8">
                     <div class="input-group">
-                        <input type="text" class="form-control float" name="manualBuyOrderTotal" v-model="apiMainConfigData.tradeOptions.amountToInvestPerTrader" :value="apiMainConfigData.tradeOptions.amountToInvestPerTrader">
+                        <input type="text" class="form-control float" name="manualBuyOrderTotal" v-model="apiMainConfigData.tradeOptions.AmountToInvestPerTrade" :value="apiMainConfigData.tradeOptions.AmountToInvestPerTrade">
                         <span class="input-group-append">
                             BTC
                         </span>

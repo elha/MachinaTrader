@@ -439,7 +439,7 @@ namespace MachinaTrader.TradeManagers
             }
 
             // Do we even have enough funds to invest? (only for SetAside; if you choose Reinvest we push a %) 
-            if (Global.Configuration.TradeOptions.ProfitStrategy == ProfitType.SetAside && currentQuoteBalance < Global.Configuration.TradeOptions.AmountToInvestPerTrader)
+            if (Global.Configuration.TradeOptions.ProfitStrategy == ProfitType.SetAside && currentQuoteBalance < Global.Configuration.TradeOptions.AmountToInvestPerTrade)
             {
                 Global.Logger.Warning("Insufficient funds ({Available}) to perform a {MarketName} trade. Skipping this trade.", currentQuoteBalance, signal.MarketName);
                 return;
@@ -467,7 +467,7 @@ namespace MachinaTrader.TradeManagers
             }
 
             // Take the amount to invest per trader OR the current balance for this trader.
-            var fichesToSpend = Global.Configuration.TradeOptions.AmountToInvestPerTrader;
+            var fichesToSpend = Global.Configuration.TradeOptions.AmountToInvestPerTrade;
 
             if (Global.Configuration.TradeOptions.ProfitStrategy == ProfitType.Reinvest && !Global.Configuration.TradeOptions.PaperTrade)
             {
