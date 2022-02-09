@@ -36,14 +36,13 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 
 namespace MachinaTrader
 {
     public static class ConfigurationExtensions
     {
-        private static readonly MethodInfo MapHubMethod = typeof(HubRouteBuilder).GetMethod("MapHub", new[] { typeof(PathString) });
-
-        public static HubRouteBuilder MapSignalrRoutes(this HubRouteBuilder hubRouteBuilder)
+        public static IEndpointRouteBuilder MapSignalrRoutes(this IEndpointRouteBuilder hubRouteBuilder)
         {
             hubRouteBuilder.MapHub<HubMainIndex>("/signalr/HubMainIndex");
             hubRouteBuilder.MapHub<HubTraders>("/signalr/HubTraders");
@@ -227,9 +226,9 @@ namespace MachinaTrader
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
+                endpoints.MapSignalrRoutes();
             });
-            app.UseSignalR(r => r.MapSignalrRoutes());
-
+     
             // Init Database
             databaseInitializer.Initialize();
 
