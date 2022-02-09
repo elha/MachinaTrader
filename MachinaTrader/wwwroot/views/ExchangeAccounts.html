@@ -107,7 +107,7 @@
         table = $('#accountsTableId').DataTable({
             ajax: {
                 url: '/api/exchange/account/balance',
-                dataSrc: ''
+                dataSrc: 'positions'
             },
             "oLanguage": {
                 "sEmptyTable": "Check your API keys under configuration page."

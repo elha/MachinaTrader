@@ -334,8 +334,8 @@ namespace MachinaTrader.TradeManagers
 
         private string TradeToString(Trade trade)
         {
-            return string.Format($"#{trade.Market} with limit {trade.OpenRate:0.00000000} {Global.Configuration.TradeOptions.QuoteCurrency} " +
-                                 $"({trade.Quantity:0.0000} {trade.GlobalSymbol.Replace(Global.Configuration.TradeOptions.QuoteCurrency, "")} " +
+            return string.Format($"{trade.GlobalSymbol} with limit {trade.OpenRate:0.00000000} {Global.Configuration.TradeOptions.QuoteCurrency} " +
+                                 $"({trade.Quantity:0.0000} " +
                                  $"{trade.OpenDate} " +
                                  $"({trade.TradeId})");
         }
