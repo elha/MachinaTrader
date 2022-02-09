@@ -287,23 +287,6 @@
             </div>
             <div class="card-body p-0">
                 <table class="table table-hover table-striped">
-
-                    <tr>
-                        <td width="300px">
-                            <span class="qTip" title="Only sell on strategy signals">OnlySellOnStrategySignals <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                Set this if you want MachinaTrading <strong>only</strong> sell if Strategy advice to sell.
-                                <br /><br /><strong>Default:</strong> <i>false</i>
-                            </div>
-                        </td>
-                        <td>
-                            <label class="switch switch-label switch-primary">
-                                <input type="checkbox" class="switch-input bool" name="TradeOptions.OnlySellOnStrategySignals" :checked="apiMainConfigData['tradeOptions']['onlySellOnStrategySignals']" />
-                                <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
-                            </label>
-                        </td>
-                    </tr>
-
                     <tr>
                         <td>
                             <span class="qTip" title="Buy Timer">BuyTimer <i class="fal fa-question-circle"></i></span>
@@ -314,35 +297,20 @@
                             </div>
                         </td>
                         <td>
-                            <div class='row'>
-                                <div class="col-6">
-                                    <div id='buyTimerCron'></div>
-                                </div>
-                                <div class="col-6">
-                                    <input type="text" readonly class="form-control string" id="buyTimerCronInput" name="TradeOptions.BuyTimer" />
-                                </div>
-                            </div>
+                            <input type="text" class="form-control string" name="TradeOptions.BuyTimer" v-bind:value="apiMainConfigData['tradeOptions']['buyTimer']" />
                         </td>
                     </tr>
-
                     <tr>
                         <td>
-                            <span class="qTip" title="Sell Timer">SellTimer <i class="fal fa-question-circle"></i></span>
+                            <span class="qTip" title="Buy Timer">SellTimer <i class="fal fa-question-circle"></i></span>
                             <div style="display: none;">
-                                Select interval to check for sell
+                                Select interval to check for new sells
                                 <br /> You can also choose custom option to directly change cron (Quartz)
                                 <br /><br /><strong>Default:</strong> <i>0 0/5 * * * ?</i>
                             </div>
                         </td>
                         <td>
-                            <div class='row'>
-                                <div class="col-6">
-                                    <div id='sellTimerCron'></div>
-                                </div>
-                                <div class="col-6">
-                                    <input type="text" readonly class="form-control" id="sellTimerCronInput" name="TradeOptions.SellTimer" />
-                                </div>
-                            </div>
+                            <input type="text" class="form-control string" name="TradeOptions.SellTimer" v-bind:value="apiMainConfigData['tradeOptions']['sellTimer']" />
                         </td>
                     </tr>
 
@@ -375,18 +343,6 @@
                         </td>
                     </tr>
 
-                    <tr>
-                        <td>
-                            <span class="qTip" title="Start amount">Start Amount <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                Start amount of your instance
-                                <br /><br /><strong>Default:</strong> <i>Whatever you want...</i>
-                            </div>
-                        </td>
-                        <td>
-                            <input type="text" class="form-control float" name="TradeOptions.StartAmount" v-bind:value="apiMainConfigData['tradeOptions']['startAmount']" />
-                        </td>
-                    </tr>
                     <tr>
                         <td>
                             <span class="qTip" title="Amount to invest per trade">AmountToInvestPerTrade <i class="fal fa-question-circle"></i></span>
@@ -423,86 +379,7 @@
                             <input type="text" class="form-control float" name="TradeOptions.AmountToReinvestPercentage" v-bind:value="apiMainConfigData['tradeOptions']['amountToReinvestPercentage']" />
                         </td>
                     </tr>
-                    <tr>
-                        <td>
-                            <span class="qTip" title="StopLoss percentage">StopLossPercentage <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                Set stop loss for trades (0.01 = 10%)
-                                <br /><br /><strong>Default:</strong> <i>-0.07</i>
-                            </div>
-                        </td>
-                        <td>
-                            <input type="text" class="form-control float" name="TradeOptions.StopLossPercentage" v-bind:value="apiMainConfigData['tradeOptions']['stopLossPercentage']" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <span class="qTip" title="Immediately place sell order">ImmediatelyPlaceSellOrder <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                Sell position immediately after successful buy with value from ImmediatelyPlaceSellOrderAtProfit
-                                <br /><br /><strong>Default:</strong> <i>false</i>
-                            </div>
-                        </td>
-                        <td>
-                            <label class="switch switch-label switch-primary">
-                                <input type="checkbox" class="switch-input bool" name="TradeOptions.ImmediatelyPlaceSellOrder" :checked="apiMainConfigData['tradeOptions']['immediatelyPlaceSellOrder']" />
-                                <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
-                            </label>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <span class="qTip" title="Immediately place sell order with profit">ImmediatelyPlaceSellOrderAtProfit <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                If ImmediatelyPlaceSellOrder is true, sell with this percentage
-                                <br />0.02 = 2%
-                                <br /><br /><strong>Default:</strong> <i>0.02</i>
-                            </div>
-                        </td>
-                        <td>
-                            <input type="text" class="form-control float" name="TradeOptions.ImmediatelyPlaceSellOrderAtProfit" v-bind:value="apiMainConfigData['tradeOptions']['immediatelyPlaceSellOrderAtProfit']" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <span class="qTip" title="Enable trailing stoploss">EnableTrailingStop <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                <br /><br /><strong>Default:</strong> <i>true</i>
-                            </div>
-                        </td>
-                        <td>
-                            <label class="switch switch-label switch-primary">
-                                <input type="checkbox" class="switch-input bool" name="TradeOptions.EnableTrailingStop" :checked="apiMainConfigData['tradeOptions']['enableTrailingStop']" />
-                                <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
-                            </label>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <span class="qTip" title="Trailing stoploss starting percentage">TrailingStopStartingPercentage <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                Arm Trailing stoploss at this percentage
-                                <br />0.05 = 5%
-                                <br /><br /><strong>Default:</strong> <i>0.05</i>
-                            </div>
-                        </td>
-                        <td>
-                            <input type="text" class="form-control float" name="TradeOptions.TrailingStopStartingPercentage" v-bind:value="apiMainConfigData['tradeOptions']['trailingStopStartingPercentage']" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <span class="qTip" title="">TrailingStopPercentage <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                Sell on this percentage
-                                <br />0.05 = 5%
-                                <br /><br /><strong>Default:</strong> <i>0.05</i>
-                            </div>
-                        </td>
-                        <td>
-                            <input type="text" class="form-control float" name="TradeOptions.TrailingStopPercentage" v-bind:value="apiMainConfigData['tradeOptions']['trailingStopPercentage']" />
-                        </td>
-                    </tr>
+
                     <tr>
                         <td>
                             <span class="qTip" title="Cancel unbought orders each cycle">Max open time to buy <i class="fal fa-question-circle"></i></span>
@@ -515,33 +392,7 @@
                             <input type="text" class="form-control float" name="TradeOptions.MaxOpenTimeBuy" v-bind:value="apiMainConfigData['tradeOptions']['maxOpenTimeBuy']" />
                         </td>
                     </tr>
-                    <tr>
-                        <td>
-                            <span class="qTip" title="Place first stop at SignalCandleLow">PlaceFirstStopAtSignalCandleLow <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                ToDo
-                                <br /><br /><strong>Default:</strong> <i>false</i>
-                            </div>
-                        </td>
-                        <td>
-                            <label class="switch switch-label switch-primary">
-                                <input type="checkbox" class="switch-input bool" name="TradeOptions.PlaceFirstStopAtSignalCandleLow" :checked="apiMainConfigData['tradeOptions']['placeFirstStopAtSignalCandleLow']" />
-                                <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
-                            </label>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <span class="qTip" title="Minimum amount of volume">MinimumAmountOfVolume <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                Set the minimum amount of volume to buy into a currency
-                                <br /><br /><strong>Default:</strong> <i>300</i>
-                            </div>
-                        </td>
-                        <td>
-                            <input type="text" class="form-control integer" name="TradeOptions.MinimumAmountOfVolume" v-bind:value="apiMainConfigData['tradeOptions']['minimumAmountOfVolume']" />
-                        </td>
-                    </tr>
+
                     <tr>
                         <td>
                             <span class="qTip" title="Default strategy">DefaultStrategy <i class="fal fa-question-circle"></i></span>
@@ -556,56 +407,7 @@
                             </select>
                         </td>
                     </tr>
-                    <tr>
-                        <td>
-                            <span class="qTip" title="BuyInPriceStrategy">BuyInPriceStrategy <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                AskLastBalance = 0,
-                                <br />PercentageBelowBid = 1,
-                                <br />MatchCurrentBid = 2,
-                                <br />SignalCandleClose = 3
-                                <br /><br /><strong>Default:</strong> <i>3</i>
-                            </div>
-                        </td>
-                        <td>
-                            <input type="text" class="form-control integer" name="TradeOptions.BuyInPriceStrategy" v-bind:value="apiMainConfigData['tradeOptions']['buyInPriceStrategy']" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <span class="qTip" title="Ask last balance">AskLastBalance <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                ToDo:
-                                <br /><br /><strong>Default:</strong> <i>0.2</i>
-                            </div>
-                        </td>
-                        <td>
-                            <input type="text" class="form-control float" name="TradeOptions.AskLastBalance" v-bind:value="apiMainConfigData['tradeOptions']['askLastBalance']" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <span class="qTip" title="BuyInPricePercentage">BuyInPricePercentage <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                ToDo:
-                                <br /><br /><strong>Default:</strong> <i>0.005</i>
-                            </div>
-                        </td>
-                        <td>
-                            <input type="text" class="form-control float" name="TradeOptions.BuyInPricePercentage" v-bind:value="apiMainConfigData['tradeOptions']['buyInPricePercentage']" />
-                        </td>
-                    </tr>
-                    <!--<tr>
-        <td>
-            <span class="qTip" title="">ReturnOnInvestment <i class="fal fa-question-circle"></i></span>
-            <div style="display: none;">
-                <p></p>
-            </div>
-        </td>
-        <td>
-            <input type="text" class="form-control string" name="TradeOptions.ReturnOnInvestment" v-bind:value="apiMainConfigData['tradeOptions']['returnOnInvestment']" />
-        </td>
-    </tr>-->
+
                     <tr>
                         <td>
                             <span class="qTip" title="QuoteCurrency">QuoteCurrency <i class="fal fa-question-circle"></i></span>
@@ -618,73 +420,21 @@
                             <input type="text" class="form-control string" name="TradeOptions.QuoteCurrency" v-bind:value="apiMainConfigData['tradeOptions']['quoteCurrency']" />
                         </td>
                     </tr>
-                    <tr>
-                        <td>
-                            <span class="qTip" title="Market blacklist">MarketBlackList <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                Never trade this coins
-                                <br /> Depends on your current exchange.
-                                <br /><br /><strong>Default:</strong> <i>none</i>
-                            </div>
-                        </td>
-                        <td>
-                            <select name="TradeOptions.MarketBlackList[]" id="MarketBlackList" class="select2-multiple" data-live-search="true" data-size="10" data-width="auto" multiple="multiple">
-                                <option v-for="(value, key) in exchangeCoinsData" :selected="(apiMainConfigData['tradeOptions']['marketBlackList']).includes(value)" v-bind:value="value" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{value}}</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <span class="qTip" title="Only Trade List">OnlyTradeList <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                Only trade this coins
-                                <br /> Depends on your current exchange.
-                                <br /><br /><strong>Default:</strong> <i>ETHBTC</i>
-                            </div>
-                        </td>
-                        <td>
-                            <select name="TradeOptions.OnlyTradeList[]" id="OnlyTradeList" class="select2-multiple" data-live-search="true" data-size="10" data-width="auto" multiple="multiple">
-                                <option v-for="(value, key) in exchangeCoinsData" :selected="(apiMainConfigData['tradeOptions']['onlyTradeList']).includes(value)" v-bind:value="value" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{value}}</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <span class="qTip" title="AlwaysTradeList">AlwaysTradeList <i class="fal fa-question-circle"></i></span>
-                            <div style="display: none;">
-                                Always trade this coins
-                                <br /> Depends on your current exchange.
-                                <br /><br /><strong>Default:</strong> <i>ETH</i>
-                            </div>
-                        </td>
-                        <td>
-                            <select name="TradeOptions.AlwaysTradeList[]" id="AlwaysTradeList" class="select2-multiple" data-live-search="true" data-size="10" data-width="auto" multiple="multiple">
-                                <option v-for="(value, key) in exchangeCoinsData" :selected="(apiMainConfigData['tradeOptions']['alwaysTradeList']).includes(value)" v-bind:value="value" data-icon="fas fa-chart-line">&nbsp;&nbsp;{{value}}</option>
-                            </select>
 
-                        </td>
-                    </tr>
                     <tr>
                         <td>
-                            <span class="qTip" title="AlwaysTradeList">Add top Volume Currencies <i class="fal fa-question-circle"></i></span>
+                            <span class="qTip" title="Trade Assets">TradeAssets<i class="fal fa-question-circle"></i></span>
                             <div style="display: none;">
-                                Add # of Top Colume Currencies to
-                                <br /> OnlyTradeList and AlwaysTradeList
-                                <br /><br /><strong>Default:</strong> <i>20</i>
-                                <br /><br /><strong>Warning:</strong> <i>Override your current values</i>
+                                Trade this coins
+                                <br /> Depends on your current exchange.
+                                <br /><br /><strong>Default:</strong> <i>ETH,BTC</i>
                             </div>
                         </td>
                         <td>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="amountOfTopCurrenciesToAdd" placeholder="How many currencies you want to add ?">
-                                <div class="input-group-btn">
-                                    <button class="btn btn-success" v-on:click="getTopCurrencies()">
-                                        Add # of Top Currencies
-                                    </button>
-                                </div>
-                            </div>
+                            <input type="text" class="form-control string" name="TradeOptions.TradeAssets" v-bind:value="apiMainConfigData['tradeOptions']['tradeAssets']" />
                         </td>
                     </tr>
+
                 </table>
             </div>
         </div>
@@ -700,9 +450,6 @@
 </div>
 
 <script type="text/javascript">
-    var initialBuyTimerCron = null;
-    var initialSellTimerCron = null;
-
     var pagefunction = function () {
         $(document).ready(function () {
             var t = document.getElementById("database");
@@ -776,22 +523,6 @@
         });
 
 
-        $('#buyTimerCron').cron({
-            initial: initialBuyTimerCron,
-            onChange: function () {
-                $('#buyTimerCronInput').val($(this).cron("value"));
-
-            }
-        });
-
-        $('#sellTimerCron').cron({
-            initial: initialSellTimerCron,
-            onChange: function () {
-                $('#sellTimerCronInput').val($(this).cron("value"));
-
-            }
-        });
-
         $(".select2").select2({
             theme: "bootstrap",
             templateResult: selectPickerImage,
@@ -840,30 +571,6 @@
                 }
                 return false;
             },
-            updateSymbols: function () {
-                var self = this;
-                //Todo
-                //$.get('/api/trading/getExchangePairs?exchange=' + $("#exchangeSelect").val(), function (data) {
-                //    self.exchangeCoinsData = data;
-                //});
-            },
-            getTopCurrencies: function () {
-                var self = this;
-                $.get('/api/trading/topVolumeCurrencies?limit=' + $('#amountOfTopCurrenciesToAdd').val(), function (data) {
-                    self.apiMainConfigData['tradeOptions']['onlyTradeList'] = data;
-                    self.apiMainConfigData['tradeOptions']['alwaysTradeList'] = data;
-
-                    //Workaround to get new Items
-                    $("#OnlyTradeList").append(new Option("dummy", "dummy"));
-                    $("#OnlyTradeList").trigger("change");
-                    $("#OnlyTradeList option[value='dummy']").remove();
-
-                    $("#AlwaysTradeList").append(new Option("dummy", "dummy"));
-                    $("#AlwaysTradeList").trigger("change");
-                    $("#AlwaysTradeList option[value='dummy']").remove();
-                });
-
-            },
             fetchData: function () {
                 var self = this;
 
@@ -875,10 +582,7 @@
                         $.get('/api/trading/exchangeCurrencies', function (data) {
                             self.exchangeCoinsData = data;
                             self.$nextTick(function () {
-                                initialBuyTimerCron = self.apiMainConfigData['tradeOptions']['buyTimer'];
-                                initialSellTimerCron = self.apiMainConfigData['tradeOptions']['sellTimer'];
                                 pagefunction();
-                                //self.updateSymbols();
                             });
                         });
                     });

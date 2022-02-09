@@ -54,11 +54,13 @@ namespace MachinaTrader.Backtester
             Global.Logger.Information($"Starting CacheAllData");
             var watch1 = System.Diagnostics.Stopwatch.StartNew();
 
-            var exchangeCoins = api.GetMarketSymbolsMetadataAsync().Result.Where(m => m.BaseCurrency == Global.Configuration.TradeOptions.QuoteCurrency);
+            var Symbols = Global.Configuration.TradeOptions.TradeAssetsList().ToList();
+            Symbols.Add(Global.Configuration.TradeOptions.QuoteCurrency);
 
             // If there are items on the only trade list remove the rest
-            if (Global.Configuration.TradeOptions.OnlyTradeList.Count > 0)
-                exchangeCoins = exchangeCoins.Where(m => Global.Configuration.TradeOptions.OnlyTradeList.Any(c => c.Contains(m.MarketSymbol))).ToList();
+            var exchangeCoins = api.GetMarketSymbolsMetadataAsync().Result.Where(m =>
+                Symbols.Any(c => c == m.BaseCurrency) && Symbols.Any(c => c == m.QuoteCurrency)
+            ).ToList();
 
             var currentExchangeOption = Global.Configuration.ExchangeOptions.FirstOrDefault();
 

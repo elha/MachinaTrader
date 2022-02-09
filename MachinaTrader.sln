@@ -1,21 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29519.87
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader", "MachinaTrader\MachinaTrader.csproj", "{6501F0ED-7E57-4062-9E93-B9C2FDB768CF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Globals", "MachinaTrader.Globals\MachinaTrader.Globals.csproj", "{1FA72791-9EA6-4116-8819-C58F74A953A3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Plugin.Sample", "MachinaTrader.Plugin.Sample\MachinaTrader.Plugin.Sample.csproj", "{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MachinaTrader.Globals.Structure", "MachinaTrader.Globals.Structure\MachinaTrader.Globals.Structure.csproj", "{25E9CDA8-ED82-4E10-8C71-77F41F61CBB2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Globals", "Globals", "{0A05999C-2371-406C-B3C2-C00F10D753BC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data", "Data", "{1DE9C319-72EC-447B-A9C9-83C88AEE735A}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{8B0CBE2A-BD4C-4CA0-9EF1-B8E23166D5E8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{88E16334-E490-4AC7-ACF6-B5329DB52B6A}"
 EndProject
@@ -53,10 +49,6 @@ Global
 		{1FA72791-9EA6-4116-8819-C58F74A953A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FA72791-9EA6-4116-8819-C58F74A953A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FA72791-9EA6-4116-8819-C58F74A953A3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{25E9CDA8-ED82-4E10-8C71-77F41F61CBB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{25E9CDA8-ED82-4E10-8C71-77F41F61CBB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25E9CDA8-ED82-4E10-8C71-77F41F61CBB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -107,7 +99,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1FA72791-9EA6-4116-8819-C58F74A953A3} = {0A05999C-2371-406C-B3C2-C00F10D753BC}
-		{34E20E0C-EE19-40F8-B4C4-A3DA804CD5E4} = {8B0CBE2A-BD4C-4CA0-9EF1-B8E23166D5E8}
 		{25E9CDA8-ED82-4E10-8C71-77F41F61CBB2} = {0A05999C-2371-406C-B3C2-C00F10D753BC}
 		{1688BBBD-2C3A-4091-A6CF-26B0FA842DB8} = {0A05999C-2371-406C-B3C2-C00F10D753BC}
 		{8C510936-E0A5-4600-AE6B-A6E0AEB18BFB} = {88E16334-E490-4AC7-ACF6-B5329DB52B6A}

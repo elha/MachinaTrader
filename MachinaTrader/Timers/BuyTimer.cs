@@ -16,9 +16,9 @@ namespace MachinaTrader.Timers
         public async Task Execute(IJobExecutionContext context)
         {
             //TODO set global enable
-            var tradeManager = new TradeManager();
+            var tradeManager = new TradeManagerBasket();
 
-            Global.Logger.Information("Mynt service is looking for new trades.");
+            //Global.Logger.Information("TradeManager service is looking for new trades.");
             await tradeManager.LookForNewTrades();
             await Task.FromResult(true);
         }

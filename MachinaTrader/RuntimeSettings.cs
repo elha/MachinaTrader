@@ -157,7 +157,7 @@ namespace MachinaTrader
             var fullApi = Global.ExchangeApi.GetFullApi().Result;
 
             //Create Exchange Currencies as List
-            foreach (var currency in Global.Configuration.TradeOptions.AlwaysTradeList)
+            foreach (var currency in Global.Configuration.TradeOptions.TradeAssetsList())
             {
                 Runtime.GlobalCurrencys.Add(Global.Configuration.TradeOptions.QuoteCurrency + "-" + currency);
             }

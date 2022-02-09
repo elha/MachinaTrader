@@ -16,9 +16,9 @@ namespace MachinaTrader.Timers
 
         public async Task Execute(IJobExecutionContext context)
         {
-            var tradeManager = new TradeManager();
+            var tradeManager = new TradeManagerBasket();
 
-            Global.Logger.Information("Mynt service is updating trades.");
+            //Global.Logger.Information("TradeManager service is updating trades.");
             await tradeManager.UpdateExistingTrades();
             await Task.FromResult(true);
         }

@@ -14,9 +14,9 @@ namespace MachinaTrader.Controllers
     {
         [HttpGet]
         [Route("mainConfig")]
-        public ActionResult GetMainConfig()
+        public ActionResult<MainConfig> GetMainConfig()
         {
-            return new JsonResult(Global.Configuration);
+            return Global.Configuration;
         }
 
         [HttpPost]

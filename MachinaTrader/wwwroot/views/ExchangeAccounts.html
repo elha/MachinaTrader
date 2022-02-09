@@ -8,7 +8,6 @@
 <script src="/vendors/axios/js/axios.min.js"></script>
 <script src="/vendors/bootbox/js/bootbox.min.js"></script>
 
-
 <style>
     .greenCell {
         background: rgba(0, 255, 0, 0.2) !important;
@@ -161,18 +160,19 @@
                     }
                 },
                 {
-                    "title": "Value in DisplayCurrency",
+                    "title": "Value in Btc",
                     "sWidth": "1000px",
                     "sType": "alt-string",
                     "sClass": "center",
                     responsivePriority: 2,
                     mRender: function (data, type, full, meta) {
-                        if (full.balanceInDisplayCurrency === 0) {
-                            formatted = '<span class="btn btn-danger btn-sm" style="width: auto;">' + full.displayCurrency + ' not available</span>&nbsp;' ;
+                        if (full.balanceInBtc === 0) {
+                            formatted = '<span class="btn btn-danger btn-sm" style="width: auto;">' + full.balanceInBtc + ' not available</span>&nbsp;' ;
                         }
-                        if (full.balanceInDisplayCurrency > 0) {
-                            var formatted = parseFloat(full.balanceInDisplayCurrency).toFixed(8);
-                            formatted = '<span class="btn btn-info btn-sm" style="width: 50px;">' + full.displayCurrency + '</span>&nbsp;' + formatted;
+                        if (full.balanceInBtc > 0) {
+                            var formatted = parseFloat(full.balanceInBtc).toFixed(8);
+                            formatted = '<span class="btn btn-info btn-sm" style="width: 50px;">USD</span>&nbsp;' + formatted;
+                            return formatted;
                         }
                         return formatted;
                     }
@@ -192,7 +192,6 @@
 
         created: function () {
             this.connectSignalr();
-            this.fetchData();
         },
 
         mounted: function () {
@@ -234,7 +233,6 @@
                     console.log("Msg from signalR: " + msg);
 
                     table.ajax.url('/api/exchange/account/balance').load();
-                    //self.updateData();
                 });
 
                 connection.onclose(function (e) {
@@ -251,20 +249,6 @@
                 connectSignalr();
             },
 
-            fetchData: function () {
-                var self = this;
-                $.get("/api/exchange/account/balance", function (data) {
-                    self.myntLogsData = data;
-                    self.$nextTick(function () {
-                        pagefunction();
-                    });
-                });
-            },
-            updateData: function () {
-                $.get("/api/exchange/account/balance", function (data) {
-                    self.myntLogsData = data;
-                });
-            },
             moment: function (data) {
                 return moment(data).format("YYYY-MM-DD HH:mm:ss");
             },

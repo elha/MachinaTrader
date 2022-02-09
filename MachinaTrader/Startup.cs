@@ -35,6 +35,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MachinaTrader
 {
@@ -44,23 +45,6 @@ namespace MachinaTrader
 
         public static HubRouteBuilder MapSignalrRoutes(this HubRouteBuilder hubRouteBuilder)
         {
-            IEnumerable<Assembly> assembliesPlugins = Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, "MachinaTrader.Plugin.*.dll", SearchOption.TopDirectoryOnly)
-                .Select(Assembly.LoadFrom);
-
-            foreach (var assembly in assembliesPlugins)
-            {
-                IEnumerable<Type> pluginHubTypes = assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(Hub)) && !t.IsAbstract);
-
-                foreach (var pluginHubType in pluginHubTypes)
-                {
-                    //Console.WriteLine("Assembly Name: " + assembly.GetName().Name);
-                    //Console.WriteLine("HubName: " + pluginHubType);
-                    string hubRoute = pluginHubType.ToString().Replace(assembly.GetName().Name, "").Replace(".Hubs.", "").Replace("MachinaTrader", "");
-                    Global.Logger.Information(assembly.GetName().Name + " - Hub Route " + hubRoute);
-                    MapHubMethod.MakeGenericMethod(pluginHubType).Invoke(hubRouteBuilder, new object[] { new PathString("/signalr/" + hubRoute) });
-                }
-            }
-            //Add Global Hubs -> No plugin
             hubRouteBuilder.MapHub<HubMainIndex>("/signalr/HubMainIndex");
             hubRouteBuilder.MapHub<HubTraders>("/signalr/HubTraders");
             hubRouteBuilder.MapHub<HubStatistics>("/signalr/HubStatistics");
@@ -195,7 +179,8 @@ namespace MachinaTrader
 
             services.AddLogging(b => { b.AddSerilog(Globals.Global.Logger); });
 
-            var mvcBuilder = services.AddMvc().AddRazorPagesOptions(options =>
+
+            services.AddMvc().AddRazorPagesOptions(options =>
             {
                 options.Conventions.AuthorizePage("/");
                 options.Conventions.AuthorizeFolder("/");
@@ -203,23 +188,9 @@ namespace MachinaTrader
                 //options.Conventions.AllowAnonymousToFolder("/Account");
             });
 
+            services.AddControllers().AddNewtonsoftJson();
+
             var containerBuilder = new ContainerBuilder();
-
-            //Register Plugins
-            IEnumerable<Assembly> assembliesPlugins = Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, "MachinaTrader.Plugin.*.dll", SearchOption.TopDirectoryOnly)
-                //.Where(filePath => Path.GetFileName(filePath).StartsWith("your name space"))
-                .Select(Assembly.LoadFrom);
-
-            foreach (var assembly in assembliesPlugins)
-            {
-                AssemblyName pluginName = AssemblyName.GetAssemblyName(assembly.Location);
-                if ((bool)Global.CoreRuntime["Plugins"][pluginName.Name]["Enabled"])
-                {
-                    Console.WriteLine(assembly.ToString());
-                    mvcBuilder.AddApplicationPart(assembly);
-                    containerBuilder.RegisterAssemblyModules(assembly);
-                }
-            }
 
             containerBuilder.RegisterModule(new AppCacheModule());
 
@@ -245,38 +216,19 @@ namespace MachinaTrader
 
             app.UseAuthentication();
 
-            // Init Plugins
-            foreach (JProperty plugin in Global.CoreRuntime["Plugins"])
-            {
-                if ((bool)Global.CoreRuntime["Plugins"][plugin.Name]["Enabled"] == false)
-                {
-                    continue;
-                }
-
-                if ((string)Global.CoreRuntime["Plugins"][plugin.Name]["WwwRootDataFolder"] != null)
-                {
-                    app.UseStaticFiles(new StaticFileOptions()
-                    {
-                        FileProvider = new PhysicalFileProvider(Global.DataPath + "/" + plugin.Name + "/wwwroot"),
-                        RequestPath = new PathString("/" + plugin.Name)
-                    });
-                }
-
-                if ((string)Global.CoreRuntime["Plugins"][plugin.Name]["WwwRoot"] != null)
-                {
-                    app.UseStaticFiles(new StaticFileOptions()
-                    {
-                        FileProvider = new PhysicalFileProvider((string)Global.CoreRuntime["Plugins"][plugin.Name]["WwwRoot"]),
-                        RequestPath = new PathString("/" + plugin.Name)
-                    });
-                }
-            }
-
             app.UseWebSockets();
 
-            app.UseSignalR(route => route.MapSignalrRoutes());
+            app.UseRouting();
 
-            app.UseMvc();
+            app.UseAuthorization();
+
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapRazorPages();
+                endpoints.MapControllers();
+            });
+            app.UseSignalR(r => r.MapSignalrRoutes());
 
             // Init Database
             databaseInitializer.Initialize();

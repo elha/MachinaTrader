@@ -7,6 +7,7 @@ using MachinaTrader.Models;
 using ExchangeSharp;
 using MachinaTrader.Globals;
 using Microsoft.AspNetCore.Authorization;
+using MachinaTrader.TradeManagers;
 
 namespace MachinaTrader.Controllers
 {
@@ -36,107 +37,61 @@ namespace MachinaTrader.Controllers
                 if (fullApi.PublicApiKey.Length > 0 && fullApi.PrivateApiKey.Length > 0)
                 {
                     // Get Tickers & Balances
-                    var tickers = await fullApi.GetTickersAsync();
                     var balances = await fullApi.GetAmountsAsync();
-                    
-                    if (tickers.Count() > 1)
+                    var convertBTCUSD = await Global.ExchangeApi.GetTicker("BTC-USD");
+
+                    // Calculate stuff
+                    foreach (var balance in balances)
                     {
-                        var tickerBtcUsd = tickers.FirstOrDefault(t => t.Value.Volume.QuoteCurrency == fullApi.GlobalCurrencyToExchangeCurrency("USD")
-                                && t.Value.Volume.BaseCurrency == fullApi.GlobalCurrencyToExchangeCurrency("BTC"));
-                        //var tickerDisplayCurrency = tickers.Where(t => t.Key.ToUpper().Contains(displayOptions.DisplayFiatCurrency) && t.Key.ToUpper().Contains("BTC")).ToList();
-                        var tickerDisplayCurrency = tickers.FirstOrDefault(t => t.Value.Volume.QuoteCurrency == fullApi.GlobalCurrencyToExchangeCurrency(displayOptions.DisplayFiatCurrency)
-                        && t.Value.Volume.BaseCurrency == fullApi.GlobalCurrencyToExchangeCurrency("BTC"));
-
-                        var dcTicker = new KeyValuePair<string,ExchangeTicker>();
-                        if (tickerDisplayCurrency.Key == null)
-                            Global.Logger.Information("Account: Display currency at this exchange not available!");
-                        else
-                            dcTicker = tickerDisplayCurrency;
-
-                        // Calculate stuff
-                        foreach (var balance in balances)
+                        // Get selected tickers for Balances
+                        var balanceUsd = balance.Value;
+                        if (balance.Key != "USD")
                         {
-                            // Get selected tickers for Balances
-                            var ticker = new List<KeyValuePair<string, ExchangeTicker>>();
-
-                            // Create balanceEntry
-                            var balanceEntry = new BalanceEntry()
+                            try
                             {
-                                DisplayCurrency = displayOptions.DisplayFiatCurrency,
-                                Market = balance.Key,
-                                TotalCoins = balance.Value,
-                                BalanceInUsd = 0,
-                                BalanceInBtc = 0,
-                                BalanceInDisplayCurrency = 0
-                            };
-
-                            // Calculate to BTC or USD and check if crypto or not
-                            if (!balance.Key.ToUpper().Contains("USD") && !balance.Key.ToUpper().Contains("EUR"))
-                            {
-                                // Calculate to btc
-                                if (!balance.Key.ToUpper().Contains("BTC"))
-                                    ticker = tickers.Where(t =>
-                                            t.Key.ToUpper().StartsWith(balance.Key) &&
-                                            t.Key.ToUpper().Contains("BTC"))
-                                        .ToList();
+                                var convertUSD = await Global.ExchangeApi.GetTicker(balance.Key + "-USD");
+                                balanceUsd *= convertUSD.Bid;
                             }
-                            // Calculate to btc
-                            else
-                                ticker = tickers.Where(t =>
-                                        t.Key.ToUpper().StartsWith(balance.Key) && t.Key.ToUpper().Contains("BTC"))
-                                    .ToList();
-
-                            // Calculate special market USD, EUR, BTC
-                            if (balanceEntry.Market.ToUpper().Contains("USD") ||
-                                    balanceEntry.Market.ToUpper().Contains("BTC"))
-                                {
-                                    if (balanceEntry.Market.ToUpper().Contains("USD"))
-                                    {
-                                        balanceEntry.BalanceInUsd = balance.Value;
-                                        balanceEntry.BalanceInBtc = balanceEntry.BalanceInUsd / tickerBtcUsd.Value.Last;
-                                    }
-
-                                    if (balanceEntry.Market.ToUpper().Contains("BTC"))
-                                    {
-                                        balanceEntry.BalanceInBtc = balance.Value;
-                                        balanceEntry.BalanceInUsd = balanceEntry.BalanceInBtc * tickerBtcUsd.Value.Last;
-                                    }
-
-                                    if (tickerDisplayCurrency.Key != null)
-                                        balanceEntry.BalanceInDisplayCurrency =
-                                            balanceEntry.BalanceInBtc * dcTicker.Value.Last;
-                                }
-                                // Calculate cryptos without btc
-                                else
-                                {
-                                    if (ticker.Count >= 1)
-                                    {
-                                        balanceEntry.BalanceInBtc = (balance.Value * ticker[0].Value.Last);
-                                        balanceEntry.BalanceInUsd = balanceEntry.BalanceInBtc * tickerBtcUsd.Value.Last;
-                                        if (tickerDisplayCurrency.Key != null)
-                                            balanceEntry.BalanceInDisplayCurrency =
-                                                balanceEntry.BalanceInBtc * dcTicker.Value.Last;
-                                    }
-                                    else
-                                    {
-                                        Global.Logger.Error("Api has problem to find valid ticker for: " + balance.Key);
-                                    }
-                                }
-                            // Add to list
-                            account.Add(balanceEntry);
+                            catch (Exception ex) { }
                         }
+
+
+                        // Create balanceEntry
+                        var balanceEntry = new BalanceEntry()
+                        {
+                            DisplayCurrency = displayOptions.DisplayFiatCurrency,
+                            Market = balance.Key,
+                            TotalCoins = balance.Value,
+                            BalanceInUsd = balanceUsd,
+                            BalanceInBtc = balanceUsd / convertBTCUSD.Bid,
+                            BalanceInDisplayCurrency = balanceUsd
+                        };
+
+                        // Add to list
+                        if(balanceUsd>5)
+                            account.Add(balanceEntry);
                     }
-                    else
-                        Global.Logger.Information("Possible problem with API, cuz we got no tickers!");
                 }
                 else
                     Global.Logger.Information("No api under configuration");
+
+
+                var total = new BalanceEntry()
+                {
+                    DisplayCurrency = displayOptions.DisplayFiatCurrency,
+                    Market = "TOTAL",
+                    TotalCoins = null,
+                    BalanceInUsd = account.Sum(a => a.BalanceInUsd),
+                    BalanceInBtc = account.Sum(a => a.BalanceInBtc),
+                    BalanceInDisplayCurrency = account.Sum(a => a.BalanceInDisplayCurrency)
+                };
+                account.Add(total);
             }
             catch (Exception e)
             {
-                Global.Logger.Error(e.InnerException.Message);
+                //Global.Logger.Error(e.InnerException.Message);
             }
-            
+
             return new JsonResult(account);
         }
     }

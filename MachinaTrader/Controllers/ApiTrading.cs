@@ -161,11 +161,11 @@ namespace MachinaTrader.Controllers
 
             await Global.DataStore.SaveTradeAsync(trade);
 
-            //Trigger Sell
-            TradeManager tradeManager = new TradeManager();
-            await tradeManager.UpdateOpenSellOrders(trade);
+            ////Trigger Sell
+            //TradeManager tradeManager = new TradeManager();
+            //await tradeManager.UpdateOpenSellOrders(trade);
 
-            await Runtime.GlobalHubTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to SellNow");
+            //await Runtime.GlobalHubTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to SellNow");
         }
 
         [HttpGet]
@@ -338,17 +338,17 @@ namespace MachinaTrader.Controllers
             tradeSignal.SignalCandle = lastExternalTicker;
             */
 
-            var trade = new Globals.Structure.Models.Trade()
-            {
-                Market = (string)data["manualBuyCurrency"],
-                OpenRate = (decimal)data["manualBuyPrice"],
-                Quantity = (decimal)data["manualBuyAmount"],
-                StakeAmount = (decimal)data["manualBuyOrderTotal"],
-            };
+            //var trade = new Globals.Structure.Models.Trade()
+            //{
+            //    Market = (string)data["manualBuyCurrency"],
+            //    OpenRate = (decimal)data["manualBuyPrice"],
+            //    Quantity = (decimal)data["manualBuyAmount"],
+            //    StakeAmount = (decimal)data["manualBuyOrderTotal"],
+            //};
 
 
-            TradeManager tradeManager = new TradeManager();
-            await tradeManager.CreateTradeOrder(trade);
+            //Globals.Structure.Interfaces.ITradeManager tradeManager = new TradeManagerBasket();
+            //await tradeManager.CreateTradeOrder(trade);
         }
     }
 }

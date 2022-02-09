@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System;
-using System.DrawingCore;
-using System.DrawingCore.Imaging;
 using System.Linq;
 using MachinaTrader.Globals.Helpers;
 using System.IO;
@@ -227,44 +225,5 @@ namespace MachinaTrader.Controllers
             return new JsonResult(Global.CoreRuntime["Plugins"]);
         }
 
-        [HttpGet]
-        [Route("avatar")]
-        public FileContentResult Get()
-        {
-            if (Global.RuntimeSettings.Os == "Windows")
-            {
-                using (var ms = new MemoryStream())
-                {
-                    Image userAvatarImage = GetUserAvatar.GetUserTile(Global.RuntimeSettings.UserName);
-                    userAvatarImage.Save(ms, ImageFormat.Jpeg);
-                    if (!ms.TryGetBuffer(out var buffer)) throw new ArgumentException();
-                    return File(buffer.Array, "image/png");
-                }
-            }
-            byte[] filedata = System.IO.File.ReadAllBytes(Global.AppPath + "/wwwroot/img/user_avatar_default.png");
-            return File(filedata, "image/png");
-        }
-    }
-
-    public class GetUserAvatar
-    {
-        [DllImport("shell32.dll", EntryPoint = "#261", CharSet = CharSet.Unicode, PreserveSig = false)]
-        public static extern void GetUserTilePath(
-            string username,
-            UInt32 whatever, // 0x80000000
-            StringBuilder picpath, int maxLength);
-
-        public static string GetUserTilePath(string username)
-        {
-            // username: use null for current user
-            var sb = new StringBuilder(1000);
-            GetUserTilePath(username, 0x80000000, sb, sb.Capacity);
-            return sb.ToString();
-        }
-
-        public static Image GetUserTile(string username)
-        {
-            return Image.FromFile(GetUserTilePath(username));
-        }
     }
 }

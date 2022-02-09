@@ -130,7 +130,7 @@ namespace MachinaTrader.Exchanges
             {
                 Amount = quantity,
                 IsBuy = true,
-                OrderType = ExchangeSharp.OrderType.Limit,
+                OrderType = ExchangeSharp.OrderType.Market,
                 Price = rate,
                 MarketSymbol = market
             };
@@ -483,7 +483,7 @@ namespace MachinaTrader.Exchanges
             {
                 Amount = quantity,
                 IsBuy = false,
-                OrderType = ExchangeSharp.OrderType.Limit,
+                OrderType = ExchangeSharp.OrderType.Market,
                 Price = rate,
                 MarketSymbol = market
             };

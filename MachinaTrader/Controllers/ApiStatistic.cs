@@ -11,6 +11,7 @@ using MachinaTrader.Globals.Structure.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json.Linq;
 using Trade = MachinaTrader.Globals.Structure.Models.Trade;
+using MachinaTrader.Globals.Structure.Models;
 
 namespace MachinaTrader.Controllers
 {
@@ -26,7 +27,7 @@ namespace MachinaTrader.Controllers
 
             // Check mode
             var paperTrade = mode != "live";
-            
+
             // Create Statistic model
             var stat = new Statistics();
 
@@ -57,19 +58,20 @@ namespace MachinaTrader.Controllers
             // General Profit-loss
             stat.ProfitLoss = coins.Sum(c => c.Performance);
             stat.ProfitLossPercentage = coins.Sum(c => c.PerformancePercentage);
+            var StrtAmount = 1000m;
 
             // Invested amout
             stat.InvestedCoins = coins.Sum(c => c.InvestedCoins);
-            if ((tradeOptions.StartAmount * stat.ProfitLoss == 0))
+            if ((StrtAmount * stat.ProfitLoss == 0))
             {
                 stat.InvestedCoinsPerformance = 0;
             }
             else
             {
-                stat.InvestedCoinsPerformance = ((tradeOptions.StartAmount * stat.ProfitLoss) / 100) * 100;
+                stat.InvestedCoinsPerformance = ((StrtAmount * stat.ProfitLoss) / 100) * 100;
             }
 
-             // Coin performance
+            // Coin performance
             stat.CoinPerformances = coins;
 
             // Trades amount
@@ -77,16 +79,18 @@ namespace MachinaTrader.Controllers
             stat.NegativeTrades = coins.Sum(c => c.NegativeTrades);
 
             // Balances
-            stat.CurrentBalance = tradeOptions.StartAmount + stat.ProfitLoss;
-            stat.CurrentBalancePerformance = ((stat.ProfitLoss) * 100) / tradeOptions.StartAmount;
+            stat.CurrentBalance = StrtAmount + stat.ProfitLoss;
+            stat.CurrentBalancePerformance = ((stat.ProfitLoss) * 100) / StrtAmount;
 
-            // Create some viewbags
-            ViewBag.tradeOptions = tradeOptions;
-            ViewBag.stat = stat;
-            
-            return new JsonResult(ViewBag);
+
+            return new JsonResult(new ApiStatResult() { TradeOptions = tradeOptions, Stat = stat });
         }
+        public class ApiStatResult
+        {
+            public TradeOptions TradeOptions { get; set; }
+            public Statistics Stat { get; set; }
 
+        }
 
         [HttpGet]
         [Authorize, Route("overviewChart")]
@@ -99,7 +103,7 @@ namespace MachinaTrader.Controllers
 
             // Check mode
             var paperTrade = mode != "live";
-            
+
 
             // Get closed trades
             var closedTrades = await Global.DataStore.GetClosedTradesAsync();
@@ -116,17 +120,13 @@ namespace MachinaTrader.Controllers
             var tradesClean = closedTradesClean.ToList();
             var firstTradeDate = tradesClean.Select(x => x.CloseDate).Min();
 
-            // include start amount
-            decimal balance = 0;
-            if (includeStartAmount)
-                balance = tradeOptions.StartAmount;
-
             // iterate through dates and calculate balance
             var balances = new List<decimal>();
             var positiveT = new List<decimal>();
             var negativeT = new List<decimal>();
 
             // Generate all dates & balances
+            var balance = 0m;
             stat.Dates = new List<DateTime>();
             if (firstTradeDate != null)
                 for (var dt = firstTradeDate.Value; dt <= DateTime.Today; dt = dt.AddDays(1))
@@ -146,14 +146,19 @@ namespace MachinaTrader.Controllers
                     if (sumTrades != null) balance += sumTrades.Value;
                     balances.Add(balance);
                 }
-
+            var o = new ApiChartResult();
             stat.NegativeTrades = negativeT;
             stat.PositiveTrades = positiveT;
             stat.Balances = balances;
-            ViewBag.stat = stat;
+            o.Stat = stat;
 
-            return new JsonResult(ViewBag);
+            return new JsonResult(o);
         }
+        public class ApiChartResult
+        {
+            public StatisticChart Stat { get; internal set; }
+        }
+
 
         [HttpGet]
         [Route("wallet")]
@@ -177,12 +182,15 @@ namespace MachinaTrader.Controllers
                 }
                 balances.Add(balance);
             }
-
+            var o = new ApiWalletResult();
             stat.Balances = balances;
-            ViewBag.stat = stat;
+            o.Stat = stat;
 
-            return new JsonResult(ViewBag);
+            return new JsonResult(o);
         }
-
+        public class ApiWalletResult
+        {
+            public WalletStatistic Stat { get; internal set; }
+        }
     }
 }
