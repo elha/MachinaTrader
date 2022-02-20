@@ -10,7 +10,7 @@ namespace MachinaTrader.Strategies.Simple
 {
     public class MacdCross : BaseStrategy, INotificationTradingStrategy
     {
-        public override string Name => "MACD X";
+        public override string Name { get; set; } = "MACD X";
         public override int MinimumAmountOfCandles => 50;
         public override Period IdealPeriod => Period.Hour;
 
@@ -40,14 +40,5 @@ namespace MachinaTrader.Strategies.Simple
             return result;
         }
 
-        public override TradeAdvice Forecast(List<Candle> candles)
-        {
-            return Prepare(candles).LastOrDefault();
-        }
-
-        public override Candle GetSignalCandle(List<Candle> candles)
-        {
-            return candles.Last();
-        }
     }
 }

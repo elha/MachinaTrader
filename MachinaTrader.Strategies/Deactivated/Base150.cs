@@ -8,7 +8,7 @@ namespace MachinaTrader.Strategies
 {
     public class Base150 : BaseStrategy
     {
-        public override string Name => "Base 150";
+        public override string Name { get; set; } = "Base 150";
         public override int MinimumAmountOfCandles => 365;
         public override Period IdealPeriod => Period.Hour;
 
@@ -53,16 +53,6 @@ namespace MachinaTrader.Strategies
             }
 
             return result;
-        }
-
-        public override Candle GetSignalCandle(List<Candle> candles)
-        {
-            return candles.Last();
-        }
-
-        public override TradeAdvice Forecast(List<Candle> candles)
-        {
-            return Prepare(candles).LastOrDefault();
         }
     }
 }

@@ -8,7 +8,7 @@ namespace MachinaTrader.Strategies
 {
     public class EmaStochRsi : BaseStrategy
     {
-        public override string Name => "EMA Stoch RSI";
+        public override string Name { get; set; } = "EMA Stoch RSI";
         public override int MinimumAmountOfCandles => 36;
         public override Period IdealPeriod => Period.Hour;
 
@@ -53,14 +53,5 @@ namespace MachinaTrader.Strategies
             return result;
         }
 
-        public override Candle GetSignalCandle(List<Candle> candles)
-        {
-            return candles.Last();
-        }
-
-        public override TradeAdvice Forecast(List<Candle> candles)
-        {
-            return Prepare(candles).LastOrDefault();
-        }
     }
 }

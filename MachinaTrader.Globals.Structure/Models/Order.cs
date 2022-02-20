@@ -11,7 +11,7 @@ namespace MachinaTrader.Globals.Structure.Models
 
         public string OrderId { get; set; }
 
-        public decimal Price { get; set; }
+        public decimal? Price { get; set; }
 
         public decimal OriginalQuantity { get; set; }
 

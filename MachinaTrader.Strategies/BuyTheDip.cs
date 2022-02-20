@@ -9,11 +9,9 @@ namespace MachinaTrader.Strategies
 {
     public class BuyTheDip : BaseStrategy
     {
-        public override string Name => "BuyTheDip";
+        public override string Name { get; set; } = "BuyTheDip";
         public override int MinimumAmountOfCandles => 150;
         public override Period IdealPeriod => Period.Minute;
-        public string BuyMessage => "BuyTheDip: *Dip detected*\nTrend reversal to the *upside* is near.";
-        public string SellMessage => "BuyTheDip: *Sell*\nTrend reversal to the *downside* is near.";
 
         public override List<TradeAdvice> Prepare(List<Candle> candles)
         {
@@ -73,13 +71,13 @@ namespace MachinaTrader.Strategies
                     var knockout = lastBuy.Close + gain;
 
 
-                    if (close[i]>knockout)
+                    if (close[i] > knockout)
                     {
                         result.Add(new TradeAdvice() { Advice = TradeAdviceEnum.Sell, Comment = $"Knockout on {ticks}" });
                         statsSell++;
                         lastBuy = null;
                     }
-                    else if (ticks>=4*24*60)
+                    else if (ticks >= 4 * 24 * 60)
                     {
                         result.Add(new TradeAdvice() { Advice = TradeAdviceEnum.Sell, Comment = $"Force on {ticks}" });
                         statsSell++;
@@ -96,15 +94,5 @@ namespace MachinaTrader.Strategies
             return result;
         }
 
-        public override TradeAdvice Forecast(List<Candle> candles)
-        {
-            return Prepare(candles).LastOrDefault();
-        }
-
-        public override Candle GetSignalCandle(List<Candle> candles)
-        {
-            return candles.Last();
-        }
     }
 }
-

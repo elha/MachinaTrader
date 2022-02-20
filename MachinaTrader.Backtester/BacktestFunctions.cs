@@ -12,22 +12,6 @@ namespace MachinaTrader.Backtester
 {
     public class BacktestFunctions
     {
-        public static List<ITradingStrategy> GetTradingStrategies()
-        {
-            // Use reflection to get all the instances of our strategies.
-            var strategyTypes = Assembly.GetAssembly(typeof(BaseStrategy)).GetTypes()
-                                     .Where(type => type.IsSubclassOf(typeof(BaseStrategy)))
-                                     .ToList();
-
-            var strategies = new List<ITradingStrategy>();
-
-            foreach (var item in strategyTypes)
-            {
-                strategies.Add((ITradingStrategy)Activator.CreateInstance(item));
-            }
-
-            return strategies;
-        }
 
         public static async Task<List<BackTestResult>> BackTest(ITradingStrategy strategy, BacktestOptions backtestOptions, Dictionary<string, List<Candle>> candles, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount)
         {
@@ -47,6 +31,8 @@ namespace MachinaTrader.Backtester
                 var resultsSummary = new BackTestStrategyResult();
                 resultsSummary.Results = results;
                 resultsSummary.Strategy = strategy.Name;
+                if(!string.IsNullOrEmpty(strategy.Parameters)) resultsSummary.Strategy += ":" + strategy.Parameters;
+
                 resultsSummary.ConcurrentTrades = results.First().ConcurrentTrades;
                 resultsSummary.Wallet = results.First().Wallet;
                 resultsSummary.LowWallet = results.First().LowWallet;
@@ -76,7 +62,7 @@ namespace MachinaTrader.Backtester
                 {
                     var currentResult = new JObject();
                     currentResult["Market"] = result.Market;
-                    currentResult["Strategy"] = strategy.Name;
+                    currentResult["Strategy"] = resultsSummary.Strategy;
                     currentResult["AmountOfTrades"] = result.AmountOfTrades;
                     currentResult["AmountOfProfitableTrades"] = result.AmountOfProfitableTrades;
                     currentResult["SuccessRate"] = result.SuccessRate;

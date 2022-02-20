@@ -22,25 +22,24 @@ namespace MachinaTrader.Globals.Structure.Models
         public bool PaperTrade { get; set; } = true;
 
         // Trader settings
-        public int MaxNumberOfConcurrentTrades { get; set; } = 1;
         public int MaxOpenTimeBuy { get; set; } = 300;
-        public decimal AmountToInvestPerTrade { get; set; } = 0.005m;
-        public decimal AmountToReinvestPercentage { get; set; } = 0.25m; //25% of wallet
+        public decimal AmountToInvestPerTrade { get; set; } = 120m;
 
 
         // Default strategy to use with trade managers.
-        public string DefaultStrategy { get; set; } = "BuyTheDip";
+        public string DefaultStrategy { get; set; } = "BuyTheDip2";
+        public string DefaultStrategyParameters { get; set; } = "00242";
 
 
         // These are the markets we don't want to trade on
-        public string QuoteCurrency { get; set; } = "BTC";
+        public string QuoteCurrency { get; set; } = "USD";
 
 
         // These are the markets we want to trade 
         public string TradeAssets { get; set; } = "ETH,BTC";
         public string[] TradeAssetsList()
         {
-            return TradeAssets.Split(',');
+            return TradeAssets.Split(new char[] {','}, System.StringSplitOptions.RemoveEmptyEntries);
         }
 
     }

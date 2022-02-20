@@ -7,7 +7,7 @@ namespace MachinaTrader.Strategies
 {
     public class BuyAndHold : BaseStrategy
     {
-        public override string Name => "Buy and Hold";
+        public override string Name { get; set; } = "Buy and Hold";
         public override int MinimumAmountOfCandles => 20;
         public override Period IdealPeriod => Period.QuarterOfAnHour;
 
@@ -22,14 +22,6 @@ namespace MachinaTrader.Strategies
             return result;
         }
 
-        public override Candle GetSignalCandle(List<Candle> candles)
-        {
-            return candles.Last();
-        }
 
-        public override TradeAdvice Forecast(List<Candle> candles)
-        {
-            return Prepare(candles).LastOrDefault();
-        }
     }
 }

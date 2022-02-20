@@ -14,12 +14,24 @@ namespace MachinaTrader.Globals.Structure.Models
 
         public decimal OpenRate { get; set; }
         public decimal? CloseRate { get; set; }
+
+        /// <summary>
+        /// invested sum in USD
+        /// </summary>
+        public decimal StakeAmount { get; set; }
+
+        /// <summary>
+        /// sum in USD
+        /// </summary>
         public decimal? CloseProfit { get; set; }
         public decimal? CloseProfitPercentage { get; set; }
 
-        public decimal StakeAmount { get; set; }
+
         public decimal Quantity { get; set; }
 
+        /// <summary>
+        /// is position still open
+        /// </summary>
         public bool IsOpen { get; set; }
         public bool IsBuying { get; set; }
         public bool IsSelling { get; set; }

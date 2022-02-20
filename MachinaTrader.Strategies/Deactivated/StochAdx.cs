@@ -9,7 +9,7 @@ namespace MachinaTrader.Strategies
 
     public class StochAdx : BaseStrategy
     {
-        public override string Name => "Stoch ADX";
+        public override string Name { get; set; } = "Stoch ADX";
         public override int MinimumAmountOfCandles => 15;
         public override Period IdealPeriod => Period.Hour;
 
@@ -34,14 +34,5 @@ namespace MachinaTrader.Strategies
             return result;
         }
 
-        public override Candle GetSignalCandle(List<Candle> candles)
-        {
-            return candles.Last();
-        }
-
-        public override TradeAdvice Forecast(List<Candle> candles)
-        {
-            return Prepare(candles).LastOrDefault();
-        }
     }
 }

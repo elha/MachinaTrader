@@ -8,6 +8,7 @@ using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Extensions;
 using System.Linq;
 using MachinaTrader.Globals;
+using MachinaTrader.Indicators;
 
 namespace MachinaTrader.Backtester
 {
@@ -55,7 +56,7 @@ namespace MachinaTrader.Backtester
                             {
                                 if (trend[j].Advice == TradeAdviceEnum.Sell)
                                 {
-                                    var feePercentTwoTrades = 0.0018m * 2m;
+                                    var feePercentTwoTrades = 0.0005m * 2m;
                                     var feeTotalTwoTrades = feePercentTwoTrades * tradeAmount;
                                     var currentProfitPercentage = (((candles[j].Close - candles[i].Close) / candles[i].Close) - feePercentTwoTrades) * 100;
                                     var quantity = tradeAmount / candles[i].Close;

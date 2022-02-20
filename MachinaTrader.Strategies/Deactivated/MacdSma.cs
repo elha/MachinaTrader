@@ -8,7 +8,7 @@ namespace MachinaTrader.Strategies
 {
     public class MacdSma : BaseStrategy
     {
-        public override string Name => "MACD SMA";
+        public override string Name { get; set; } = "MACD SMA";
         public override int MinimumAmountOfCandles => 200;
         public override Period IdealPeriod => Period.Hour;
 
@@ -39,14 +39,5 @@ namespace MachinaTrader.Strategies
             return result;
         }
 
-        public override Candle GetSignalCandle(List<Candle> candles)
-        {
-            return candles.Last();
-        }
-
-        public override TradeAdvice Forecast(List<Candle> candles)
-        {
-            return Prepare(candles).LastOrDefault();
-        }
     }
 }

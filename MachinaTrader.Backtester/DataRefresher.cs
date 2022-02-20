@@ -26,6 +26,11 @@ namespace MachinaTrader.Backtester
             return true;
         }
 
+        public static async Task SaveCandle(Candle candle, BacktestOptions backtestOptions, IDataStoreBacktest dataStore)
+        {
+            await dataStore.SaveBacktestCandlesBulkCheckExisting(new Candle[] {candle}.ToList(), backtestOptions);
+        }
+
         public static async Task RefreshCandleData(Action<string> callback, BacktestOptions backtestOptions, IDataStoreBacktest dataStore)
         {
             BaseExchange baseExchangeApi = new BaseExchangeInstance().BaseExchange(backtestOptions.Exchange.ToString());

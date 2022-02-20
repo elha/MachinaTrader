@@ -8,7 +8,7 @@ namespace MachinaTrader.Strategies
 {
     public class RsiBbands : BaseStrategy
     {
-        public override string Name => "RSI Bbands";
+        public override string Name { get; set; } = "RSI Bbands";
         public override int MinimumAmountOfCandles => 200;
         public override Period IdealPeriod => Period.Hour;
 
@@ -36,14 +36,5 @@ namespace MachinaTrader.Strategies
             return result;
         }
 
-        public override Candle GetSignalCandle(List<Candle> candles)
-        {
-            return candles.Last();
-        }
-
-        public override TradeAdvice Forecast(List<Candle> candles)
-        {
-            return Prepare(candles).LastOrDefault();
-        }
     }
 }

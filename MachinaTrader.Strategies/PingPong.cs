@@ -9,11 +9,9 @@ namespace MachinaTrader.Strategies
 {
     public class PingPong : BaseStrategy
     {
-        public override string Name => "PingPong";
+        public override string Name { get; set; } = "PingPong";
         public override int MinimumAmountOfCandles => 2;
         public override Period IdealPeriod => Period.Minute;
-        public string BuyMessage => "BuyTheDip: *Dip detected*\nTrend reversal to the *upside* is near.";
-        public string SellMessage => "BuyTheDip: *Sell*\nTrend reversal to the *downside* is near.";
 
         public override List<TradeAdvice> Prepare(List<Candle> candles)
         {
@@ -32,15 +30,6 @@ namespace MachinaTrader.Strategies
             return result;
         }
 
-        public override TradeAdvice Forecast(List<Candle> candles)
-        {
-            return Prepare(candles).LastOrDefault();
-        }
-
-        public override Candle GetSignalCandle(List<Candle> candles)
-        {
-            return candles.Last();
-        }
     }
 }
 

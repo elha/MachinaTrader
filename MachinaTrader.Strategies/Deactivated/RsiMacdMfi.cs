@@ -8,7 +8,7 @@ namespace MachinaTrader.Strategies
 {
     public class RsiMacdMfi : BaseStrategy
     {
-        public override string Name => "RSI MACD MFI";
+        public override string Name { get; set; } = "RSI MACD MFI";
         public override int MinimumAmountOfCandles => 35;
         public override Period IdealPeriod => Period.Hour;
 
@@ -38,14 +38,5 @@ namespace MachinaTrader.Strategies
             return result;
         }
 
-        public override Candle GetSignalCandle(List<Candle> candles)
-        {
-            return candles.Last();
-        }
-
-        public override TradeAdvice Forecast(List<Candle> candles)
-        {
-            return Prepare(candles).LastOrDefault();
-        }
     }
 }

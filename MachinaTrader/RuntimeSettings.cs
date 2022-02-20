@@ -159,7 +159,7 @@ namespace MachinaTrader
             //Create Exchange Currencies as List
             foreach (var currency in Global.Configuration.TradeOptions.TradeAssetsList())
             {
-                Runtime.GlobalCurrencys.Add(Global.Configuration.TradeOptions.QuoteCurrency + "-" + currency);
+                Runtime.GlobalCurrencys.Add(currency + "-" + Global.Configuration.TradeOptions.QuoteCurrency);
             }
 
             foreach (var currency in Runtime.GlobalCurrencys)
@@ -173,7 +173,7 @@ namespace MachinaTrader
 
             if (!exchangeOption.IsSimulation)
             {
-                fullApi.GetTickersWebSocketAsync(OnWebsocketTickersUpdated);
+                //fullApi.GetTickersWebSocketAsync(OnWebsocketTickersUpdated);
                 //fullApi.GetTradesWebSocketAsync(OnWebsocketTickersUpdated);
                 //fullApi.GetCompletedOrderDetailsWebSocketAsync(OnWebsocketTickersUpdated);
                 //fullApi.GetDeltaOrderBookWebSocketAsync(OnWebsocketTickersUpdated);

@@ -346,7 +346,7 @@
                 'orderable': true,
                 'className': 'dt-body-center'
             }],
-            'order': [0, 'asc'],
+            'order': [3, 'asc'],
             "createdRow": function (row, data, dataIndex) {
                 if (parseFloat(((100 * data.tickerLast.last) / data.openRate) - 100).toFixed(2) > 0) $(row).addClass('greenCell');
                 if (parseFloat(((100 * data.tickerLast.last) / data.openRate) - 100).toFixed(2) < 0) $(row).addClass('redCell');
@@ -448,7 +448,7 @@
 
         tableClosedTrades = $('#closedTradesTableId').DataTable({
             ajax: {
-                url: '/api/trading/closedTrades',
+                url: '/api/trading/closedTrades?maxAge=24',
                 dataSrc: ''
             },
             responsive: true,
@@ -460,7 +460,7 @@
                 'orderable': true,
                 'className': 'dt-body-center'
             }],
-            'order': [0, 'asc'],
+            'order': [5, 'desc'],
             "createdRow": function (row, data, dataIndex) {
                 if (data.sellOrderId !== null) {
                     if (parseFloat(((100 * data.closeRate) / data.openRate) - 100).toFixed(2) > 0) $(row).addClass('greenCell');

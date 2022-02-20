@@ -1,18 +1,17 @@
-using ExchangeSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using ExchangeSharp;
 using MachinaTrader.Globals;
 using MachinaTrader.Globals.Structure.Enums;
+using MachinaTrader.Globals.Structure.Extensions;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using MarketSummary = MachinaTrader.Globals.Structure.Models.MarketSummary;
-using MachinaTrader.Globals.Structure.Extensions;
 
 namespace MachinaTrader.Exchanges
 {
@@ -94,7 +93,6 @@ namespace MachinaTrader.Exchanges
                 case Exchange.Kucoin:
                     _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeKuCoinAPI>().Result;
                     _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBithumbAPI>().Result;
-                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBitMEXAPI>().Result;
                     _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBitstampAPI>().Result;
 //                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBleutradeAPI>().Result;
                     _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeGeminiAPI>().Result;
@@ -106,6 +104,9 @@ namespace MachinaTrader.Exchanges
                     break;
                 case Exchange.Kraken:
                     _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeKrakenAPI>().Result;
+                    break;
+                case Exchange.BitMex:
+                    _api = (ExchangeAPI)ExchangeAPI.GetExchangeAPIAsync<ExchangeBitMEXAPI>().Result;
                     break;
                 default:
                     break;
@@ -178,36 +179,7 @@ namespace MachinaTrader.Exchanges
 
                 var summaries = _api.GetTickersAsync().Result;
 
-                //watch1.Stop();
-                //Global.Logger.Warning($"Ended GetMarketSummaries _api.GetTickersAsync() in #{watch1.Elapsed.TotalSeconds} seconds");
-
-                //if (summaries.Any())
-                //{
-                //    var tasks = new Task[summaries.Count()];
-                //    var cts = new CancellationTokenSource();
-                //    var po = new ParallelOptions
-                //    {
-                //        CancellationToken = cts.Token,
-                //        MaxDegreeOfParallelism = Environment.ProcessorCount
-                //    };
-                //    Parallel.ForEach(summaries, po, (summary, state, index) =>
-                //    {
-                //        tasks[(int)index] = Task.Run(() =>
-                //        {
-                //            var info = GetSymbolInfo(summary.Key).Result;
-
-                //            result.Add(new MarketSummary()
-                //            {
-                //                CurrencyPair = new CurrencyPair() { BaseCurrency = info.MarketCurrency, QuoteCurrency = info.BaseCurrency },
-                //                MarketName = summary.Key,
-                //                Ask = summary.Value.Ask,
-                //                Bid = summary.Value.Bid,
-                //                Last = summary.Value.Last,
-                //                Volume = summary.Value.Volume.ConvertedVolume,
-                //            });
-                //        });
-                //    });
-                //    Task.WaitAll(tasks);
+            
                 foreach (var summary in summaries)
                 {
                     var info = await GetSymbolInfo(summary.Key);
@@ -220,6 +192,9 @@ namespace MachinaTrader.Exchanges
                             Bid = summary.Value.Bid,
                             Last = summary.Value.Last,
                             Volume = summary.Value.Volume.QuoteCurrencyVolume,
+                            SettleCurrency = ExchangeCurrencyToGlobalCurrency(summary.Value.SettleCurrency).Result,
+                            LotSize = summary.Value.LotSize,
+                            Fee = summary.Value.Fee
                         });
                 }
             }
@@ -271,7 +246,7 @@ namespace MachinaTrader.Exchanges
                     OriginalQuantity = order.Amount,
                     ExecutedQuantity = order.AmountFilled ?? 0,
                     OrderId = order.OrderId,
-                    Price = order.Price ?? 0,
+                    Price = order.Price,
                     Market = order.MarketSymbol,
                     Side = order.IsBuy ? OrderSide.Buy : OrderSide.Sell,
                     OrderDate = order.OrderDate,
@@ -609,6 +584,9 @@ namespace MachinaTrader.Exchanges
                             Bid = ticker.Bid,
                             Last = ticker.Last,
                             Volume = ticker.Volume.QuoteCurrencyVolume,
+                            SettleCurrency = ExchangeCurrencyToGlobalCurrency(ticker.SettleCurrency).Result,
+                            LotSize = ticker.LotSize,
+                            Fee = ticker.Fee
                         });
                     }
                 }

@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MachinaTrader.Exchanges\MachinaTrader.Exchanges.csproj" />
     <ProjectReference Include="..\MachinaTrader.Globals.Structure\MachinaTrader.Globals.Structure.csproj" />
     <ProjectReference Include="..\MachinaTrader.Globals\MachinaTrader.Globals.csproj" />
     <ProjectReference Include="..\MachinaTrader.Strategies\MachinaTrader.Strategies.csproj" />

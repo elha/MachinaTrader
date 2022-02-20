@@ -109,10 +109,16 @@ namespace MachinaTrader.Data.MongoDB
             FindOptions<CandleAdapter> marketCandleFindOptions = new FindOptions<CandleAdapter> { Limit = 1 };
             foreach (var item in items)
             {
-                IAsyncCursor<CandleAdapter> checkData = await candleCollection.FindAsync(x => x.Timestamp.Equals(item.Timestamp), marketCandleFindOptions);
-                if (await checkData.FirstOrDefaultAsync() == null)
+                try
                 {
-
+                    IAsyncCursor<CandleAdapter> checkData = await candleCollection.FindAsync(x => x.Timestamp.Equals(item.Timestamp), marketCandleFindOptions);
+                    if (await checkData.FirstOrDefaultAsync() == null)
+                    {
+                        await candleCollection.InsertOneAsync(item);
+                    }
+                }
+                catch (Exception ex)
+                {
                     await candleCollection.InsertOneAsync(item);
                 }
             }

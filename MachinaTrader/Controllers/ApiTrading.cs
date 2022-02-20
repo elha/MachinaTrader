@@ -197,7 +197,7 @@ namespace MachinaTrader.Controllers
                 await Global.ExchangeApi.CancelOrder(trade.SellOrderId, trade.Market);
                 trade.IsSelling = false;
                 trade.OpenOrderId = null;
-                trade.IsOpen = false;
+                trade.IsOpen = true;
                 trade.SellType = SellType.Cancelled;
                 trade.CloseDate = DateTime.UtcNow;
                 await Global.DataStore.SaveTradeAsync(trade);
@@ -295,10 +295,12 @@ namespace MachinaTrader.Controllers
 
         [HttpGet]
         [Route("closedTrades")]
-        public async Task<IActionResult> GetClosedTrades()
+        public async Task<IActionResult> GetClosedTrades(int? maxAge = 0)
         {
             // Get trades
             var closedTrades = await Global.DataStore.GetClosedTradesAsync();
+            if (maxAge.HasValue)
+                closedTrades = closedTrades.Where(t => t.CloseDate.HasValue && (DateTime.UtcNow - t.CloseDate.Value).TotalHours <= (double)maxAge).ToList();
             return new JsonResult(closedTrades);
         }
 

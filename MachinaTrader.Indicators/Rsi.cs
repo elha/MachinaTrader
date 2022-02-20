@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MachinaTrader.Globals.Structure.Extensions;
 using MachinaTrader.Globals.Structure.Models;
 
 namespace MachinaTrader.Indicators
@@ -39,6 +40,19 @@ namespace MachinaTrader.Indicators
             }
 
             throw new Exception("Could not calculate RSI!");
+        }
+
+        public static List<Candle> SwitchSide(this List<Candle> source)
+        {
+            var max = source.Close().Max() * 1.8m;
+            var result = new List<Candle>();
+            foreach (var candle in source) result.Add(new Candle() {
+                Close = max - candle.Close,
+                High = max - candle.High,
+                Low = max - candle.Low,
+                Open = max - candle.Open,
+                Timestamp = candle.Timestamp, Volume = candle.Volume });
+            return result;
         }
     }
 }

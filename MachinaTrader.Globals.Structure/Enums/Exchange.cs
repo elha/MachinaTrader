@@ -14,6 +14,7 @@ namespace MachinaTrader.Globals.Structure.Enums
         Kucoin = 9,
         CoinbaseSimulation = 10,
         BinanceSimulation = 11,
-        Kraken = 12
+        Kraken = 12,
+        BitMex = 13
     }
 }

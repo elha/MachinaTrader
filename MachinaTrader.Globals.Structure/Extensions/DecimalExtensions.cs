@@ -120,9 +120,16 @@ namespace MachinaTrader.Globals.Structure.Extensions
 			return result;
 		}
 
-		#region crossunders
+        public static decimal Median(this List<decimal> source)
+        {
+            var aNew = new List<decimal>(source);
+            aNew.Sort();
+            return aNew[aNew.Count/2];
+        }
 
-		public static List<bool> Crossunder(this List<decimal?> source, decimal value)
+        #region crossunders
+
+        public static List<bool> Crossunder(this List<decimal?> source, decimal value)
 		{
 			var result = new List<bool>();
 

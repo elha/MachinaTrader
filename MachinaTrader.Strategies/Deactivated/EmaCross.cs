@@ -8,7 +8,7 @@ namespace MachinaTrader.Strategies
 {
     public class EmaCross : BaseStrategy
     {
-        public override string Name => "EMA Cross";
+        public override string Name { get; set; } = "EMA Cross";
         public override int MinimumAmountOfCandles => 36;
         public override Period IdealPeriod => Period.Hour;
 
@@ -34,14 +34,5 @@ namespace MachinaTrader.Strategies
             return result;
         }
 
-        public override Candle GetSignalCandle(List<Candle> candles)
-        {
-            return candles.Last();
-        }
-
-        public override TradeAdvice Forecast(List<Candle> candles)
-        {
-            return Prepare(candles).LastOrDefault();
-        }
     }
 }

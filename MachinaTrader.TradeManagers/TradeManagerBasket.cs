@@ -9,20 +9,14 @@ using MachinaTrader.Globals.Structure.Extensions;
 using MachinaTrader.Globals.Structure.Interfaces;
 using MachinaTrader.Globals.Structure.Models;
 using MachinaTrader.Strategies;
+using MachinaTrader.Indicators;
+using MachinaTrader.Exchanges;
 
 namespace MachinaTrader.TradeManagers
 {
     // tries to buy/sell within basket
     public class TradeManagerBasket : ITradeManager
     {
-        private static Dictionary<string, decimal> mQuotesAtLastBuy = new Dictionary<string, decimal>();
-        private int mStartuplastBuyMinutes = -45;
-        private const Decimal mThresholdPercent = 0.8m;
-        private const Decimal mThresholdDeductionPerHour = 0.1m;
-        private static DateTime? mDateAtLastBuy;
-        private static decimal mAmountToReinvestRemains = 99.7m;
-        public List<MarketSummary> mMarkets { get; private set; }
-
         /// <summary>
         /// Checks if new trades can be started.
         /// </summary>
@@ -32,43 +26,56 @@ namespace MachinaTrader.TradeManagers
             if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation) return;
             if (Global.Configuration.TradeOptions.PaperTrade) return;
 
-            await PrepareRun();
-            await FindOpportunities();
+            MarketManager.Update();
+            MarketManager.Strategy = StrategyFactory.GetTradingStrategy(Global.Configuration.TradeOptions.DefaultStrategy);
+            MarketManager.Strategy.Parameters = Global.Configuration.TradeOptions.DefaultStrategyParameters;
+            DepotManager.Update();
+            var trades = await UpdateOpenPositions();
+            FindOpportunities(trades);
+            MarketManager.SaveToDB();
         }
 
         public async Task UpdateExistingTrades()
         {
-            if (Global.Configuration.ExchangeOptions.FirstOrDefault().IsSimulation) return;
-            if (Global.Configuration.TradeOptions.PaperTrade) return;
-
-            await UpdateOpenOrders();
+ 
         }
 
-
-        private async Task PrepareRun()
+        private async Task<List<Trade>> UpdateOpenPositions()
         {
-            // fetch symbols and resulting markets
-            var Symbols = Global.Configuration.TradeOptions.TradeAssetsList().ToList();
-            Symbols.Add(Global.Configuration.TradeOptions.QuoteCurrency);
-
-            this.mMarkets = Global.ExchangeApi.GetMarketSummaries(null).Result.Where(m =>
-                Symbols.Any(c => c == m.CurrencyPair.BaseCurrency) && Symbols.Any(c => c == m.CurrencyPair.QuoteCurrency)
-            ).ToList();
-
-            // first run fetch old Tickers
-            if (!mDateAtLastBuy.HasValue)
+            // update our open orders
+            var activeTrades = Global.DataStore.GetActiveTradesAsync().Result;
+            foreach (var trade in activeTrades)
             {
-                mDateAtLastBuy = DateTime.Now.AddMinutes(mStartuplastBuyMinutes);
-            }
 
-            foreach (var market in this.mMarkets)
-            {
-                if (!mQuotesAtLastBuy.ContainsKey(market.GlobalMarketName))
+                if (!trade.IsBuying && !trade.IsSelling)
                 {
-                    var oldquotes = await Global.ExchangeApi.GetTickerHistory(market.GlobalMarketName, Period.Minute, -mStartuplastBuyMinutes);
-                    mQuotesAtLastBuy[market.GlobalMarketName] = oldquotes.FirstOrDefault().Close;
+                    // should be sold?
+                    var m = MarketManager.Markets[trade.GlobalSymbol];
+                    trade.TickerLast = m.LastTicker;
+
+                    var advice = m.GetSellAdvice(trade);
+
+                    if (advice.Advice == TradeAdviceEnum.Sell)
+                    {
+                        Global.Logger.Information($"Signal {advice.Advice} {m.GlobalMarketName} {MarketManager.Strategy.Name}({advice.Comment})");
+                        await ExecuteTrade(m, trade, advice);
+                    }
+
                 }
+                if(trade.TickerLast == null)
+                {
+                    var m = MarketManager.Markets[trade.GlobalSymbol];
+                    trade.TickerLast = m.LastTicker;
+                }
+
+                new Thread(async () =>
+                {
+                    
+                    await UpdateOpenOrder(trade);
+                    await Global.DataStore.SaveTradeAsync(trade);
+                }).Start();
             }
+            return activeTrades;
         }
 
         /// <summary>
@@ -76,166 +83,120 @@ namespace MachinaTrader.TradeManagers
         /// if one pair triggers the buy signal a new trade record gets created.
         /// </summary>
         /// <returns></returns>
-        private async Task FindOpportunities()
+        private async void FindOpportunities(List<Trade> trades)
         {
-
-            var api = Global.ExchangeApi.GetFullApi();
-
-            // calc Threshold
-            var dTargetThreshold = mThresholdPercent;
-            var nLastTradeAgeInHours = (decimal)(DateTime.Now - mDateAtLastBuy.Value).TotalHours;
-            if (nLastTradeAgeInHours > 1) dTargetThreshold -= mThresholdDeductionPerHour * nLastTradeAgeInHours;
-
-
-            // check every market if threshold met, sort by biggest change
-            var bTradeFound = false;
-            var curquotes = new Dictionary<string, decimal>();
-            foreach (var market in mMarkets.Distinct().OrderByDescending(x => Math.Abs((x.Bid - mQuotesAtLastBuy[x.GlobalMarketName]) / mQuotesAtLastBuy[x.GlobalMarketName])).ToList())
+            foreach (var m in MarketManager.Markets.Values.Where(m => m.Active))
             {
-                var curquote = market.Bid;
-                if (curquote == 0) continue;
-                curquotes[market.GlobalMarketName] = curquote;
+                var advice = m.GetBuyAdvice();
 
-                var buyquote = mQuotesAtLastBuy[market.GlobalMarketName];
-
-                var change = (curquote - buyquote) / buyquote * 100m;
-
-                if (Math.Abs(change) < dTargetThreshold) continue;
-
-                var amountQuoteCurrency = 0m;
-                var amountBaseCurrency = 0m;
-                var amountUsd = 0m;
-
-                OrderSide side = OrderSide.Buy;
-                string orderId = null;
-                if (change < 0)
+                if (advice.Advice == TradeAdviceEnum.Buy && !trades.Any(t => t.GlobalSymbol == m.GlobalMarketName)) // && !DepotManager.HasPosition(m.CurrencyPair.BaseCurrency) && DepotManager.HasPosition(m.SettleCurrency))
                 {
-                    // buy
-                    side = OrderSide.Buy;
-                    var balance = await Global.ExchangeApi.GetBalance(market.CurrencyPair.QuoteCurrency);
-                    var usd = GetUSD(balance);
-                    if (usd < 50m) continue;
-
-                    var nPercent = Global.Configuration.TradeOptions.AmountToReinvestPercentage;
-                    if (usd < 800m) nPercent = 100m - 0.26m; // all minus fee
-
-                    amountQuoteCurrency = balance.Available * nPercent / 100m;
-                    amountBaseCurrency = amountQuoteCurrency / curquote; // balance is in QuoteCurrency
-                    amountUsd = GetUSD(market.CurrencyPair.BaseCurrency, amountBaseCurrency);
-                    orderId = await Global.ExchangeApi.Buy(market.GlobalMarketName, amountBaseCurrency, curquote);
-                    Global.Logger.Information($"Found BUY  SIGNAL for: {market.GlobalMarketName} at {curquote} (sold @ {buyquote}, available {balance.Available} {balance.Currency})");
+                    Global.Logger.Information($"Signal {advice.Advice} {m.GlobalMarketName} {MarketManager.Strategy.Name}({advice.Comment})");
+                    await ExecuteTrade(m, null, advice);
                 }
-                else
+            }
+        }
+
+
+        private async Task ExecuteTrade(TradeMarket Market, Trade trade, TradeAdvice advice)
+        {
+            var side = advice.Advice == TradeAdviceEnum.Buy ? OrderSide.Buy : OrderSide.Sell;
+            var amountQuoteCurrency = 0m;
+            var amountBaseCurrency = 0m;
+            string orderId = null;
+
+            // buy
+            if (side == OrderSide.Buy)
+            {
+                var currency = Market.SettleCurrency;
+                var fee = 0.0005m;
+
+                var amountSettleCurency = DepotManager.GetPositionSize(currency, fee);
+                if (Market.CurrencyPair.QuoteCurrency == "USD" || Market.CurrencyPair.QuoteCurrency == "USDT")
+                    amountQuoteCurrency = MarketManager.GetUSD(currency, amountSettleCurency);
+                if (Market.CurrencyPair.QuoteCurrency == "BTC")
+                    amountQuoteCurrency = MarketManager.GetBTC(currency, amountSettleCurency);
+
+                amountBaseCurrency = Math.Floor((amountQuoteCurrency / Market.Last.Close) / Market.LotSize) * Market.LotSize;
+
+                if (amountBaseCurrency == 0) return;
+                orderId = Global.ExchangeApi.Buy(Market.GlobalMarketName, amountBaseCurrency, Market.Last.Close).Result;
+            }
+
+            // sell
+            if (side == OrderSide.Sell)
+            {
+                amountBaseCurrency = trade.Quantity;
+                amountQuoteCurrency = amountBaseCurrency * Market.Last.Close; // balance is in QuoteCurrency
+
+                if (amountBaseCurrency == 0) return;
+                orderId = Global.ExchangeApi.Sell(Market.GlobalMarketName, amountBaseCurrency, Market.Last.Close).Result;
+            }
+
+            var arrow = (side == OrderSide.Buy) ? "<<" : ">>";
+            Global.Logger.Information($"Order {side} {Market.GlobalMarketName} @ {Market.Last.Close} {amountBaseCurrency}{Market.CurrencyPair.BaseCurrency} {arrow} {amountQuoteCurrency}{Market.CurrencyPair.QuoteCurrency} Signal {advice.Comment}");
+
+            if (orderId == null)
+            {
+                Global.Logger.Error($"Error Order {side} {Market.GlobalMarketName}, terminate");
+                return;
+            }
+
+            var stake = MarketManager.GetUSD(Market.CurrencyPair.BaseCurrency, amountBaseCurrency);
+
+            if (side == OrderSide.Buy)
+            {
+                trade = new Trade()
                 {
-                    // sell
-                    side = OrderSide.Sell;
-                    var balance = await Global.ExchangeApi.GetBalance(market.CurrencyPair.BaseCurrency);
-                    var usd = GetUSD(balance);
-                    if (usd < 50m) continue;
-
-                    var nPercent = Global.Configuration.TradeOptions.AmountToReinvestPercentage;
-                    if (usd < 800m) nPercent = 100m;
-
-                    amountBaseCurrency = balance.Available * nPercent / 100m;
-                    amountQuoteCurrency = amountBaseCurrency * curquote; // balance is in QuoteCurrency
-                    amountUsd = GetUSD(market.CurrencyPair.BaseCurrency, amountBaseCurrency);
-                    orderId = await Global.ExchangeApi.Sell(market.GlobalMarketName, amountBaseCurrency, curquote);
-                    Global.Logger.Information($"Found SELL SIGNAL for: {market.GlobalMarketName} at {curquote} (bought @ {buyquote}, available {balance.Available} {balance.Currency})");
-                }
-
-
-                if (orderId == null)
-                {
-                    Global.Logger.Error($"Error to open a {side} Order for: {market.GlobalMarketName} {amountBaseCurrency} {curquote}");
-                    return;
-                }
-
-                bTradeFound = true;
-
-                var fullApi = await Global.ExchangeApi.GetFullApi();
-                var trade = new Trade()
-                {
-                    GlobalSymbol = market.GlobalMarketName,
-                    Market = market.GlobalMarketName,
-
-                    StakeAmount = amountQuoteCurrency,
-
-                    OpenDate = DateTime.Now,
-                    OpenRate = curquote,
-                    Quantity = amountBaseCurrency,
-
-                    OpenOrderId = orderId,
-                    BuyOrderId = side == OrderSide.Buy ? orderId : "",
-                    SellOrderId = side == OrderSide.Sell ? orderId : "",
-
-                    IsOpen = true,
-                    IsBuying = side == OrderSide.Buy,
-                    IsSelling = side == OrderSide.Sell,
-
-                    StrategyUsed = "Basket",
-                    SellType = SellType.None,
-                    Exchange = fullApi.Name,
-                    PaperTrade = false
+                    GlobalSymbol = Market.GlobalMarketName,
+                    Market = Market.GlobalMarketName,
                 };
+                trade.Exchange = "";
+                trade.PaperTrade = false;
+                trade.StrategyUsed = MarketManager.Strategy.Name;
 
+                trade.StakeAmount = stake;
+                trade.Quantity = amountBaseCurrency;
 
-                Global.Logger.Information($"Opened a {side} Order for: {this.TradeToString(trade)}");
+                trade.OpenDate = DateTime.Now;
+                trade.OpenRate = Market.Last.Close;
+                trade.OpenOrderId = orderId;
+                trade.BuyOrderId = orderId;
+                trade.BuyType = BuyType.Strategy;
+                trade.IsOpen = true;
+                trade.IsBuying = true;
 
-                // Save the order.
-                await Global.DataStore.SaveTradeAsync(trade);
-
-                // Send a notification that we found something suitable
-                await SendNotification($"Saved a {side} ORDER for: {this.TradeToString(trade)}");
-
-            };
-
-            if (bTradeFound)
-            {
-                mQuotesAtLastBuy = curquotes;
-                mDateAtLastBuy = DateTime.Now;
+                trade.TickerLast = Market.LastTicker;
+                Global.Logger.Information($"PosOpen {trade.GlobalSymbol} @ {trade.OpenDate.ToString("HH:mm:ss")} {trade.OpenRate}");
             }
-        }
 
-        public decimal GetUSD(string Currency, decimal value)
-        {
-            if (Currency == "USD") return value;
-            var market = mMarkets.Find(m => m.CurrencyPair.BaseCurrency == Currency && m.CurrencyPair.QuoteCurrency == "USD");
-            return market.Bid * value;
-        }
-
-        public decimal GetUSD(AccountBalance balance)
-        {
-            return GetUSD(balance.Currency, balance.Available);
-        }
-
-        public decimal GetBTC(string Currency, decimal value)
-        {
-            if (Currency == "BTC" || Currency == "XBT") return value;
-            var market = mMarkets.Find(m => m.CurrencyPair.BaseCurrency == Currency && m.CurrencyPair.QuoteCurrency == "BTC");
-            return market.Bid * value;
-        }
-
-        public decimal GetBTC(AccountBalance balance)
-        {
-            return GetBTC(balance.Currency, balance.Available);
-        }
-
-
-
-        private async Task UpdateOpenOrders()
-        {
-            // First we update our open buy orders by checking if they're filled.
-            var activeTrades = await Global.DataStore.GetActiveTradesAsync();
-
-            // Secondly we check if currently selling trades can be marked as sold if they're filled.
-            foreach (var trade in activeTrades)
+            if (side == OrderSide.Sell)
             {
-                var dir = trade.IsBuying ? "BUY" : "SELL";
-                Global.Logger.Information($"Order Checking Status {dir} {this.TradeToString(trade)}");
-                if (trade.IsOpen)
-                    new Thread(async () => await UpdateOpenOrder(trade)).Start();
+                trade.CloseDate = DateTime.Now;
+                trade.CloseRate = Market.Last.Close;
+                trade.OpenOrderId = orderId;
+                trade.SellOrderId = orderId;
+                trade.SellType = SellType.Strategy;
+                trade.IsOpen = true;
+                trade.IsSelling = true;
+
+                trade.TickerLast = Market.LastTicker;
+
+                // preliminary
+                trade.CloseProfit = stake - trade.StakeAmount;
+                if (trade.StakeAmount != 0m)
+                    trade.CloseProfitPercentage = trade.CloseProfit / trade.StakeAmount * 100;
+
+                Global.Logger.Information($"PosClose {trade.GlobalSymbol} @ {trade.OpenDate.ToString("HH:mm:ss")} {trade.CloseDate?.ToString("HH:mm:ss")} {trade.OpenRate} {trade.CloseRate} {trade.CloseProfitPercentage}");
             }
+
+            // Save the order.
+            await Global.DataStore.SaveTradeAsync(trade);
+
         }
+
+
+
 
         /// <summary>
         /// Updates the sell orders by checking with the exchange what status they are currently.
@@ -245,47 +206,71 @@ namespace MachinaTrader.TradeManagers
         {
             try
             {
-                var exchangeOrder = await Global.ExchangeApi.GetOrder(trade.BuyOrderId ?? trade.SellOrderId, trade.Market);
+                if (!trade.IsBuying && !trade.IsSelling) return;
+
+                var exchangeOrder = await Global.ExchangeApi.GetOrder(trade.OpenOrderId, trade.Market);
                 if (exchangeOrder?.Status == OrderStatus.Filled)
                 {
+
+
                     trade.OpenOrderId = null;
-                    trade.IsOpen = false;
-                    trade.IsSelling = false;
-                    trade.IsBuying = false;
 
-                    trade.CloseDate = exchangeOrder.OrderDate;
-                    trade.CloseRate = exchangeOrder.Price;
-                    trade.Quantity = exchangeOrder.ExecutedQuantity;
-
-                    trade.CloseProfit = (exchangeOrder.Price * exchangeOrder.ExecutedQuantity) - trade.StakeAmount;
-                    if (trade.StakeAmount!=0m)
-                        trade.CloseProfitPercentage = ((exchangeOrder.Price * exchangeOrder.ExecutedQuantity) - trade.StakeAmount) / trade.StakeAmount * 100;
-
-                    await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction()
+                    if(trade.IsBuying)
                     {
-                        Amount = (trade.CloseRate.Value * trade.Quantity),
-                        Date = trade.CloseDate.Value
-                    });
+                        trade.IsBuying = false;
 
-                    await SendNotification($"Order is filled: {this.TradeToString(trade)}");
+                        trade.OpenDate = exchangeOrder.OrderDate;
+                        if(exchangeOrder.Price.HasValue && exchangeOrder.Price > 0) trade.OpenRate = exchangeOrder.Price.Value;
+                        trade.Quantity = exchangeOrder.ExecutedQuantity;
+
+                        Global.Logger.Information($"Update Buy  {trade.GlobalSymbol} {trade.OpenDate.ToString("HH:mm:ss")}@{trade.OpenRate}");
+                    }
+
+                    if (trade.IsSelling)
+                    {
+                        trade.IsOpen = false;
+                        trade.IsSelling = false;
+
+                        trade.CloseDate = exchangeOrder.OrderDate;
+                        if (exchangeOrder.Price.HasValue && exchangeOrder.Price > 0) trade.CloseRate = exchangeOrder.Price.Value;
+
+                        var market = MarketManager.Markets[trade.GlobalSymbol];
+                        var stake = MarketManager.GetUSD(market.CurrencyPair.QuoteCurrency, trade.CloseRate.Value * trade.Quantity);
+                        trade.CloseProfit = stake - trade.StakeAmount;
+                        if (trade.StakeAmount != 0m)
+                            trade.CloseProfitPercentage = trade.CloseProfit / trade.StakeAmount * 100;
+
+                        trade.Quantity = exchangeOrder.ExecutedQuantity;
+
+                        await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction()
+                        {
+                            Amount = (trade.CloseRate.Value * trade.Quantity),
+                            Date = trade.CloseDate.Value
+                        });
+
+                        Global.Logger.Information($"Update Sell {trade.GlobalSymbol} {trade.OpenDate.ToString("HH:mm:ss")}@{trade.OpenRate} {trade.CloseDate?.ToString("HH:mm:ss")}@{trade.CloseRate} {trade.CloseProfitPercentage}");
+
+                    }
+
                 }
                 else if (exchangeOrder?.Status == OrderStatus.PartiallyFilled)
                 {
                     //wait
                     return;
                 }
-                else
+                else if (trade.IsBuying)
                 {
                     if ((trade.OpenDate.AddSeconds(Global.Configuration.TradeOptions.MaxOpenTimeBuy) > DateTime.UtcNow))
                     {
-                        await SendNotification($"Order wasn't filled: {this.TradeToString(trade)} waiting until {trade.OpenDate.AddSeconds(Global.Configuration.TradeOptions.MaxOpenTimeBuy)}");
                         return;
                     }
-                    await Global.ExchangeApi.CancelOrder(trade.BuyOrderId ?? trade.SellOrderId, trade.Market);
+
+                    await Global.ExchangeApi.CancelOrder(trade.OpenOrderId, trade.Market);
+
+                    Global.Logger.Information($"Order Buy canceled by timeout {trade.OpenOrderId}");
 
                     trade.OpenOrderId = null;
                     trade.IsOpen = false;
-                    trade.IsSelling = false;
                     trade.IsBuying = false;
 
                     await Global.DataStore.SaveWalletTransactionAsync(new WalletTransaction()
@@ -294,50 +279,25 @@ namespace MachinaTrader.TradeManagers
                         Date = DateTime.UtcNow
                     });
 
-                    await SendNotification($"Order cancelled because it wasn't filled in time: {this.TradeToString(trade)}.");
-                    Global.Logger.Information($"Order Canceled {trade.BuyOrderId ?? trade.SellOrderId}");
                 }
             }
             catch (ExchangeSharp.APIException ex)
             {
                 if (ex.Message.ToLower().Contains("invalid order") || (ex.Message.ToLower().Contains("unkown order")))
                 {
+                    Global.Logger.Information($"Order Notfound {trade.OpenOrderId}");
                     trade.OpenOrderId = null;
                     trade.IsOpen = false;
                     trade.IsSelling = false;
                     trade.IsBuying = false;
-                    Global.Logger.Information($"Order Notfound {trade.BuyOrderId ?? trade.SellOrderId}");
                 }
                 else
                     throw ex;
             }
             finally
             {
-                // update our database.
-                await Global.DataStore.SaveTradeAsync(trade);
             }
 
-        }
-
-        private async Task SendNotification(string message)
-        {
-            Global.Logger.Debug(message);
-
-            if (Global.NotificationManagers != null)
-            {
-                foreach (var notificationManager in Global.NotificationManagers)
-                {
-                    await notificationManager.SendNotification(message);
-                }
-            }
-        }
-
-        private string TradeToString(Trade trade)
-        {
-            return string.Format($"{trade.GlobalSymbol} with limit {trade.OpenRate:0.00000000} {Global.Configuration.TradeOptions.QuoteCurrency} " +
-                                 $"({trade.Quantity:0.0000} " +
-                                 $"{trade.OpenDate} " +
-                                 $"({trade.TradeId})");
         }
     }
 }

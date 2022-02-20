@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using MachinaTrader.Backtester;
 using MachinaTrader.Globals.Structure.Extensions;
+using MachinaTrader.Strategies;
 
 namespace MachinaTrader.Controllers
 {
@@ -158,7 +159,7 @@ namespace MachinaTrader.Controllers
         {
 
             JObject strategies = new JObject();
-            foreach (var strategy in BacktestFunctions.GetTradingStrategies())
+            foreach (var strategy in StrategyFactory.GetTradingStrategies())
             {
                 strategies[strategy.Name] = new JObject
                 {
@@ -252,12 +253,32 @@ namespace MachinaTrader.Controllers
                 CancellationToken = cts.Token,
                 MaxDegreeOfParallelism = Environment.ProcessorCount
             };
-            var strategyList = BacktestFunctions.GetTradingStrategies();
+
+            var strategyList = StrategyFactory.GetTradingStrategies();
 
             if (strategy != "all")
             {
                 strategy = Encoding.UTF8.GetString(Convert.FromBase64String(strategy));
-                strategyList = strategyList.Where(s => strategy == s.Name).ToList();
+                var s = strategyList.Find(s => strategy == s.Name);
+                strategyList.Clear();
+                if(!string.IsNullOrEmpty(s.Parameters))
+                {
+                    for(int i = int.Parse(s.MinParameters) ; i<= int.Parse(s.MaxParameters); i++)
+                    {
+                        var n = StrategyFactory.GetTradingStrategy(s.Name);
+                        n.Parameters = i.ToString().PadLeft(s.Parameters.Length, '0');
+                        var bInvalid = false;
+                        for(int j = 0; j < n.Parameters.Length; j++)
+                        {
+                            if (n.Parameters[j] > n.MaxParameters[j]) bInvalid = true;
+                        }
+                        if(!bInvalid) strategyList.Add(n);
+                    }
+                }
+                else
+                {
+                    strategyList.Add(s);
+                }
             }
 
             var progress = 0;

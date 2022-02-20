@@ -10,7 +10,7 @@ namespace MachinaTrader.Strategies.Simple
 {
     public class CloudBreakout : BaseStrategy, INotificationTradingStrategy
     {
-        public override string Name => "Cloud Breakout";
+        public override string Name { get; set; } = "Cloud Breakout";
         public override int MinimumAmountOfCandles => 120;
         public override Period IdealPeriod => Period.Hour;
 
@@ -53,14 +53,6 @@ namespace MachinaTrader.Strategies.Simple
             return result;
         }
 
-        public override TradeAdvice Forecast(List<Candle> candles)
-        {
-            return Prepare(candles).LastOrDefault();
-        }
 
-        public override Candle GetSignalCandle(List<Candle> candles)
-        {
-            return candles.Last();
-        }
     }
 }
