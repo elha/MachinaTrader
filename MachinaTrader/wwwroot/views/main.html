@@ -13,11 +13,15 @@
             <div class="card-body">
                 <strong>Status</strong>
                 <br><br>
-                    <h1>USD {{ performanceData["totalInUsd"] }}</h1>
-                    <h1>BTC {{ performanceData["totalInBtc"] }}</h1>
-                
-
-
+                <h3>USD {{ statsData["balanceUsd"] }}</h3>
+                <h3>BTC {{ statsData["balanceBtc"] }}</h3>
+                <h3>Trend {{ statsData["globalMarketTrend"] }}</h3>
+                <h3>Trades {{ statsData["activeTrades"] }}</h3>
+                <h3>Risk {{ statsData["riskValue"] }}</h3>
+                <h3>TrendScore {{ statsData["globalMarketTrendScore"] }}</h3>
+                <h3>PerformanceSum {{ statsData["performanceSum"] }} ‰</h3>
+                <h3>PerformanceAvg {{ statsData["performanceAvg"] }} ‰</h3>
+                <h3>PositiveTrades {{ statsData["positiveTrades"] }} %</h3>
             </div>
         </div>
     </div>
@@ -30,7 +34,7 @@
         parent: vueMain,
 
         data: {
-            performanceData: null
+            statsData: null
         },
 
         created: function () {
@@ -40,8 +44,8 @@
         methods: {
             fetchData: function () {
                 var self = this;
-                $.get('/api/exchange/account/balance', function (data) {
-                    self.performanceData = data;
+                $.get('/api/statistics/overview', function (data) {
+                    self.statsData = data;
                 });
             }
         }

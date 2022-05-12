@@ -25,7 +25,7 @@ namespace MachinaTrader.Controllers
     {
         [HttpGet]
         [Route("refresh")]
-        public async Task<string> Refresh(string exchange, string coinsToBuy, string candleSize = "5")
+        public async Task<string> Refresh(string exchange, string coinsToBuy, int days, string candleSize = "5")
         {
             var backtestOptions = new BacktestOptions
             {
@@ -34,6 +34,8 @@ namespace MachinaTrader.Controllers
                 Coins = new List<string>(new[] { coinsToBuy }),
                 CandlePeriod = Int32.Parse(candleSize)
             };
+            backtestOptions.EndDate = DateTime.Today.AddMinutes(-1);
+            backtestOptions.StartDate = DateTime.Today.AddDays(-days);
 
             await DataRefresher.RefreshCandleData(x => Global.Logger.Information(x), backtestOptions, Global.DataStoreBacktest);
 
@@ -73,7 +75,7 @@ namespace MachinaTrader.Controllers
                 CandlePeriod = Int32.Parse(candleSize),
                 EndDate = DateTime.Now
             };
-
+            
             var result = new JObject
             {
                 ["result"] = await DataRefresher.GetCacheAge(backtestOptions, Global.DataStoreBacktest)
@@ -83,7 +85,7 @@ namespace MachinaTrader.Controllers
 
         [HttpGet]
         [Route("refreshCandles")]
-        public async Task<ActionResult> RefreshCandles(string exchange, string coinsToBuy, string candleSize = "5")
+        public async Task<ActionResult> RefreshCandles(string exchange, string coinsToBuy, int days, string candleSize = "5")
         {
             List<string> coins = new List<string>();
 
@@ -104,6 +106,8 @@ namespace MachinaTrader.Controllers
                 Coins = coins,
                 CandlePeriod = Int32.Parse(candleSize)
             };
+            backtestOptions.EndDate = DateTime.Today.AddMinutes(-1);
+            backtestOptions.StartDate = DateTime.Today.AddDays(-days);
 
             await DataRefresher.RefreshCandleData(x => Global.Logger.Information(x), backtestOptions, Global.DataStoreBacktest);
             JObject result = new JObject
@@ -115,7 +119,7 @@ namespace MachinaTrader.Controllers
 
         [HttpGet]
         [Route("fillCandlesGaps")]
-        public async Task<ActionResult> FillCandlesGaps(string exchange, string coinsToBuy, DateTime? from = null, DateTime? to = null, string candleSize = "5")
+        public async Task<ActionResult> FillCandlesGaps(string exchange, string coinsToBuy, int days = 3, string candleSize = "5")
         {
             var coins = new List<string>();
 
@@ -137,15 +141,8 @@ namespace MachinaTrader.Controllers
                 CandlePeriod = Int32.Parse(candleSize),
                 EndDate = DateTime.Now
             };
-
-            if (from.HasValue)
-                backtestOptions.StartDate = from.Value;
-
-            if (to.HasValue)
-            {
-                backtestOptions.EndDate = to.Value;
-                backtestOptions.EndDate = backtestOptions.EndDate.AddDays(1).AddMinutes(-1);
-            }
+            backtestOptions.EndDate = DateTime.Today.AddMinutes(-1);
+            backtestOptions.StartDate = DateTime.Today.AddDays(-days);
 
             await DataRefresher.FillCandlesGaps(x => Global.Logger.Information(x), backtestOptions, Global.DataStoreBacktest);
 
@@ -208,7 +205,7 @@ namespace MachinaTrader.Controllers
 
         [HttpGet]
         [Route("backtesterResults")]
-        public ActionResult BacktesterResults(string exchange, string coinsToBuy, string quoteCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount, DateTime? from = null, DateTime? to = null, string candleSize = "5", string strategy = "all")
+        public ActionResult BacktesterResults(string exchange, string coinsToBuy, string quoteCurrency, decimal startingWallet, decimal tradeAmount, int days = 3, string candleSize = "5", string strategy = "all")
         {
             var strategies = new JObject();
             Runtime.GlobalHubBacktest.Clients.All.SendAsync("Status", $"{{ \"status\": \"running\", \"progress\":\"0 %\"}}");
@@ -232,14 +229,8 @@ namespace MachinaTrader.Controllers
                 CandlePeriod = Int32.Parse(candleSize)
             };
 
-            if (from.HasValue)
-                backtestOptions.StartDate = from.Value;
-
-            if (to.HasValue)
-            {
-                backtestOptions.EndDate = to.Value;
-                backtestOptions.EndDate = backtestOptions.EndDate.AddDays(1).AddMinutes(-1);
-            }
+            backtestOptions.EndDate = DateTime.Today.AddMinutes(-1);
+            backtestOptions.StartDate = DateTime.Today.AddDays(-days);
 
             if (tradeAmount == 0m)
                 tradeAmount = backtestOptions.StakeAmount;
@@ -270,9 +261,10 @@ namespace MachinaTrader.Controllers
                         var bInvalid = false;
                         for(int j = 0; j < n.Parameters.Length; j++)
                         {
+                            if (n.Parameters[j] < n.MinParameters[j]) bInvalid = true;
                             if (n.Parameters[j] > n.MaxParameters[j]) bInvalid = true;
                         }
-                        if(!bInvalid) strategyList.Add(n);
+                        if (!bInvalid) strategyList.Add(n);
                     }
                 }
                 else
@@ -294,7 +286,7 @@ namespace MachinaTrader.Controllers
 
             Parallel.ForEach(strategyList, parallelOptions, async tradingStrategy =>
             {
-                var result = await BacktestFunctions.BackTestJson(tradingStrategy, backtestOptions, candles, quoteCurrency, saveSignals, startingWallet, tradeAmount);
+                var result = await BacktestFunctions.BackTestJson(tradingStrategy, backtestOptions, candles, quoteCurrency, startingWallet, tradeAmount);
                 for (int i = 0; i < result.Count(); i++)
                 {
                     if (i == 0)
@@ -370,7 +362,10 @@ namespace MachinaTrader.Controllers
             };
 
             var candleProvider = new DatabaseCandleProvider();
-            var items = await candleProvider.GetSignals(backtestOptions, Global.DataStoreBacktest, strategyName);
+            var candles = candleProvider.GetCandles(backtestOptions, Global.DataStoreBacktest);
+            var backTestResult = new BackTestResult();
+            var strat = StrategyFactory.GetTradingStrategy(strategyName);
+            var items = BackTestRunner.RunBacktest(strat, backtestOptions, 1000, coinsToBuy, backTestResult, candles);
 
             return new JsonResult(items);
         }

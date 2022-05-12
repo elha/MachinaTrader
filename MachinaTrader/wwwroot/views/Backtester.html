@@ -83,26 +83,12 @@
                     </div>
                 </div>
 
+
                 <div class="col-4">
                     <div class="form-group row">
-                        <label for="inputFromDate" class="col-3 col-form-label  d-none d-lg-block">From</label>
-                        <div class='col-9 input-group date' id='datetimepicker1'>
-                            <input type='text' id="inputFromDate" class="form-control" />
-                            <span class="input-group-append">
-                                <i class="fal fa-calendar-alt"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-3">
-                    <div class="form-group row">
-                        <label for="inputToDate" class="col-3 col-form-label  d-none d-lg-block">To</label>
-                        <div class='col-9 input-group date' id='datetimepicker2'>
-                            <input type='text' id="inputToDate" class="form-control" />
-                            <span class="input-group-append">
-                                <i class="fal fa-calendar-alt"></i>
-                            </span>
+                        <label for="inputDays" class="col-3 col-form-label  d-none d-lg-block">Days</label>
+                        <div class='col-9 input-group date'>
+                            <input type='text' id="inputDays" class="form-control" />
                         </div>
                     </div>
                 </div>
@@ -177,13 +163,7 @@
 
                 <div class="col-3">
                     <div class="form-group row">
-                        <label for="saveSignalsId" class="col-3 col-form-label">Save signals:</label>
-                        <div class='col-9 input-group date' id='saveSignalsId'>
-                            <select name="display" id="saveSignalsSelect" class="selectpicker">
-                                <option value="false">no</option>
-                                <option value="true" selected="selected">yes</option>
-                            </select>
-                        </div>
+                       
                     </div>
                 </div>
 
@@ -299,8 +279,7 @@
             format: 'YYYY-MM-DD'
         });
 
-        $("#inputFromDate").val("2021-07-15");
-        $("#inputToDate").val("2022-01-15");
+        $("#inputDays").val("3");
 
         $("#tradeAmountId").val(100);
         $("#startingWalletId").val(1000);
@@ -326,7 +305,7 @@
     var refeshCandles = function () {
         $("#refreshButton").prop("disabled", true);
 
-        axios.get('/api/backtester/refreshCandles?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val()).then((response) => {
+        axios.get('/api/backtester/refreshCandles?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&days=' + $('#inputDays').val() ).then((response) => {
             $("#refreshButton").prop("disabled", false);
             widgetBackendTester.updateCandleAge();
         })
@@ -338,7 +317,7 @@
     var fillCandlesGaps = function () {
         $("#refreshButton").prop("disabled", true);
 
-        axios.get('/api/backtester/fillCandlesGaps?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&from=' + $('#inputFromDate').val() + '&to=' + $('#inputToDate').val()).then((response) => {
+        axios.get('/api/backtester/fillCandlesGaps?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&days=' + $('#inputDays').val() ).then((response) => {
             $("#refreshButton").prop("disabled", false);
 
             widgetBackendTester.updateCandleAge();
@@ -361,7 +340,7 @@
             dataArraySummary = new Array();
         }
 
-        axios.get('/api/backtester/backtesterResults?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&strategy=' + $("#tradingStrategy").val() + '&quoteCurrency=' + $("#quoteCurrencyToCheck").val() + '&from=' + $('#inputFromDate').val() + '&to=' + $('#inputToDate').val() + '&saveSignals=' + $("#saveSignalsSelect").val() + '&startingWallet=' + $("#startingWalletId").val() + '&tradeAmount=' + $("#tradeAmountId").val()).then((response) => {
+        axios.get('/api/backtester/backtesterResults?exchange=' + $("#exchangeSelect").val() + '&coinsToBuy=' + $("#currencyToCheck").val() + '&candleSize=' + $("#candleSize").val() + '&strategy=' + $("#tradingStrategy").val() + '&quoteCurrency=' + $("#quoteCurrencyToCheck").val() + '&days=' + $('#inputDays').val() + '&startingWallet=' + $("#startingWalletId").val() + '&tradeAmount=' + $("#tradeAmountId").val()).then((response) => {
         }).catch((error) => {
             console.log(error);
         });

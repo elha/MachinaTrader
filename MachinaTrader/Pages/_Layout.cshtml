@@ -70,9 +70,6 @@
                     <a class="nav-link" href="/"><i class="fal fa-tachometer-alt"></i>&nbsp;&nbsp;Dashboard</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/#/Dashboard/"><i class="fal fa-bug"></i>&nbsp;&nbsp;Widgets</a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link" href="/#/views/Configuration.html"><i class="fal fa-cog"></i>&nbsp;&nbsp;Settings</a>
                 </li>
             </ul>
@@ -94,28 +91,6 @@
                 <partial name="_SidebarNavigation" />
             </div>
             <main class="main">
-                <!-- Breadcrumb-->
-                <ol class="breadcrumb" id="breadcrumb">
-                    <li class="breadcrumb-item">Home</li>
-                    <li class="breadcrumb-item">
-                        <a href="#">Admin</a>
-                    </li>
-                    <li class="breadcrumb-item active">Dashboard</li>
-                    <!-- Breadcrumb Menu-->
-                    <li class="breadcrumb-menu d-md-down-none">
-                        <div class="btn-group" role="group" aria-label="Button group">
-                            <a class="btn" href="#">
-                                <i class="fal fa-comment"></i>
-                            </a>
-                            <a class="btn" href="./">
-                                <i class="fal fa-tachometer-alt"></i> Dashboard
-                            </a>
-                            <a class="btn" href="#">
-                                <i class="fal fa-cog"></i> Settings
-                            </a>
-                        </div>
-                    </li>
-                </ol>
                 <div class="container-fluid">
                     <div id="ui-view">@RenderBody()</div>
                 </div>

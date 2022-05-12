@@ -10,12 +10,12 @@ namespace MachinaTrader.Strategies
     public class BuyTheDip2 : BaseStrategy
     {
         public override string Name { get; set; } = "BuyTheDip2";
-        public override int MinimumAmountOfCandles => 150;
+        public override int MinimumAmountOfCandles => 50;
         public override Period IdealPeriod => Period.Minute;
 
         public override string Parameters { get; set; } = "30432";
         public override string MinParameters { get; set; } = "00222";
-        public override string MaxParameters { get; set; } = "33555";
+        public override string MaxParameters { get; set; } = "43555";
 
         public override List<TradeAdvice> Prepare(List<Candle> candles)
         {
@@ -26,7 +26,7 @@ namespace MachinaTrader.Strategies
             var P4 = int.Parse(Parameters.Substring(3, 1));
             var P5 = int.Parse(Parameters.Substring(4, 1));
 
-            var BuyDrop = new decimal[] { 0.5m,  0.7m,  1.1m,  1.3m }[P1]; // 1.3 Best
+            var BuyDrop = new decimal[] { 0.5m,  0.7m,  0.9m,  1.1m,  1.3m }[P1]; // 1.3 Best
 
             var close = candles.Close();
             var macdBuy = candles.Macd(14, 18, 20).Hist.Rises();
@@ -50,7 +50,7 @@ namespace MachinaTrader.Strategies
                     continue;
                 }
                 var bSignal = false;
-                foreach (var k in new int[] { 9, 18, 28 })  // 28 is best
+                foreach (var k in new int[] { 5, 9 })  // 28 is best
                 {
                     if (!bSignal && Check(BuyDrop, close, macdBuy, i, k, P3))  // 5 is best
                     {
@@ -64,7 +64,7 @@ namespace MachinaTrader.Strategies
                         bSignal = true;
                     }
                 }
-                foreach (var k in new int[] { 9 })
+                foreach (var k in new int[] { 5, 9 })
                 {
                     if (!bSignal && Check(SellRise, closeSell, macdSell, i, k, P4))  // 5 is best
                     {

@@ -16,8 +16,6 @@ namespace MachinaTrader.Globals.Structure.Interfaces
         Task DeleteBacktestDatabase(BacktestOptions backtestOptions);
         Task DeleteBacktestCandles(BacktestOptions backtestOptions);
 
-        Task SaveBacktestTradeSignalsBulk(List<TradeSignal> candles, BacktestOptions backtestOptions);
-
-        Task<List<TradeSignal>> GetBacktestSignalsByStrategy(BacktestOptions backtestOptions, string strategy);
+       
     }
 }

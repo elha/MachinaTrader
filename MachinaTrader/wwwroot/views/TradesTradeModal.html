@@ -44,6 +44,13 @@
                     {{moment(trade.openDate)}}
                 </div>
 
+                <div class="col-4 ">
+                    Trade Type:
+                </div>
+                <div class="col-8">
+                    {{moment(trade.isPaperTrading)}}
+                </div>
+
                 <template v-if="tradeActive">
                     <div class="col-4">
                         Age:
@@ -95,7 +102,7 @@
                         Current Rate:
                     </div>
                     <div class="col-8">
-                        <template v-if="parseFloat(((100 * trade.tickerLast.last) / trade.openRate) - 100) > 0">
+                        <template v-if="parseFloat(trade.tradePerformance) > 0">
                             <span style="color: green;">
                                 {{(trade.tickerLast.last).toFixed(8)}}
                             </span>
@@ -114,7 +121,7 @@
                         Sell Rate:
                     </div>
                     <div class="col-8">
-                        <template v-if="parseFloat(((100 * trade.closeRate) / trade.openRate) - 100) > 0">
+                        <template v-if="parseFloat(trade.tradePerformance) > 0">
                             <span style="color: green;">
                                 {{(trade.closeRate).toFixed(8)}}
                             </span>
@@ -137,38 +144,19 @@
                     </div>
                 </template>
 
-                <template v-if="!tradeActive">
+                <template>
                     <div class="col-4">
                         Result:
                     </div>
                     <div class="col-8">
-                        <template v-if="parseFloat(((100 * trade.closeRate) / trade.openRate) - 100) > 0">
+                        <template v-if="parseFloat(trade.tradePerformance) > 0">
                             <span style="color: green;">
-                                {{parseFloat(((100 * trade.closeRate) / trade.openRate) - 100).toFixed(2)}} %
+                                {{parseFloat(trade.tradePerformance).toFixed(2)}} %
                             </span>
                         </template>
                         <template v-else>
                             <span style="color: red;">
-                                {{parseFloat(((100 * trade.closeRate) / trade.openRate) - 100).toFixed(2)}} %
-                            </span>
-                        </template>
-
-                    </div>
-                </template>
-
-                <template v-if="tradeActive">
-                    <div class="col-4">
-                        Result:
-                    </div>
-                    <div class="col-8">
-                        <template v-if="parseFloat(((100 * trade.tickerLast.last) / trade.openRate) - 100) > 0">
-                            <span style="color: green;">
-                                {{parseFloat(((100 * trade.tickerLast.last) / trade.openRate) - 100).toFixed(2)}} %
-                            </span>
-                        </template>
-                        <template v-else>
-                            <span style="color: red;">
-                                {{parseFloat(((100 * trade.tickerLast.last) / trade.openRate) - 100).toFixed(2)}} %
+                                {{parseFloat(trade.tradePerformance).toFixed(2)}} %
                             </span>
                         </template>
 
@@ -182,19 +170,12 @@
                     {{trade.strategyUsed}}
                 </div>
 
-                <template v-if="tradeActive">
+                <template>
                     <div class="col-4">
-                        Buy OrderId:
+                        OrderId:
                     </div>
                     <div class="col-8">
                         {{trade.buyOrderId}}
-                    </div>
-                </template>
-                <template v-if="!tradeActive">
-                    <div class="col-4">
-                        Sell OrderId:
-                    </div>
-                    <div class="col-8">
                         {{trade.sellOrderId}}
                     </div>
                 </template>
@@ -220,23 +201,6 @@
                     </div>
                     <div class="col-8">
                         {{parseFloat(trade.openRate + (trade.openRate * parseFloat(sellOnPercentage/100))).toFixed(8)}}
-                    </div>
-
-                    <div class="col-4">
-                        Hold Position:
-                    </div>
-                    <div class="col-8">
-                        <label class="switch switch-label switch-primary">
-                            <input id="hold_position" type="checkbox" class="switch-input bool" checked="" class="switch-input bool" :checked="trade.holdPosition" v-on:click="setHoldPosition(trade.tradeId)"/>
-                            <span class="switch-slider" data-checked="✓" data-unchecked="✕"></span>
-                        </label>
-                    </div>
-
-                    <div class="col-4">
-                        Sell Position:
-                    </div>
-                    <div class="col-8">
-                        <a href="javascript:void(0)" class="btn btn-danger btn-sm" style="width: 40%;" id="status" v-on:click="sellPosition(trade.tradeId)">Sell now</a>
                     </div>
                 </template>
             </div>

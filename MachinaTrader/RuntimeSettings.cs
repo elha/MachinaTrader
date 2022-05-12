@@ -92,40 +92,23 @@ namespace MachinaTrader
             //Run Cron
             IScheduler scheduler = Global.QuartzTimer;
 
-            IJobDetail buyTimerJob = JobBuilder.Create<Timers.BuyTimer>()
-                .WithIdentity("buyTimerJobTrigger", "buyTimerJob")
+            IJobDetail tradeTimerJob = JobBuilder.Create<Timers.TradeTimer>()
+                .WithIdentity("tradeTimerJobTrigger", "tradeTimerJob")
                 .Build();
 
-            ITrigger buyTimerJobTrigger;
+            ITrigger tradeTimerJobTrigger;
 
-            if (Global.Configuration.TradeOptions.BuyTimer != "")
+            if (Global.Configuration.TradeOptions.TradeTimer != "")
             {
-                buyTimerJobTrigger = TriggerBuilder.Create()
-                    .WithIdentity("buyTimerJobTrigger", "buyTimerJob")
-                    .WithCronSchedule(Global.Configuration.TradeOptions.BuyTimer)
+                tradeTimerJobTrigger = TriggerBuilder.Create()
+                    .WithIdentity("tradeTimerJobTrigger", "tradeTimerJob")
+                    .WithCronSchedule(Global.Configuration.TradeOptions.TradeTimer)
                     .UsingJobData("force", false)
                     .Build();
 
-                await scheduler.ScheduleJob(buyTimerJob, buyTimerJobTrigger);
-                Global.Logger.Information($"Buy Cron will run at: {buyTimerJobTrigger.GetNextFireTimeUtc() ?? DateTime.MinValue:r}");
+                await scheduler.ScheduleJob(tradeTimerJob, tradeTimerJobTrigger);
+                Global.Logger.Information($"Trade Cron will run at: {tradeTimerJobTrigger.GetNextFireTimeUtc() ?? DateTime.MinValue:r}");
             }
-
-            IJobDetail sellTimerJob = JobBuilder.Create<Timers.SellTimer>()
-                .WithIdentity("sellTimerJobTrigger", "sellTimerJob")
-                .Build();
-
-            ITrigger sellTimerJobTrigger;
-            if (Global.Configuration.TradeOptions.SellTimer != "")
-            {
-                sellTimerJobTrigger = TriggerBuilder.Create()
-                .WithIdentity("sellTimerJobTrigger", "sellTimerJob")
-                .WithCronSchedule(Global.Configuration.TradeOptions.SellTimer)
-                .UsingJobData("force", false)
-                .Build();
-                await scheduler.ScheduleJob(sellTimerJob, sellTimerJobTrigger);
-                Global.Logger.Information($"Sell Cron will run at: {sellTimerJobTrigger.GetNextFireTimeUtc() ?? DateTime.MinValue:r}");
-            }
-
 
             await scheduler.Start();
         }
@@ -154,7 +137,7 @@ namespace MachinaTrader
             }
 
             //Websocket Test
-            var fullApi = Global.ExchangeApi.GetFullApi().Result;
+            var fullApi = Global.ExchangeApi.GetFullApi();
 
             //Create Exchange Currencies as List
             foreach (var currency in Global.Configuration.TradeOptions.TradeAssetsList())

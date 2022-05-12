@@ -4,12 +4,9 @@ using System.Text;
 
 namespace MachinaTrader.Globals.Structure.Enums
 {
-    public enum BuyType
+    public enum PositionType
     {
-        Unknown = 0,
-        Strategy = 1,
-        Signal = 2,
-        Manually = 3,
-        Dca = 4
+        Short = -1,
+        Long = 0
     }
 }

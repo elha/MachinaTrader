@@ -23,5 +23,7 @@ namespace MachinaTrader.Globals.Structure.Models
         public string SettleCurrency { get; set; }
         public decimal LotSize { get; set; }
         public decimal Fee { get; set; }
+        public decimal QuoteToSettle { get; set; } = 1.0m;
+
     }
 }

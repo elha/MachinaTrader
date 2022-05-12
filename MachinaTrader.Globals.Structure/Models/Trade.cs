@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using MachinaTrader.Globals.Structure.Enums;
 
 namespace MachinaTrader.Globals.Structure.Models
@@ -47,9 +49,8 @@ namespace MachinaTrader.Globals.Structure.Models
         public decimal? StopLossRate { get; set; }
 
         public BuyType BuyType { get; set; }
+        public PositionType PositionType { get; set; }
         public SellType SellType { get; set; }
-
-        public bool PaperTrading { get; set; }
 
         public Trade()
         {
@@ -59,7 +60,40 @@ namespace MachinaTrader.Globals.Structure.Models
         }
 
         // Used for MyntUI output
-        public Ticker TickerLast { get; set; }
+        private Ticker _TickerLast;
+        public Ticker TickerLast {
+            get
+            {
+                return _TickerLast;
+            }
+
+            set
+            {
+                _TickerLast = value;
+
+                if (OpenRate == 0) return; // no performance without rate
+
+                // append Performance to History
+                List<decimal> t;
+                if (PerformanceHistory != null && PerformanceHistory.Length > 0)
+                    t = new List<decimal>(PerformanceHistory);
+                else
+                    t = new List<decimal>();
+
+                if (t.Count > 500) return; // prevent overflows
+
+                if (PositionType == PositionType.Long)
+                    t.Add((value.Mid() - OpenRate) / OpenRate * 100m);
+                else
+                    t.Add((OpenRate - value.Mid()) / OpenRate * 100m);
+
+                PerformanceHistory = t.ToArray();
+            }
+        }
+
+        public Ticker TickerMin { get; set; }
+        public Ticker TickerMax { get; set; }
+        public decimal[] PerformanceHistory { get; set; }
 
         //Add Options for this trade
         public decimal SellOnPercentage { get; set; } = (decimal)0.0;
@@ -67,6 +101,78 @@ namespace MachinaTrader.Globals.Structure.Models
         public bool SellNow { get; set; } = false;
         public string GlobalSymbol { get; set; }
         public string Exchange { get; set; }
-        public bool PaperTrade { get; set; } = true;
+        public bool IsPaperTrading { get; set; }
+        public DateTime? DcaDate { get; set; }
+
+        public decimal TradePerformance
+        {
+            get
+            {
+                if (OpenRate == 0) return 0;
+                var nClose = (CloseRate.HasValue) ? CloseRate.Value : TickerLast.Mid();
+
+                if (PositionType == PositionType.Long)
+                    return (nClose - OpenRate) / OpenRate * 100m;
+                else
+                    return (OpenRate - nClose) / OpenRate * 100m;
+
+            }
+            set
+            { // ignore
+            }
+        }
+
+        public string TradePerformanceRange
+        {
+            get
+            {
+              
+                return $"{TradePerformanceMin:N2}/{TradePerformanceMax:N2}";
+                
+            }
+            set
+            { // ignore
+            }
+        }
+        // always positive value, shows current loss in USD 
+        public decimal RiskValue
+        {
+            get
+            {
+                var perf = TradePerformance;
+                if (perf >= 0) return 0m;
+                return -perf * StakeAmount / 100.0m;
+            }
+        }
+
+        public decimal? TradePerformanceMax
+        {
+            get
+            {
+                if (OpenRate == 0 || TickerMax == null || TickerMin == null) return null;
+                var maxPerf = 0m;
+                if (PositionType == PositionType.Long)
+                    maxPerf = (TickerMax.Mid() - OpenRate) / OpenRate * 100m;
+                else
+                    maxPerf = (OpenRate - TickerMin.Mid()) / OpenRate * 100m;
+
+                return maxPerf;
+            }
+        }
+
+        public decimal? TradePerformanceMin
+        {
+            get
+            {
+                if (OpenRate == 0 || TickerMax == null || TickerMin == null) return null;
+                var minPerf = 0m;
+                if (PositionType == PositionType.Long)
+                    minPerf = (TickerMin.Mid() - OpenRate) / OpenRate * 100m;
+                else
+                    minPerf = (OpenRate - TickerMax.Mid()) / OpenRate * 100m;
+
+                return minPerf;
+            }
+        }
     }
 }

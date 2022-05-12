@@ -38,7 +38,7 @@ namespace MachinaTrader.Controllers
             var displayOptions = Global.Configuration.DisplayOptions;
 
             // Get Exchange account
-            var fullApi = Global.ExchangeApi.GetFullApi().Result;
+            var fullApi = Global.ExchangeApi.GetFullApi();
             
             try
             {

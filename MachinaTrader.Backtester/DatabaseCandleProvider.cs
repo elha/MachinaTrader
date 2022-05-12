@@ -27,28 +27,7 @@ namespace MachinaTrader.Backtester
             }
         }
 
-        public async Task SaveTradeSignals(BacktestOptions backtestOptions, IDataStoreBacktest dataStore, List<TradeSignal> signals)
-        {
-            if (backtestOptions.EndDate == DateTime.MinValue)
-            {
-                backtestOptions.EndDate = DateTime.UtcNow;
-            }
-
-            await dataStore.SaveBacktestTradeSignalsBulk(signals, backtestOptions);
-        }
-
-        public async Task<List<TradeSignal>> GetSignals(BacktestOptions backtestOptions, IDataStoreBacktest dataStore, string strategy)
-        {
-            if (backtestOptions.EndDate == DateTime.MinValue)
-            {
-                backtestOptions.EndDate = DateTime.UtcNow;
-            }
-
-            List<TradeSignal> items = await dataStore.GetBacktestSignalsByStrategy(backtestOptions, strategy);
-
-            return items;
-        }
-
+       
         public async Task<Tuple<DateTime,DateTime>> CacheAllData(ExchangeAPI api, Exchange exchange)
         {
             Global.Logger.Information($"Starting CacheAllData");

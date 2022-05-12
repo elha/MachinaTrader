@@ -159,31 +159,5 @@ namespace MachinaTrader.Data.MongoDB
             await candleCollection.DeleteManyAsync(entry => entry.Timestamp >= backtestOptions.StartDate && entry.Timestamp <= backtestOptions.EndDate);
         }
         
-        public async Task SaveBacktestTradeSignalsBulk(List<TradeSignal> signals, BacktestOptions backtestOptions)
-        {
-            var items = Mapping.Mapper.Map<List<TradeSignalAdapter>>(signals);
-
-            IMongoCollection<TradeSignalAdapter> itemCollection = DataStoreBacktest.GetInstance("Signals_" + MongoDbBaseName + backtestOptions.CandlePeriod).GetTable<TradeSignalAdapter>(backtestOptions.Exchange + "_" + backtestOptions.Coin);
-
-            foreach (var item in items)
-            {
-                await itemCollection.DeleteManyAsync(i => i.StrategyName == item.StrategyName);
-            }
-            
-            if (items.Count>0)
-                await itemCollection.InsertManyAsync(items);
-        }
-
-        public async Task<List<TradeSignal>> GetBacktestSignalsByStrategy(BacktestOptions backtestOptions, string strategy)
-        {
-            IMongoCollection<TradeSignalAdapter> itemCollection = DataStoreBacktest.GetInstance("Signals_" + MongoDbBaseName + backtestOptions.CandlePeriod).GetTable<TradeSignalAdapter>(backtestOptions.Exchange + "_" + backtestOptions.Coin);
-            var items = await itemCollection.Find(entry => entry.StrategyName == strategy).ToListAsync();
-
-#warning TODO: Sort operation used more than the maximum 33554432 bytes of RAM. Add an index, or specify a smaller limit=> temporarly order by LINQ
-
-            var result = Mapping.Mapper.Map<List<TradeSignal>>(items).OrderBy(c => c.Timestamp).ToList();
-            return result;
-        }
-
     }
 }

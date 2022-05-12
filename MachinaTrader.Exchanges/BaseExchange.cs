@@ -194,7 +194,8 @@ namespace MachinaTrader.Exchanges
                             Volume = summary.Value.Volume.QuoteCurrencyVolume,
                             SettleCurrency = ExchangeCurrencyToGlobalCurrency(summary.Value.SettleCurrency).Result,
                             LotSize = summary.Value.LotSize,
-                            Fee = summary.Value.Fee
+                            Fee = summary.Value.Fee,
+                            QuoteToSettle = summary.Value.QuoteToSettle
                         });
                 }
             }
@@ -214,7 +215,7 @@ namespace MachinaTrader.Exchanges
                     OriginalQuantity = x.Amount,
                     ExecutedQuantity = x.AmountFilled ?? 0,
                     OrderId = x.OrderId,
-                    Side = x.IsBuy ? OrderSide.Buy : OrderSide.Sell,
+                    Side = x.IsBuy ? OrderSide.Open : OrderSide.Close,
                     Market = x.MarketSymbol,
                     Price = x.Price ?? 0,
                     OrderDate = x.OrderDate,
@@ -248,7 +249,7 @@ namespace MachinaTrader.Exchanges
                     OrderId = order.OrderId,
                     Price = order.Price,
                     Market = order.MarketSymbol,
-                    Side = order.IsBuy ? OrderSide.Buy : OrderSide.Sell,
+                    Side = order.IsBuy ? OrderSide.Open : OrderSide.Close,
                     OrderDate = order.OrderDate,
                     Status = order.Result.ToOrderStatus()
                 };
@@ -502,7 +503,7 @@ namespace MachinaTrader.Exchanges
             //return _api.ExchangeSymbolToGlobalSymbol(symbol);
         }
 
-        public async Task<ExchangeAPI> GetFullApi()
+        public ExchangeAPI GetFullApi()
         {
             return _api;
         }
@@ -586,7 +587,8 @@ namespace MachinaTrader.Exchanges
                             Volume = ticker.Volume.QuoteCurrencyVolume,
                             SettleCurrency = ExchangeCurrencyToGlobalCurrency(ticker.SettleCurrency).Result,
                             LotSize = ticker.LotSize,
-                            Fee = ticker.Fee
+                            Fee = ticker.Fee,
+                            QuoteToSettle = ticker.QuoteToSettle
                         });
                     }
                 }

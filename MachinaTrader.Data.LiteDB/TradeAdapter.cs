@@ -34,10 +34,14 @@ namespace MachinaTrader.Data.LiteDB
         public double? StopLossRate { get; set; }
 
         public BuyType BuyType { get; set; }
+        public PositionType PositionType { get; set; }
         public SellType SellType { get; set; }
 
-        public bool PaperTrading { get; set; }
         public Ticker TickerLast { get; set; }
+        public Ticker TickerMin { get; set; }
+        public Ticker TickerMax { get; set; }
+
+        public decimal[] PerformanceHistory { get; set; }
 
         //Add Options for this trade
         public decimal SellOnPercentage { get; set; }
@@ -45,6 +49,10 @@ namespace MachinaTrader.Data.LiteDB
         public bool SellNow { get; set; }
         public string GlobalSymbol { get; set; }
         public string Exchange { get; set; }
-        public string PaperTrade { get; set; }
+        public bool IsPaperTrading { get; set; }
+        public string PaperTrade { get; set; } // unused
+
+        public DateTime? DcaDate { get; set; }
+
     }
 }

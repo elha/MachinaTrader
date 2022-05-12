@@ -1,5 +1,6 @@
 <!-- DATA TABLES -->
 <script src="/vendors/datatables.net/js/jquery.dataTables.js"></script>
+<script src="/vendors/datatables.net/js/jquery.sparkline.js"></script>
 <script src="/vendors/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
 <script src="/vendors/datatables.net-bs4/js/dataTables.bootstrap4.js"></script>
 <link href="/vendors/datatables.net-bs4/css/dataTables.bootstrap4.css" rel="stylesheet" />
@@ -12,6 +13,7 @@
     .bootbox > .modal-dialog {
         max-width: 500px;
     }
+
     .modal-dialog {
         max-width: 100%;
     }
@@ -93,52 +95,14 @@
 
         <div class="col-md-12">
             <div class="card">
-
-                <div class="card-header">
-                    <i class="fas fa-history"></i>&nbsp;Open Orders
-                </div>
-
                 <div class="card-body" id="openTradesTable">
-                    <table class="table table-striped p-0 table-hover" id="openTradesTableId"></table>
-                </div>
-
-
-            </div>
-        </div>
-    </div>
-
-    <div class="row" id="widgetBackendTester">
-
-        <div class="col-md-12">
-            <div class="card">
-
-                <div class="card-header">
-                    <i class="fas fa-history"></i>&nbsp;Open Positions
-                </div>
-
-                <div class="card-body" id="activeTradesTable">
                     <table class="table table-striped p-0 table-hover" id="activeTradesTableId"></table>
                 </div>
-
-
             </div>
-        </div>
-    </div>
-
-    <div class="row" id="widgetBackendTester">
-
-        <div class="col-md-12">
             <div class="card">
-
-                <div class="card-header">
-                    <i class="fas fa-history"></i>&nbsp;Closed Positions
-                </div>
-
-                <div class="card-body" id="closedTradesTable">
+                <div class="card-body" id="openTradesTable">
                     <table class="table table-striped p-0 table-hover" id="closedTradesTableId"></table>
                 </div>
-
-
             </div>
         </div>
     </div>
@@ -209,130 +173,8 @@
     }
 
     $(document).ready(function () {
-        tableOpenTrades = $('#openTradesTableId').DataTable({
-            ajax: {
-                url: '/api/trading/openTrades',
-                dataSrc: ''
-            },
-            responsive: true,
-            "autoWidth": false,
-            "iDisplayLength": 100,
-            'columnDefs': [{
-                'targets': 0,
-                'searchable': true,
-                'orderable': true,
-                'className': 'dt-body-center'
-            }],
-            'order': [0, 'asc'],
-            "createdRow": function (row, data, dataIndex) {
-                if (parseFloat(((100 * data.tickerLast.last) / data.openRate) - 100).toFixed(2) > 0) $(row).addClass('greenCell');
-                if (parseFloat(((100 * data.tickerLast.last) / data.openRate) - 100).toFixed(2) < 0) $(row).addClass('redCell');
-            },
-            "columns": [
-                { "title": "ID", "mDataProp": "id", "bVisible": false },
-                {
-                    "title": "Market",
-                    "mDataProp": "market",
-                    "sWidth": "120px",
-                    "sType": "alt-string",
-                    "sClass": "center",
-                    responsivePriority: 2,
-                    mRender: function (data, type, full, meta) {
-                        var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadTradingViewModal(\'/views/TradingViewWidget.html\', \'' + full.exchange + '\', \'' + full.market + '\')"><img style="height: 18px "src="/img/exchange/' + full.exchange + '.png" />&nbsp;' + full.globalSymbol + '</a>';
-                        return formatted;
-                    }
-                },
-                {
-                    "title": "Type",
-                    "sWidth": "120px",
-                    "sType": "alt-string",
-                    "sClass": "center",
-                    responsivePriority: 2,
-                    mRender: function (data, type, full, meta) {
-                        if (full.isBuying) {
-                            formatted = '<i class="fal fa-hand-holding-usd"></i>&nbsp;&nbsp;Buy';
-                        }
-                        if (full.isSelling) {
-                            formatted = '<i class="fal fa-tag"></i>&nbsp;&nbsp;Sell';
-                        }
-                        return formatted;
-                    }
-                },
-                {
-                    "title": "Quantity",
-                    "mDataProp": "quantity",
-                    "sWidth": "120px",
-                    "sType": "alt-string",
-                    "sClass": "center",
-                    responsivePriority: 2,
-                    mRender: function (data, type, full, meta) {
-                        var formatted = parseFloat(full.quantity).toFixed(8);
-                        return formatted;
-                    }
-                },
-                {
-                    "title": "Cost",
-                    "sWidth": "120px",
-                    "sType": "alt-string",
-                    "sClass": "center",
-                    responsivePriority: 2,
-                    mRender: function (data, type, full, meta) {
-                        var formatted = parseFloat(full.openRate * full.quantity).toFixed(8);
-                        return formatted;
-                    },
-                    /*createdCell: function (td, cellData, rowData, row, col) {
-                        if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
-                        if (rowData.TotalProfit < 0) $(td).addClass('redCell');
-                    }*/
-                },
-                {
-                    "title": "Result",
-                    "sWidth": "120px",
-                    "sType": "alt-string",
-                    "sClass": "center",
-                    responsivePriority: 2,
-                    mRender: function (data, type, full, meta) {
-                        var formatted = '';
-                        if (full.tickerLast !== null) {
-                            var formatted = parseFloat(((100 * full.tickerLast.last) / full.openRate) - 100).toFixed(2) + " %";
-                        }
-                        return formatted;
-                    },
-                    /*createdCell: function (td, cellData, rowData, row, col) {
-                        if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
-                        if (rowData.TotalProfit < 0) $(td).addClass('redCell');
-                    }*/
-                },
-                {
-                    "title": "Age",
-                    "mDataProp": "openDate",
-                    "sWidth": "120px",
-                    "sType": "alt-string",
-                    "sClass": "center",
-                    responsivePriority: 2,
-                    mRender: function (data, type, full, meta) {
-                        var now = moment();
-                        var formatted = moment.duration(now.diff(full.openDate)).humanize();
-                        return formatted;
-                    }
-                },
-                {
-                    "title": "Actions",
-                    "sWidth": "120px",
-                    "sType": "alt-string",
-                    "sClass": "center",
-                    responsivePriority: 2,
-                    mRender: function (data, type, full, meta) {
-                        var formatted = '<span><a href="javascript:void(0)" class="btn btn-primary btn-sm" style="width: 40%;" id="status" onclick="cancelPosition(\'' + full.tradeId + '\')">Cancel</a>';
-                        formatted = formatted + '&nbsp;<a href="javascript:void(0)" class="btn btn-success btn-sm" style="width: 40%;" id="status" onclick="loadTradeModal(\'/views/TradesTradeModal.html\', \'' + full.tradeId + '\', true)">Info</a></span>';
-                        return formatted;
-                    }
-                }
-            ]
-        });
 
-
-        table = $('#activeTradesTableId').DataTable({
+        tableActiveTrades = $('#activeTradesTableId').DataTable({
             ajax: {
                 url: '/api/trading/activeTrades',
                 dataSrc: ''
@@ -346,10 +188,21 @@
                 'orderable': true,
                 'className': 'dt-body-center'
             }],
-            'order': [3, 'asc'],
+            'order': [5, 'desc'],
             "createdRow": function (row, data, dataIndex) {
-                if (parseFloat(((100 * data.tickerLast.last) / data.openRate) - 100).toFixed(2) > 0) $(row).addClass('greenCell');
-                if (parseFloat(((100 * data.tickerLast.last) / data.openRate) - 100).toFixed(2) < 0) $(row).addClass('redCell');
+                if (parseFloat(data.tradePerformance).toFixed(2) > 0) $(row).addClass('greenCell');
+                if (parseFloat(data.tradePerformance).toFixed(2) < 0) $(row).addClass('redCell');
+            },
+            drawCallback: function () {
+                $('.sparkline')
+                    .map(function () {
+                        return $('canvas', this).length ? null : this;
+                    })
+                    .sparkline('html', {
+                        width: '120px',
+                        type: 'bar',
+                        barColor: '#53772f'
+                    })
             },
             "columns": [
                 { "title": "ID", "mDataProp": "id", "bVisible": false },
@@ -359,56 +212,90 @@
                     "sWidth": "120px",
                     "sType": "alt-string",
                     "sClass": "center",
-                    responsivePriority: 2,
+                    responsivePriority: 1,
                     mRender: function (data, type, full, meta) {
-                        var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadTradingViewModal(\'/views/TradingViewWidget.html\', \'' + full.exchange + '\', \'' + full.market + '\')"><img style="height: 18px "src="/img/exchange/' + full.exchange + '.png" />&nbsp;' + full.globalSymbol + '</a>';
+                        var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadTradingViewModal(\'/views/TradingViewWidget.html\', \'' + full.exchange + '\', \'' + full.market + '\')">' + full.globalSymbol + '</a>';
                         return formatted;
                     }
-                },
-                {
-                    "title": "Quantity",
-                    "mDataProp": "quantity",
-                    "sWidth": "120px",
-                    "sType": "alt-string",
-                    "sClass": "center",
-                    responsivePriority: 2,
-                    mRender: function (data, type, full, meta) {
-                        var formatted = parseFloat(full.quantity).toFixed(8);
-                        return formatted;
-                    }
-                },
-                {
-                    "title": "Cost",
-                    "sWidth": "120px",
-                    "sType": "alt-string",
-                    "sClass": "center",
-                    responsivePriority: 2,
-                    mRender: function (data, type, full, meta) {
-                        var formatted = parseFloat(full.openRate * full.quantity).toFixed(8);
-                        return formatted;
-                    },
-                    /*createdCell: function (td, cellData, rowData, row, col) {
-                        if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
-                        if (rowData.TotalProfit < 0) $(td).addClass('redCell');
-                    }*/
-                },
+                },                
                 {
                     "title": "Result",
                     "sWidth": "120px",
                     "sType": "alt-string",
                     "sClass": "center",
-                    responsivePriority: 2,
+                    responsivePriority: 1,
                     mRender: function (data, type, full, meta) {
                         var formatted = '';
-                        if (full.tickerLast !== null) {
-                            var formatted = parseFloat(((100 * full.tickerLast.last) / full.openRate) - 100).toFixed(2) + " %";
-                        }
+                        var formatted = parseFloat(full.tradePerformance).toFixed(2) + " %" + "<br>" + full.tradePerformanceRange;
                         return formatted;
                     },
                     /*createdCell: function (td, cellData, rowData, row, col) {
                         if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
                         if (rowData.TotalProfit < 0) $(td).addClass('redCell');
                     }*/
+                },
+                {
+                    "title": "Performance",
+                    "mData": "performanceHistory",
+                    "sWidth": "120px",
+                    "sType": "html",
+                    "sClass": "center",
+                    responsivePriority: 3,
+                    mRender: function (data, type, row, meta) {
+                        return type === 'display' ?
+                            '<span class="sparkline">' + data.toString() + '</span>' :
+                            data;
+                    },
+                    /*createdCell: function (td, cellData, rowData, row, col) {
+                        if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
+                        if (rowData.TotalProfit < 0) $(td).addClass('redCell');
+                    }*/
+                },
+                {
+                    "title": "Buy Type",
+                    "mDataProp": "buyType",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 2,
+                    mRender: function (data, type, full, meta) {
+                        var formatted = "";
+                        if (full.positionType === -1) {
+                            formatted = "Short/";
+                        }
+                        if (full.positionType === 0) {
+                            formatted = "Long/";
+                        }
+                        if (full.buyType === 0) {
+                            formatted += "Unkown";
+                        }
+                        if (full.buyType === 1) {
+                            formatted += "Strategy";
+                        }
+                        if (full.buyType === 2) {
+                            formatted += "Signal";
+                        }
+                        if (full.buyType === 3) {
+                            formatted += "Manually";
+                        }
+                        if (full.buyType === 4) {
+                            formatted += "Dca";
+                        }
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "Open Date",
+                    "mDataProp": "openDate",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 1,
+                    mRender: function (data, type, full, meta) {
+                        var now = moment();
+                        var formatted = moment(full.openDate).format("YYYY-MM-DD HH:mm:ss");
+                        return formatted;
+                    }
                 },
                 {
                     "title": "Age",
@@ -434,10 +321,10 @@
                             var formatted = '<span><a href="javascript:void(0)" class="btn btn-danger btn-sm" style="width: 40%;" id="status" onclick="sellPosition(\'' + full.tradeId + '\')">Sell now</a>';
                         }
                         if (full.isSelling && !full.isBuying) {
-                            var formatted = '<i class="fal fa-tag"></i>&nbsp;&nbsp;Selling&nbsp;';
+                            var formatted = '<i class="fal fa-tag"></i>&nbsp;&nbsp;Selling&nbsp;<a href="javascript:void(0)" class="btn btn-primary btn-sm" style="width: 40%;" id="status" onclick="cancelPosition(\'' + full.tradeId + '\')">Cancel</a>';
                         }
                         if (!full.isSelling && full.isBuying) {
-                            var formatted = '<i class="fal fa-hand-holding-usd"></i>&nbsp;&nbsp;Buying&nbsp;';
+                            var formatted = '<i class="fal fa-hand-holding-usd"></i>&nbsp;&nbsp;Buying&nbsp;<a href="javascript:void(0)" class="btn btn-primary btn-sm" style="width: 40%;" id="status" onclick="cancelPosition(\'' + full.tradeId + '\')">Cancel</a>';
                         }
                         formatted = formatted + '&nbsp;<a href="javascript:void(0)" class="btn btn-success btn-sm" style="width: 40%;" id="status" onclick="loadTradeModal(\'/views/TradesTradeModal.html\', \'' + full.tradeId + '\', true)">Info</a></span>';
                         return formatted;
@@ -463,9 +350,20 @@
             'order': [5, 'desc'],
             "createdRow": function (row, data, dataIndex) {
                 if (data.sellOrderId !== null) {
-                    if (parseFloat(((100 * data.closeRate) / data.openRate) - 100).toFixed(2) > 0) $(row).addClass('greenCell');
-                    if (parseFloat(((100 * data.closeRate) / data.openRate) - 100).toFixed(2) < 0) $(row).addClass('redCell');
+                    if (parseFloat(data.tradePerformance).toFixed(2) > 0) $(row).addClass('greenCell');
+                    if (parseFloat(data.tradePerformance).toFixed(2) < 0) $(row).addClass('redCell');
                 }
+            },
+            drawCallback: function () {
+                $('.sparkline')
+                    .map(function () {
+                        return $('canvas', this).length ? null : this;
+                    })
+                    .sparkline('html', {
+                        width: '120px',
+                        type: 'bar',
+                        barColor: '#53772f'
+                    })
             },
             "columns": [
                 { "title": "ID", "mDataProp": "id", "bVisible": false },
@@ -475,20 +373,21 @@
                     "sWidth": "120px",
                     "sType": "alt-string",
                     "sClass": "center",
-                    responsivePriority: 2,
+                    responsivePriority: 1,
                     mRender: function (data, type, full, meta) {
-                        var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadTradingViewModal(\'/views/TradingViewWidget.html\', \'' + full.exchange + '\', \'' + full.market + '\')"><img style="height: 18px "src="/img/exchange/' + full.exchange + '.png" />&nbsp;' + full.globalSymbol + '</a>';
+                        var formatted = '<a href="javascript:void(0)" class="btn btn-primary btn-sm" onclick="loadTradingViewModal(\'/views/TradingViewWidget.html\', \'' + full.exchange + '\', \'' + full.market + '\')">' + full.globalSymbol + '</a>';
                         return formatted;
                     }
                 },
                 {
-                    "title": "Total",
+                    "title": "Result",
                     "sWidth": "120px",
                     "sType": "alt-string",
                     "sClass": "center",
-                    responsivePriority: 2,
+                    responsivePriority: 1,
                     mRender: function (data, type, full, meta) {
-                        var formatted = parseFloat(full.closeRate * full.quantity).toFixed(8);
+                        var formatted = '';
+                        var formatted = parseFloat(full.tradePerformance).toFixed(2) + " %" + "<br>" + full.tradePerformanceRange;
                         return formatted;
                     },
                     /*createdCell: function (td, cellData, rowData, row, col) {
@@ -497,19 +396,16 @@
                     }*/
                 },
                 {
-                    "title": "Result",
+                    "title": "Performance",
+                    "mData": "performanceHistory",
                     "sWidth": "120px",
-                    "sType": "alt-string",
+                    "sType": "html",
                     "sClass": "center",
-                    responsivePriority: 2,
-                    mRender: function (data, type, full, meta) {
-                        var formatted = '';
-                        if (full.tickerLast !== null && full.sellOrderId !== null) {
-                            var formatted = parseFloat(((100 * full.closeRate) / full.openRate) - 100).toFixed(2) + " %";
-                        } else {
-                            var formatted = "0%";
-                        }
-                        return formatted;
+                    responsivePriority: 3,
+                    mRender: function (data, type, row, meta) {
+                        return type === 'display' ?
+                            '<span class="sparkline">' + data.toString() + '</span>' :
+                            data;
                     },
                     /*createdCell: function (td, cellData, rowData, row, col) {
                         if (rowData.TotalProfit > 0) $(td).addClass('greenCell');
@@ -525,38 +421,57 @@
                     responsivePriority: 2,
                     mRender: function (data, type, full, meta) {
                         var formatted = "";
+                        if (full.positionType === -1) {
+                            formatted = "Short/";
+                        }
+                        if (full.positionType === 0) {
+                            formatted = "Long/";
+                        }
                         if (full.sellType === 0) {
-                            formatted = "None";
+                            formatted += "None";
                         }
                         if (full.sellType === 1) {
-                            formatted = "StopLoss";
+                            formatted += "StopLoss";
                         }
                         if (full.sellType === 2) {
-                            formatted = "TrailingStopLoss";
+                            formatted += "TrailingStopLoss";
                         }
                         if (full.sellType === 3) {
-                            formatted = "TrailingStopLossUpdated";
+                            formatted += "TrailingStopLossUpdated";
                         }
                         if (full.sellType === 4) {
-                            formatted = "Timed";
+                            formatted += "Timed";
                         }
                         if (full.sellType === 5) {
-                            formatted = "Immediate";
+                            formatted += "Immediate";
                         }
                         if (full.sellType === 6) {
-                            formatted = "Strategy";
+                            formatted += "Strategy";
                         }
                         if (full.sellType === 7) {
-                            formatted = "Cancelled";
+                            formatted += "Cancelled";
                         }
                         if (full.sellType === 8) {
-                            formatted = "Manually";
+                            formatted += "Manually";
                         }
                         return formatted;
                     }
                 },
                 {
-                    "title": "Duration",
+                    "title": "Open Date",
+                    "mDataProp": "openDate",
+                    "sWidth": "120px",
+                    "sType": "alt-string",
+                    "sClass": "center",
+                    responsivePriority: 1,
+                    mRender: function (data, type, full, meta) {
+                        var now = moment();
+                        var formatted = moment(full.openDate).format("YYYY-MM-DD HH:mm:ss");
+                        return formatted;
+                    }
+                },
+                {
+                    "title": "Age",
                     "sWidth": "120px",
                     "sType": "alt-string",
                     "sClass": "center",
@@ -580,7 +495,7 @@
                     }
                 },
                 {
-                    "title": "Details",
+                    "title": "Actions",
                     "sWidth": "120px",
                     "sType": "alt-string",
                     "sClass": "center",
@@ -600,13 +515,10 @@
         parent: vueMain,
 
         data: {
-            activeTradesData: null,
-            closedTradesData: null
         },
 
         created: function () {
             this.connectSignalr();
-            this.fetchData();
         },
 
         mounted: function () {
@@ -646,10 +558,8 @@
 
                 connection.on('Send', function (msg) {
                     console.log("Msg from signalR: " + msg);
-
-                    table.ajax.url('/api/trading/activeTrades').load();
-                    tableClosedTrades.ajax.url('/api/trading/closedTrades').load();
-                    //self.updateData();
+                    tableActiveTrades.ajax.reload();
+                    tableClosedTrades.ajax.reload();
                 });
 
                 connection.onclose(function (e) {
@@ -666,26 +576,6 @@
                 connectSignalr();
             },
 
-            fetchData: function () {
-                var self = this;
-                $.get("/api/trading/activeTrades", function (activeTradeData) {
-                    self.activeTradesData = activeTradeData;
-                    $.get("/api/trading/closedTrades", function (closedTradeData) {
-                        self.closedTradesData = closedTradeData;
-                        self.$nextTick(function () {
-                            pagefunction();
-                        });
-                    });
-                });
-            },
-            updateData: function () {
-                $.get("/api/trading/activeTrades", function (activeTradeData) {
-                    self.activeTradesData = activeTradeData;
-                    $.get("/api/trading/closedTrades", function (closedTradeData) {
-                        self.closedTradesData = closedTradeData;
-                    });
-                });
-            },
             moment: function (data) {
                 return moment(data).format("YYYY-MM-DD HH:mm:ss");
             },

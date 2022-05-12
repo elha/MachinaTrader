@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,12 +13,22 @@ namespace MachinaTrader.Exchanges
 
     public static class MarketManager
     {
+        public class SignalStat
+        {
+            public DateTime TimeStamp = DateTime.UtcNow;
+            public int Buys = 0;
+            public int Sells = 0;
+        }
 
         private static string[] mAllowedQuote = new string[] { "BTC", "USD", "USDT" };
-        public static  Dictionary<string, TradeMarket> Markets = new Dictionary<string, TradeMarket>();
+        public static  ConcurrentDictionary<string, TradeMarket> Markets = new ConcurrentDictionary<string, TradeMarket>();
+        public static List<SignalStat> SignalStats = new List<SignalStat>();
 
+        static DateTime nLastStatus = DateTime.MinValue;
 
-        public static ITradingStrategy Strategy;
+        public static ITradingStrategy StrategyUp;
+
+        public static ITradingStrategy StrategySide;
 
         public static bool NeedsUpdate()
         {
@@ -30,26 +41,91 @@ namespace MachinaTrader.Exchanges
 
             var Symbols = Global.Configuration.TradeOptions.TradeAssetsList().ToList();
 
-            foreach (var market in arrMarkets)
+            Parallel.ForEach(arrMarkets, market =>
             {
-                if (!Markets.ContainsKey(market.GlobalMarketName)) Markets.Add(market.GlobalMarketName, new TradeMarket()
-                {
-                    GlobalMarketName = market.GlobalMarketName,
-                    CurrencyPair = market.CurrencyPair,
-                    SettleCurrency = market.SettleCurrency,
-                    LotSize = market.LotSize,
-                    Fee = market.Fee
-                }) ;
+                if (!Markets.ContainsKey(market.GlobalMarketName))
+                    Markets[market.GlobalMarketName] = new TradeMarket()
+                    {
+                        Exchange = Global.ExchangeApi.GetFullApi().Name,
+                        GlobalMarketName = market.GlobalMarketName,
+                        CurrencyPair = market.CurrencyPair,
+                        SettleCurrency = market.SettleCurrency,
+                        LotSize = market.LotSize,
+                        Fee = market.Fee
+                    };
 
                 var m = Markets[market.GlobalMarketName];
                 m.Update(market, Symbols.Count == 0 || Symbols.Any(c => c == m.GlobalMarketName));
+            });
+
+            SignalStats.Add(new SignalStat()
+            {
+                Buys = Markets.Values.Count(m => m.Active && m.LastStrategyAdvice?.Advice == Globals.Structure.Enums.TradeAdviceEnum.Buy),
+                Sells = Markets.Values.Count(m => m.Active && m.LastStrategyAdvice?.Advice == Globals.Structure.Enums.TradeAdviceEnum.Sell)
+            });
+
+            CalcTrend();
+
+            var bgdt = GlobalTrend;
+            if (bgdt != gbgdt)
+            {
+                Global.Logger.Information($"Trendinfo Change {gbgdt}>{bgdt}: {MarketManager.TrendMessage()}");
+                gbgdt = bgdt;
+                LastTrendChange = DateTime.UtcNow;
             }
 
-            if (DateTime.Now.Minute == 0)
+            if ((DateTime.UtcNow - nLastStatus).TotalMinutes > 3)
             {
-                Global.Logger.Information($"Marketinfo #{Markets.Values.Where(m => m.Active).Count()} {String.Join(",", Markets.Select(m=>m.Value.GlobalMarketName).ToArray())}");               
+                nLastStatus = DateTime.UtcNow;
+                Global.Logger.Information($"Riskinfo Current {DepotManager.RiskValue:N2}, Max {DepotManager.MaxRiskValue:N2}");
+                Global.Logger.Information($"Trendinfo Current {MarketManager.TrendMessage()}");
+                Global.Logger.Information($"Marketinfo #{Markets.Values.Where(m => m.Active).Count()} {String.Join(",", Markets.Where(m => m.Value.CurrencyPair.QuoteCurrency == "USD").Select(m => m.Value.GlobalMarketName + "(" + m.Value.GetTrendInfo() + ")").ToArray())}");
+                SignalStats = SignalStats.Where(s => (DateTime.UtcNow - s.TimeStamp).TotalMinutes < 30).ToList();
             }
         }
+
+        static Trend gbgdt = Trend.side;
+        static DateTime LastTrendChange = DateTime.UtcNow;
+
+        private static object TrendMessage()
+        {
+            var stats = SignalStats.Where(s => (DateTime.UtcNow - s.TimeStamp).TotalMinutes < 3);
+            return $"{gbgdt} ({(DateTime.UtcNow - LastTrendChange).TotalMinutes :N0} min)  {Markets.Count(m => m.Value.MarketTrend == Trend.up)}/{Markets.Count(m => m.Value.MarketTrend == Trend.side)}/{Markets.Count(m => m.Value.MarketTrend == Trend.down)} USDtrends / {stats.Sum(s => s.Buys)} Buys / {stats.Sum(s => s.Sells)} Sells";
+        }
+
+        public enum Trend
+        {
+            up,
+            side,
+            caution,
+            down
+        }
+
+        public static Trend GlobalTrend;
+        public static int DownCount;
+        public static DateTime CautionUntil;
+        public static decimal GlobalTrendScore;
+
+        public static void CalcTrend()
+        {
+            var iDownCount = Markets.Count(m => m.Value.MarketTrend == MarketManager.Trend.down);
+            if (GlobalTrend == Trend.up && DownCount == 0 && iDownCount > 0)
+                CautionUntil = DateTime.UtcNow.AddMinutes(60);
+
+            if (iDownCount >= (int)(Markets.Count() * 0.12m))
+                GlobalTrend = MarketManager.Trend.down;
+            //else if (CautionUntil > DateTime.UtcNow)
+            //    GlobalTrend = MarketManager.Trend.caution;
+            else if (Markets.Count(m => m.Value.MarketTrend == Trend.up) >= (int)(Markets.Count() * 0.25m))
+                GlobalTrend = MarketManager.Trend.up;
+            else
+                GlobalTrend = MarketManager.Trend.side;
+
+            DownCount = iDownCount;
+
+            GlobalTrendScore = Markets.Count(m => m.Value.MarketTrend == Trend.up) - Markets.Count(m => m.Value.MarketTrend == Trend.down);
+}
+
 
         public static void SaveToDB()
         {
@@ -90,6 +166,9 @@ namespace MachinaTrader.Exchanges
             var market = Markets.FirstOrDefault(m => m.Value.CurrencyPair.BaseCurrency == Currency && m.Value.CurrencyPair.QuoteCurrency == "BTC");
             if (market.Value == null)
             {
+                if (Currency != "USD" && Currency != "USDT" && !Markets.Any(m => m.Value.CurrencyPair.BaseCurrency == Currency && m.Value.CurrencyPair.QuoteCurrency == "BTC"))
+                   return 0m;
+
                 var valusd = GetUSD(Currency, value);
                 return valusd / GetUSD("BTC", 1);
             }

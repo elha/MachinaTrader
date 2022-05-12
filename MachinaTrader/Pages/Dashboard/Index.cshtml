@@ -76,17 +76,6 @@
 
 <script src="/js/lobicard.js"></script>
 
-<div id="lobicard-examples">
-    <div id="lobicard-multiple">
-        <div class="row">
-            @foreach (var widget in Directory.GetFiles(Global.AppPath + "/wwwroot/views/widgets/", "*.html", SearchOption.TopDirectoryOnly))
-            {
-                @Html.Raw(System.IO.File.ReadAllText(widget))
-            }
-        </div>
-    </div>
-</div>
-
 <script>
     $(function () {
         $('#lobicard-multiple')

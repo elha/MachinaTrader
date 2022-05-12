@@ -8,8 +8,7 @@ namespace MachinaTrader.Globals.Structure.Interfaces
         /// Checks if new trades can be started.
         /// </summary>
         /// <returns></returns>
-        Task LookForNewTrades(string strategyString = null);
+        Task Run(string strategyString = null);
 
-        Task UpdateExistingTrades();
     }
 }

@@ -40,10 +40,15 @@ namespace MachinaTrader.Data.MongoDB
         public double? StopLossRate { get; set; }
 
         public BuyType BuyType { get; set; }
+        public PositionType PositionType { get; set; }
         public SellType SellType { get; set; }
 
         // Used for MyntUI output
         public Ticker TickerLast { get; set; }
+        public Ticker TickerMin { get; set; }
+        public Ticker TickerMax { get; set; }
+
+        public decimal[] PerformanceHistory { get; set; }
 
         //Add Options for this trade
         public decimal SellOnPercentage { get; set; }
@@ -51,6 +56,12 @@ namespace MachinaTrader.Data.MongoDB
         public bool SellNow { get; set; }
         public string GlobalSymbol { get; set; }
         public string Exchange { get; set; }
-        public string PaperTrade { get; set; }
+        public bool IsPaperTrading { get; set; }
+        public string PaperTrade { get; set; } // unused
+
+
+        [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+        public DateTime? DcaDate { get; set; }
+
     }
 }

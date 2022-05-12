@@ -35,7 +35,7 @@ namespace MachinaTrader.Globals.Structure.Interfaces
 
         Task<string> ExchangeCurrencyToGlobalCurrency(string symbol);
 
-        Task<ExchangeAPI> GetFullApi();
+        ExchangeAPI GetFullApi();
 
     }
 }

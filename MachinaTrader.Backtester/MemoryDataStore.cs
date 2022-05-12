@@ -21,9 +21,9 @@ namespace MachinaTrader.Backtester
         {
         }
 
-        public async Task<List<Trade>> GetClosedTradesAsync()
+        public async Task<List<Trade>> GetClosedTradesAsync(DateTime since)
         {
-            var items = _trades.Values.Where(x => !x.IsOpen).ToList();
+            var items = _trades.Values.Where(x => !x.IsOpen && x.CloseDate > since).ToList();
             return items;
         }
 

@@ -2,11 +2,13 @@ using System.Threading.Tasks;
 using MachinaTrader.TradeManagers;
 using Quartz;
 using MachinaTrader.Globals;
+using Microsoft.AspNetCore.SignalR;
+using System;
 
 namespace MachinaTrader.Timers
 {
     [DisallowConcurrentExecution]
-    public class BuyTimer : IJob
+    public class TradeTimer : IJob
     {
         /// <summary>
         /// Called by the <see cref="IScheduler" /> when a
@@ -15,11 +17,11 @@ namespace MachinaTrader.Timers
         /// </summary>
         public async Task Execute(IJobExecutionContext context)
         {
-            //TODO set global enable
             var tradeManager = new TradeManagerBasket();
 
-            //Global.Logger.Information("TradeManager service is looking for new trades.");
-            await tradeManager.LookForNewTrades();
+            await tradeManager.Run();
+
+            await Runtime.GlobalHubTraders.Clients.All.SendAsync("Send", $"TradeTimer {DateTime.UtcNow.ToString("HH:mm:ss")}");
             await Task.FromResult(true);
         }
     }

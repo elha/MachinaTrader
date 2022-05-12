@@ -13,16 +13,16 @@ namespace MachinaTrader.Backtester
     public class BacktestFunctions
     {
 
-        public static async Task<List<BackTestResult>> BackTest(ITradingStrategy strategy, BacktestOptions backtestOptions, Dictionary<string, List<Candle>> candles, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount)
+        public static async Task<List<BackTestResult>> BackTest(ITradingStrategy strategy, BacktestOptions backtestOptions, Dictionary<string, List<Candle>> candles, string baseCurrency, decimal startingWallet, decimal tradeAmount)
         {
             var runner = new BackTestRunner();
-            var results = await runner.RunSingleStrategy(strategy, backtestOptions, candles, baseCurrency, saveSignals, startingWallet, tradeAmount);
+            var results = await runner.RunSingleStrategy(strategy, backtestOptions, candles, baseCurrency, startingWallet, tradeAmount);
             return results;
         }
 
-        public static async Task<JArray> BackTestJson(ITradingStrategy strategy, BacktestOptions backtestOptions, Dictionary<string, List<Candle>> candles, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount)
+        public static async Task<JArray> BackTestJson(ITradingStrategy strategy, BacktestOptions backtestOptions, Dictionary<string, List<Candle>> candles, string baseCurrency, decimal startingWallet, decimal tradeAmount)
         {
-            var results = await BackTest(strategy, backtestOptions, candles, baseCurrency, saveSignals, startingWallet, tradeAmount);
+            var results = await BackTest(strategy, backtestOptions, candles, baseCurrency, startingWallet, tradeAmount);
 
             var jArrayResult = new JArray();
 

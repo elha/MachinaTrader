@@ -15,8 +15,7 @@ namespace MachinaTrader.Globals.Structure.Models
         public bool BuyEnabled { get; set; } = true;
         public bool SellEnabled { get; set; } = true;
 
-        public string BuyTimer { get; set; } = "0 0/1 * * * ?";
-        public string SellTimer { get; set; } = "0 0/1 * * * ?";
+        public string TradeTimer { get; set; } = "0/30 * * * * ?";
 
         // Trading mode default is PaperTradeManager
         public bool PaperTrade { get; set; } = true;
@@ -27,8 +26,8 @@ namespace MachinaTrader.Globals.Structure.Models
 
 
         // Default strategy to use with trade managers.
-        public string DefaultStrategy { get; set; } = "BuyTheDip2";
-        public string DefaultStrategyParameters { get; set; } = "00242";
+        public string DefaultUpStrategy { get; set; } = "BuyTheDip3:037";
+        public string DefaultSideStrategy { get; set; } = "BuyTheDip3:187";
 
 
         // These are the markets we don't want to trade on

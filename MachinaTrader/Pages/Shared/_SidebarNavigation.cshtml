@@ -3,23 +3,6 @@
 @using System
 <nav class="sidebar-nav">
     <ul class="nav">
-        <li class="navigationHeader">
-            <partial name="_UserSidebar" />
-            <!-- Sidebar user panel -->
-            <!-- search form -->
-            <form action="#" method="get" class="sidebar-search">
-                <div class="input-group">
-                    <input type="text" name="q" class="form-control" placeholder="Search...">
-                    <span class="input-group-btn">
-                        <button type="submit" name="search" id="search-btn" class="btn btn-flat">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </span>
-                </div>
-            </form>
-            <!-- /.search form -->
-        </li>
-
         <li class="nav-title">MAIN NAVIGATION</li>
         @{
             foreach (var items in WebNavigation.Get().OrderBy(obj => obj.MenuOrder).ThenBy(obj => obj.MenuTitle, StringComparer.OrdinalIgnoreCase))

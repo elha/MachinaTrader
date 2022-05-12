@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,9 +29,9 @@ namespace MachinaTrader.Data.LiteDB
         {
         }
 
-        public async Task<List<Trade>> GetClosedTradesAsync()
+        public async Task<List<Trade>> GetClosedTradesAsync(DateTime since)
         {
-            var trades = _ordersAdapter.Find(x => !x.IsOpen).ToList();
+            var trades = _ordersAdapter.Find(x => !x.IsOpen && x.CloseDate > since).ToList();
             var items = Mapping.Mapper.Map<List<Trade>>(trades);
 
             return items;

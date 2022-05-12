@@ -14,7 +14,7 @@ namespace MachinaTrader.Backtester
 {
     public class BackTestRunner
     {
-        public async Task<List<BackTestResult>> RunSingleStrategy(ITradingStrategy strategy, BacktestOptions backtestOptions, Dictionary<string, List<Candle>> candleStore, string baseCurrency, bool saveSignals, decimal startingWallet, decimal tradeAmount)
+        public async Task<List<BackTestResult>> RunSingleStrategy(ITradingStrategy strategy, BacktestOptions backtestOptions, Dictionary<string, List<Candle>> candleStore, string baseCurrency, decimal startingWallet, decimal tradeAmount)
         {
             var results = new List<BackTestResult>();
             var allSignals = new List<TradeSignal>();
@@ -30,79 +30,7 @@ namespace MachinaTrader.Backtester
                 try
                 {
                     var candles = candleStore[globalSymbol];
-                    var trend = strategy.Prepare(candles);
-                    var signals = new List<TradeSignal>();
-
-                    for (int i = 0; i < trend.Count; i++)
-                    {
-                        if (trend[i].Advice == TradeAdviceEnum.Buy)
-                        {
-                            var id = Guid.NewGuid();
-
-                            signals.Add(new TradeSignal
-                            {
-                                Id = id,
-                                MarketName = globalSymbol,
-                                Price = candles[i].Close,
-                                TradeAdvice = trend[i],
-                                SignalCandle = candles[i],
-                                Timestamp = candles[i].Timestamp,
-                                StrategyName = strategy.Name
-                            });
-
-
-                            // find next Sell
-                            for (int j = i; j < trend.Count; j++)
-                            {
-                                if (trend[j].Advice == TradeAdviceEnum.Sell)
-                                {
-                                    var feePercentTwoTrades = 0.0005m * 2m;
-                                    var feeTotalTwoTrades = feePercentTwoTrades * tradeAmount;
-                                    var currentProfitPercentage = (((candles[j].Close - candles[i].Close) / candles[i].Close) - feePercentTwoTrades) * 100;
-                                    var quantity = tradeAmount / candles[i].Close;
-                                    var currentProfit = (candles[j].Close - candles[i].Close) * quantity - feeTotalTwoTrades;
-
-                                    backTestResult.Trades.Add(new BackTestTradeResult
-                                    {
-                                        Market = globalSymbol,
-                                        Quantity = quantity,
-                                        OpenRate = candles[i].Close,
-                                        CloseRate = candles[j].Close,
-                                        ProfitPercentage = currentProfitPercentage,
-                                        Profit = currentProfit,
-                                        Duration = j - i,
-                                        StartDate = candles[i].Timestamp,
-                                        EndDate = candles[j].Timestamp
-                                    });
-
-                                    signals.Add(new TradeSignal
-                                    {
-                                        Id = Guid.NewGuid(),
-                                        ParentId = id,
-                                        MarketName = globalSymbol,
-                                        Price = candles[j].Close,
-                                        TradeAdvice = trend[j],
-                                        SignalCandle = candles[j],
-                                        Profit = currentProfit,
-                                        PercentageProfit = currentProfitPercentage,
-                                        Timestamp = candles[j].Timestamp,
-                                        StrategyName = strategy.Name
-                                    });
-
-                                    if (backtestOptions.OnlyStartNewTradesWhenSold)
-                                        i = j;
-
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (saveSignals)
-                    {
-                        var candleProvider = new DatabaseCandleProvider();
-                        await candleProvider.SaveTradeSignals(backtestOptions, Global.DataStoreBacktest, signals);
-                    }
+                    List<TradeSignal> signals = RunBacktest(strategy, backtestOptions, tradeAmount, globalSymbol, backTestResult, candles);
 
                     allSignals.AddRange(signals);
                 }
@@ -169,6 +97,79 @@ namespace MachinaTrader.Backtester
             #endregion
 
             return results;
+        }
+
+        public static List<TradeSignal> RunBacktest(ITradingStrategy strategy, BacktestOptions backtestOptions, decimal tradeAmount, string globalSymbol, BackTestResult backTestResult, List<Candle> candles)
+        {
+            var trend = strategy.Prepare(candles);
+            var signals = new List<TradeSignal>();
+
+            for (int i = 0; i < trend.Count; i++)
+            {
+                if (trend[i].Advice == TradeAdviceEnum.Buy)
+                {
+                    var id = Guid.NewGuid();
+
+                    signals.Add(new TradeSignal
+                    {
+                        Id = id,
+                        MarketName = globalSymbol,
+                        Price = candles[i].Close,
+                        TradeAdvice = trend[i],
+                        SignalCandle = candles[i],
+                        Timestamp = candles[i].Timestamp,
+                        StrategyName = strategy.Name + ":" + strategy.Parameters
+                    });;
+
+
+                    // find next Sell
+                    for (int j = i; j < trend.Count; j++)
+                    {
+                        if (trend[j].Advice == TradeAdviceEnum.Sell)
+                        {
+                            var feePercentTwoTrades = 0.0005m * 2m;
+                            var feeTotalTwoTrades = feePercentTwoTrades * tradeAmount;
+                            var currentProfitPercentage = (((candles[j].Close - candles[i].Close) / candles[i].Close) - feePercentTwoTrades) * 100;
+                            var quantity = tradeAmount / candles[i].Close;
+                            var currentProfit = (candles[j].Close - candles[i].Close) * quantity - feeTotalTwoTrades;
+
+                            backTestResult.Trades.Add(new BackTestTradeResult
+                            {
+                                Market = globalSymbol,
+                                Quantity = quantity,
+                                OpenRate = candles[i].Close,
+                                CloseRate = candles[j].Close,
+                                ProfitPercentage = currentProfitPercentage,
+                                Profit = currentProfit,
+                                Duration = j - i,
+                                StartDate = candles[i].Timestamp,
+                                EndDate = candles[j].Timestamp
+                            });
+
+                            signals.Add(new TradeSignal
+                            {
+                                Id = Guid.NewGuid(),
+                                ParentId = id,
+                                MarketName = globalSymbol,
+                                Price = candles[j].Close,
+                                TradeAdvice = trend[j],
+                                SignalCandle = candles[j],
+                                Profit = currentProfit,
+                                PercentageProfit = currentProfitPercentage,
+                                Timestamp = candles[j].Timestamp,
+                                StrategyName = strategy.Name + ":" + strategy.Parameters
+                            });
+
+                            if (backtestOptions.OnlyStartNewTradesWhenSold)
+                                i = j;
+
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return signals;
         }
 
         private SellType ShouldSell(double tradeOpenRate, double currentRateBid, DateTime utcNow)

@@ -52,7 +52,7 @@ namespace MachinaTrader.Controllers
         [Route("balance")]
         public async Task<IActionResult> GetBalance()
         {
-            var fullApi = Global.ExchangeApi.GetFullApi().Result;
+            var fullApi = Global.ExchangeApi.GetFullApi();
             var balance = await fullApi.GetAmountsAvailableToTradeAsync();
             return new JsonResult(balance);
         }
@@ -61,7 +61,7 @@ namespace MachinaTrader.Controllers
         [Route("history")]
         public async Task<IActionResult> GetHistory()
         {
-            var fullApi = Global.ExchangeApi.GetFullApi().Result;
+            var fullApi = Global.ExchangeApi.GetFullApi();
             var balance = await fullApi.GetCompletedOrderDetailsAsync("ETHBTC");
             return new JsonResult(balance);
         }
@@ -78,7 +78,7 @@ namespace MachinaTrader.Controllers
         [Route("topVolumeCurrencies")]
         public async Task<IActionResult> GetTopVoumeCurrencies(int limit = 20)
         {
-            var fullApi = await Global.ExchangeApi.GetFullApi();
+            var fullApi = Global.ExchangeApi.GetFullApi();
             var getCurrencies = fullApi.GetTickersAsync().Result;
             var objListOrder = getCurrencies
                 .OrderByDescending(o => o.Value.Volume.QuoteCurrencyVolume)
@@ -125,7 +125,7 @@ namespace MachinaTrader.Controllers
             var trade = activeTrade.FirstOrDefault(x => x.TradeId == tradeId);
             if (trade == null)
             {
-                var closedTrades = await Global.DataStore.GetClosedTradesAsync();
+                var closedTrades = await Global.DataStore.GetClosedTradesAsync(DateTime.UtcNow.AddHours(-48));
                 trade = closedTrades.FirstOrDefault(x => x.TradeId == tradeId);
             }
 
@@ -152,8 +152,15 @@ namespace MachinaTrader.Controllers
                 return;
             }
 
-            var orderId = Global.Configuration.TradeOptions.PaperTrade ? Guid.NewGuid().ToString().Replace("-", "") : await Global.ExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Bid);
-            trade.CloseRate = trade.TickerLast.Bid;
+            var orderId = "";
+            if (trade.IsPaperTrading)
+                orderId = "PaperTrade-" + Guid.NewGuid().ToString().Replace("-", "");
+            else if(trade.PositionType == PositionType.Long)
+                orderId = await Global.ExchangeApi.Sell(trade.Market, trade.Quantity, trade.TickerLast.Mid());
+            else
+                orderId = await Global.ExchangeApi.Buy(trade.Market, trade.Quantity, trade.TickerLast.Mid());
+
+            trade.CloseRate = trade.TickerLast.Mid();
             trade.OpenOrderId = orderId;
             trade.SellOrderId = orderId;
             trade.SellType = SellType.Manually;
@@ -165,7 +172,7 @@ namespace MachinaTrader.Controllers
             //TradeManager tradeManager = new TradeManager();
             //await tradeManager.UpdateOpenSellOrders(trade);
 
-            //await Runtime.GlobalHubTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to SellNow");
+            await Runtime.GlobalHubTraders.Clients.All.SendAsync("Send", "Set " + tradeId + " to SellNow");
         }
 
         [HttpGet]
@@ -182,7 +189,13 @@ namespace MachinaTrader.Controllers
 
             if (trade.IsBuying)
             {
-                await Global.ExchangeApi.CancelOrder(trade.BuyOrderId, trade.Market);
+                if (!trade.IsPaperTrading)
+                    try
+                    {
+                        await Global.ExchangeApi.CancelOrder(trade.BuyOrderId, trade.Market);
+                    }
+                    catch { }
+
                 trade.IsBuying = false;
                 trade.OpenOrderId = null;
                 trade.IsOpen = false;
@@ -194,7 +207,12 @@ namespace MachinaTrader.Controllers
             if (trade.IsSelling)
             {
                 //Reenable in active trades
-                await Global.ExchangeApi.CancelOrder(trade.SellOrderId, trade.Market);
+                if (!trade.IsPaperTrading)
+                    try
+                    {
+                        await Global.ExchangeApi.CancelOrder(trade.SellOrderId, trade.Market);
+                    } catch { }
+
                 trade.IsSelling = false;
                 trade.OpenOrderId = null;
                 trade.IsOpen = true;
@@ -295,12 +313,11 @@ namespace MachinaTrader.Controllers
 
         [HttpGet]
         [Route("closedTrades")]
-        public async Task<IActionResult> GetClosedTrades(int? maxAge = 0)
+        public async Task<IActionResult> GetClosedTrades(int maxAge = 0)
         {
             // Get trades
-            var closedTrades = await Global.DataStore.GetClosedTradesAsync();
-            if (maxAge.HasValue)
-                closedTrades = closedTrades.Where(t => t.CloseDate.HasValue && (DateTime.UtcNow - t.CloseDate.Value).TotalHours <= (double)maxAge).ToList();
+            var since = DateTime.UtcNow.AddHours(-maxAge);
+            var closedTrades = await Global.DataStore.GetClosedTradesAsync(since);
             return new JsonResult(closedTrades);
         }
 

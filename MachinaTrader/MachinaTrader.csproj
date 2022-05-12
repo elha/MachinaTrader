@@ -13,6 +13,11 @@
     <Content Remove="Data\**" />
     <EmbeddedResource Remove="Data\**" />
     <None Remove="Data\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\views\TradingStats.html" />
+    <Content Remove="wwwroot\views\TradingStats.json" />
   </ItemGroup>     
 
   <ItemGroup>

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MachinaTrader.Globals.Structure.Interfaces;
@@ -29,11 +30,10 @@ namespace MachinaTrader.Data.MongoDB
         {
         }
 
-        public async Task<List<Trade>> GetClosedTradesAsync()
+        public async Task<List<Trade>> GetClosedTradesAsync(DateTime since)
         {
-            var trades = await _ordersAdapter.Find(x => !x.IsOpen).ToListAsync();
+            var trades = await _ordersAdapter.Find(x => !x.IsOpen && x.CloseDate > since).ToListAsync();            
             var items = Mapping.Mapper.Map<List<Trade>>(trades);
-
             return items;
         }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MachinaTrader.Globals.Structure.Models;
@@ -13,7 +14,7 @@ namespace MachinaTrader.Globals.Structure.Interfaces
         Task<List<Trade>> GetActiveTradesAsync();
         Task SaveTradesAsync(List<Trade> trades);
         Task SaveTradeAsync(Trade trade);
-        Task<List<Trade>> GetClosedTradesAsync();
+        Task<List<Trade>> GetClosedTradesAsync(DateTime since);
 
         Task SaveWalletTransactionAsync(WalletTransaction walletTransaction);
         Task<List<WalletTransaction>> GetWalletTransactionsAsync();

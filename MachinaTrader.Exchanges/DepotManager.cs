@@ -13,11 +13,26 @@ namespace MachinaTrader.Exchanges
             }
         }
 
+        public static decimal MaxRiskValue { get
+            {
+                return mESTOPIfLossOverPosPercent * PositionSize / 100m;
+            }
+        }
+
+        public static decimal MaxRiskPercentage {  get
+            {
+                return mESTOPIfLossOverPosPercent;
+            }
+        }
+
         public static Dictionary<string, decimal> Balances = new Dictionary<string, decimal>();
+        public static decimal mDCAPosPercent = 0.2m;
+        public static decimal mESTOPIfLossOverPosPercent = 0.15m;
+        public static decimal RiskValue = 0m;
 
         public static void Update()
         {
-            var api = Global.ExchangeApi.GetFullApi().Result;
+            var api = Global.ExchangeApi.GetFullApi();
             Balances = api.GetAmountsAsync().Result;
         }
 
